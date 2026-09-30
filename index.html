@@ -1,0 +1,1787 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>Английский Дани</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one-column phone app, bottom tab bar, full-screen lesson runner over it. Dark-only by user choice. */
+:root{
+  --bg:#0E1316; --surface:#161D21; --surface2:#1F282D; --line:#2B363C;
+  --fg:#E9EEEC; --muted:#8D9B9F; --accent:#F0B44C; --accent-ink:#1B1405; --accent-bg:rgba(240,180,76,.13);
+  --good:#5CC28A; --bad:#E4695A; --warn:#E3C35C; --good-bg:rgba(92,194,138,.14); --bad-bg:rgba(228,105,90,.14);
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:480px;margin:0 auto;padding-inline:16px;padding-block:18px 96px;min-height:100%}
+.app.runner{padding-bottom:28px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:22px} h2{font-size:18px} h3{font-size:15px}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;align-items:center}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:12px 18px;border-radius:var(--r);background:var(--surface2);font-weight:600;width:100%;transition:transform .08s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.small{min-height:40px;padding:8px 14px;font-size:14px;width:auto}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn svg{width:20px;height:20px;flex:none}
+.panel{background:var(--surface);border-radius:var(--r);padding:16px}
+
+/* Home */
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.proto{font-size:11px;padding:4px 8px;border:1px solid var(--line);border-radius:99px;color:var(--muted);white-space:nowrap}
+.now{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.now .panel{padding:14px;min-width:0}
+.now .val{font-weight:700;margin-top:4px}
+.bar{height:6px;border-radius:9px;background:var(--surface2);overflow:hidden;margin-top:10px}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:9px}
+.plan{display:flex;flex-direction:column}
+.plan button{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;text-align:left;padding:12px 4px;border-bottom:1px solid var(--line)}
+.plan button:last-child{border-bottom:0}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700}
+.dot.done{background:var(--good);border-color:var(--good);color:var(--bg)}
+.dot.cur{border-color:var(--accent)}
+.plan .t{font-weight:600}
+.plan .d{font-size:13px;color:var(--muted)}
+.plan .m{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.extras{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.xbtn{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px;border-radius:var(--r);border:1px dashed var(--line);min-width:0}
+.xbtn b{font-size:15px}
+.xbtn span{font-size:13px;color:var(--muted)}
+.xbtn.wide{grid-column:1/-1;border-style:solid;background:var(--surface)}
+
+/* Tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs button{padding:10px 2px 12px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+.tabs button.on{color:var(--accent)}
+.tabs svg{width:22px;height:22px}
+
+/* Runner */
+.rtop{display:flex;align-items:center;gap:8px;margin-bottom:22px}
+.x{width:40px;height:40px;border-radius:12px;background:var(--surface2);display:grid;place-items:center;flex:none;font-size:20px}
+.x[disabled]{opacity:.3;pointer-events:none}
+.x svg{width:18px;height:18px}
+.rprog{flex:1;height:8px;border-radius:9px;background:var(--surface2);overflow:hidden;margin-left:4px}
+.rprog i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.rlabel{font-size:12px;color:var(--muted);white-space:nowrap}
+.q{min-height:130px;display:flex;flex-direction:column;justify-content:center;gap:10px;margin-bottom:18px}
+.q .big{font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1.2;overflow-wrap:anywhere}
+.q .mid{font-size:22px;font-weight:600;line-height:1.35}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{min-height:54px;padding:12px 16px;border-radius:var(--r);background:var(--surface);border:1.5px solid var(--line);text-align:left;font-size:17px;font-weight:500}
+.opt.ok{border-color:var(--good);background:var(--good-bg)}
+.opt.no{border-color:var(--bad);background:var(--bad-bg)}
+.opt[disabled]{cursor:default}
+.fb{margin-top:14px;padding:12px 14px;border-radius:12px;font-weight:600}
+.fb.ok{background:var(--good-bg);color:var(--good)}
+.fb.no{background:var(--bad-bg);color:var(--bad)}
+.fb .sub{color:var(--fg);font-weight:400;margin-top:4px}
+.why{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.why .it{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:15px}
+.why .it b{display:block}
+.why .mk{font-weight:700}
+.why .mk.g{color:var(--good)} .why .mk.r{color:var(--bad)}
+.foot{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.spk{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:99px;background:var(--surface2);font-size:14px;font-weight:600;width:max-content;max-width:100%}
+.spk svg{width:16px;height:16px;flex:none}
+.w{border-bottom:1px dashed var(--muted);cursor:pointer}
+.w:hover{color:var(--accent)}
+.tip{position:fixed;z-index:20;background:var(--fg);color:var(--bg);padding:6px 10px;border-radius:8px;font-size:14px;font-weight:600;pointer-events:none;max-width:240px}
+.card{background:var(--surface);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:12px}
+.card .ru{font-size:18px;color:var(--muted)}
+.ex{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px}
+.sec{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.parts{display:flex;flex-direction:column;gap:8px}
+.part{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline}
+.part code{font-family:var(--f-body);font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 8px;border-radius:6px;white-space:nowrap}
+.pit{background:var(--bad-bg);border-radius:12px;padding:12px 14px;font-size:15px}
+.pit b{color:var(--bad)}
+
+/* Build */
+.sent{min-height:70px;background:var(--surface);border-radius:var(--r);padding:14px 16px;font-size:20px;font-weight:600;line-height:1.4;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:0 .3em;align-items:center}
+.sent .new{color:var(--accent)}
+.sent .caret{display:inline-block;width:2px;height:1.2em;background:var(--accent);animation:blink 1s steps(1) infinite}
+.sent .ph{color:var(--muted);font-weight:400;font-size:15px}
+.sent .tk{background:var(--surface2);border-radius:8px;padding:2px 8px;cursor:pointer}
+@keyframes blink{50%{opacity:0}}
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.tok{padding:11px 15px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-size:17px;font-weight:500}
+.tok.used{visibility:hidden}
+.tok.shake{animation:shake .35s;border-color:var(--bad);background:var(--bad-bg)}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.hintline{margin-top:12px;font-size:15px;color:var(--muted)}
+.hintline b{color:var(--fg)}
+
+/* Theory */
+.theory{display:flex;flex-direction:column;gap:14px}
+.lead{font-size:17px;line-height:1.5}
+mark{background:var(--accent-bg);color:var(--accent);padding:0 4px;border-radius:4px;font-weight:600}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.split .panel{display:flex;flex-direction:column;gap:6px;min-width:0}
+.panel.hl{border:1.5px solid var(--accent)}
+.fbig{font-family:var(--f-display);font-size:22px;font-weight:700}
+.fbig .s{color:var(--accent);font-size:1.25em;text-decoration:underline;text-underline-offset:4px}
+.fbig .gone{color:var(--bad);text-decoration:line-through}
+.rule{border-left:3px solid var(--accent);padding:4px 0 4px 12px;font-size:15px}
+.exl{display:flex;flex-direction:column;gap:10px}
+.exl div{display:flex;flex-direction:column}
+.exl b{font-weight:600}
+.exl span{color:var(--muted);font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:4px 10px;border-radius:99px;background:var(--surface2);font-size:13px;font-weight:600}
+.chip.good{background:var(--good-bg);color:var(--good)}
+.chip.warn{background:rgba(227,195,92,.14);color:var(--warn)}
+.chip.bad{background:var(--bad-bg);color:var(--bad)}
+.center{text-align:center;align-items:center}
+.score{font-family:var(--f-display);font-size:48px;font-weight:700;font-variant-numeric:tabular-nums}
+.tbl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+.tbl b{font-weight:700}
+
+/* Stats, dict */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.statgrid div{background:var(--surface2);border-radius:12px;padding:10px;text-align:center}
+.statgrid b{display:block;font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.statgrid span{font-size:12px;color:var(--muted)}
+.tense{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.tense:last-child{border-bottom:0}
+.tense .bar{grid-column:1/-1;margin-top:0}
+.tense.locked{opacity:.4}
+.list{display:flex;flex-direction:column}
+.li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.li .en{font-weight:600}
+.li .ru{font-size:14px;color:var(--muted)}
+.li .acts{display:flex;gap:6px}
+.icon-btn{width:38px;height:38px;border-radius:10px;background:var(--surface2);display:grid;place-items:center}
+.icon-btn svg{width:18px;height:18px}
+input[type=text]{width:100%;min-height:48px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);font:inherit}
+textarea{width:100%;min-height:320px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-size:14px;line-height:1.5;resize:vertical}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--surface2);padding:4px;border-radius:12px}
+.seg button{padding:10px;border-radius:9px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border-radius:var(--r);padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:110px;min-width:0}
+.tile .t{font-weight:700}
+.tile .d{font-size:13px;color:var(--muted)}
+.flip{min-height:250px;cursor:pointer;justify-content:center;text-align:center;align-items:center}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;z-index:30;font-size:14px;max-width:90vw}
+a{color:var(--accent)}
+/* Flip card */
+.fcard{min-height:300px;cursor:pointer;border:1.5px solid var(--line);transition:border-color .2s}
+.fcard.is-back{border-color:var(--accent)}
+.fc-front{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;text-align:center;padding-block:30px}
+.big-en{font-family:var(--f-display);font-size:30px;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.fc-ru{font-size:22px;font-weight:600}
+.fc-tr{font-size:18px;color:var(--accent);letter-spacing:.02em}
+/* Dictionary folders */
+.folders{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.folder{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:6px 10px;text-align:left;background:var(--surface);border-radius:var(--r);padding:14px;min-width:0;position:relative}
+.folder .ficon{width:36px;height:36px;border-radius:10px;background:var(--accent-bg);color:var(--accent);display:grid;place-items:center;grid-row:1/3}
+.folder .ficon svg{width:20px;height:20px}
+.folder b{display:block;font-size:14px;letter-spacing:-.01em;overflow-wrap:anywhere}
+.folder{grid-template-columns:30px 1fr}.folder .ficon{width:30px;height:30px}
+.folder span span{font-size:12px;color:var(--muted)}
+.folder > span:nth-child(2) span{display:block;font-size:12px;color:var(--muted);line-height:1.3}
+.fcount{grid-column:2;font-size:12px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.assoc-in{min-height:90px;font-size:15px;background:var(--surface2)}
+.assoc-txt{font-size:16px;background:var(--accent-bg);border-radius:10px;padding:10px 12px}
+@media (max-width:360px){.folders{grid-template-columns:1fr}}
+
+/* Mistakes */
+.ecard{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.eq{font-weight:600}
+.ey,.er{display:grid;grid-template-columns:52px 1fr;gap:8px;font-size:15px}
+.ey span,.er span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding-top:3px}
+.ey{color:var(--bad)} .er{color:var(--good)}
+.ew{font-size:14px;background:var(--surface2);border-radius:10px;padding:10px 12px}
+details summary{list-style:none} details summary::-webkit-details-marker{display:none}
+/* Path */
+.pathcard{display:flex;gap:12px;align-items:center;width:100%;background:var(--surface);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.pathcard b{display:block;font-size:15px;margin-top:2px}
+.stage{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r);padding:12px 14px;margin-top:22px}
+.stage b{display:block;font-family:var(--f-display);font-size:14px}
+.stage span{font-size:12px;color:var(--muted)}
+.stage.scur{background:var(--accent);color:var(--accent-ink)} .stage.scur span,.stage.scur .chip{color:var(--accent-ink)} .stage.scur .chip{background:rgba(0,0,0,.14)}
+.stage.sdone{background:var(--good-bg)}
+.path{display:flex;flex-direction:column;align-items:center;gap:6px;padding-block:18px 4px}
+.pstep{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;width:150px}
+.pnode{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--surface2);color:var(--muted);box-shadow:0 5px 0 #0a0e10;flex:none}
+.pnode svg{width:26px;height:26px}
+.pnode.done{background:var(--good);color:var(--bg);box-shadow:0 5px 0 #3b8a5f}
+.pnode.cur{width:74px;height:74px;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 0 #a8792a,0 0 0 7px var(--accent-bg)}
+.pnode.cur svg{width:32px;height:32px}
+.pnode.small{width:36px;height:36px;box-shadow:none;font-family:var(--f-display);font-weight:700;font-size:14px}
+.pnode.trophy{border-radius:18px}
+.pnode.trophy.lock{color:var(--muted)}
+.pnode:active{transform:translateY(3px)}
+.plabel{text-align:center;display:flex;flex-direction:column;max-width:150px}
+.plabel b{font-size:13px}
+.plabel span{font-size:11px;color:var(--muted);line-height:1.25}
+.pbubble{background:var(--fg);color:var(--bg);font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;position:relative;margin-bottom:4px;animation:bob 1.6s ease-in-out infinite}
+.pbubble:after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--fg)}
+@keyframes bob{50%{transform:translateY(-4px)}}
+[hidden]{display:none!important}
+.kchips{display:flex;flex-wrap:wrap;gap:8px}
+.kchip{display:flex;flex-direction:column;align-items:flex-start;padding:8px 12px;border-radius:12px;background:var(--surface2);border:1.5px solid var(--line);text-align:left}
+.kchip b{font-size:15px}
+.kchip span{font-size:12px;color:var(--muted)}
+.kchip.on{border-color:var(--good);background:var(--good-bg)}
+.kchip.on b{color:var(--good)}
+.xbtn.lwt{border-style:solid;border-color:var(--accent);background:var(--accent-bg)}
+.xbtn.lwt b{color:var(--accent)}
+.onb{display:flex;flex-direction:column;gap:4px;text-align:left;width:100%;padding:14px 16px;border-radius:var(--r);background:var(--good-bg);border:1.5px solid var(--good);margin-bottom:10px}
+.onb b{color:var(--good)} .onb span{font-size:13px;color:var(--fg)}
+.gstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gstats div{background:var(--surface);border-radius:12px;padding:10px;text-align:center}
+.gstats b{display:block;font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.gstats span{font-size:11px;color:var(--muted);line-height:1.2;display:block}
+/* Grammar */
+.glist{display:flex;flex-direction:column;gap:8px}
+.gitem{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;text-align:left;background:var(--surface);border-radius:var(--r);padding:14px}
+.gnum{width:30px;height:30px;border-radius:9px;background:var(--accent-bg);color:var(--accent);display:grid;place-items:center;font-family:var(--f-display);font-size:13px;font-weight:700}
+.gitem b{display:block}
+.gitem span{font-size:13px;color:var(--muted)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-inline:-16px;padding-inline:16px}
+table.t{border-collapse:collapse;width:100%;font-size:14px}
+table.t th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.t td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t td.cur{background:var(--accent-bg)}
+table.t .f{font-weight:700}
+.tgrid{min-width:560px}
+.tcard{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px}
+.tcard.now{border:1.5px solid var(--accent)}
+.tcard .nm{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.tcard .nm b{font-family:var(--f-display);font-size:16px}
+.tcard .runame{color:var(--accent);font-weight:600;font-size:14px}
+.tcard code{font-family:var(--f-body);font-weight:700;background:var(--surface2);padding:2px 8px;border-radius:6px}
+.snd{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:start}
+.snd:last-child{border-bottom:0}
+.snd .sym{font-size:24px;font-weight:700;color:var(--accent);text-align:center;background:var(--surface2);border-radius:10px;padding:6px 0}
+.pyr{display:flex;flex-direction:column;align-items:center;gap:6px}
+.pyr div{border-radius:10px;padding:10px 12px;text-align:center;font-size:14px}
+.pyr .p1{width:46%;background:var(--accent);color:var(--accent-ink)}
+.pyr .p2{width:72%;background:var(--accent-bg);border:1px solid var(--accent)}
+.pyr .p3{width:100%;background:var(--surface2)}
+.wo{display:flex;flex-wrap:wrap;gap:6px}
+.wo span{padding:6px 10px;border-radius:8px;font-weight:600;font-size:15px}
+.wo .c1{background:rgba(92,194,138,.16);color:var(--good)}
+.wo .c2{background:var(--accent-bg);color:var(--accent)}
+.wo .c3{background:var(--surface2)}
+.wo .c4{background:rgba(227,195,92,.14);color:var(--warn)}
+.wo .c5{background:var(--bad-bg);color:var(--bad)}
+.wo-l{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.gsec{display:flex;flex-direction:column;gap:10px}
+.gsec h2{margin-top:10px}
+@media (max-width:370px){.split,.now,.extras{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="view" class="app"></div>
+<nav class="tabs" id="tabs"><div class="in">
+  <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Главная</button>
+  <button data-tab="dict"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h11"/></svg>Словарь</button>
+  <button data-tab="grammar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2"/><path d="M8 7h7M8 11h5"/></svg>Грамматика</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Статистика</button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Настройки</button>
+</div></nav>
+
+<script>
+/* ================= CONTENT ================= */
+const TOPIC={title:"Знакомство и о себе",total:20};
+/* Все 45 тем плана: английское название для папки, русское — подписью */
+const TOPIC_NAMES=[["About Me","Знакомство и о себе"],["Family & People","Семья и люди"],["Daily Routine","Распорядок дня и время"],["Home","Дом и быт"],["Food & Cafe","Еда и кафе"],["Shopping","Магазин и покупки"],["Online Shopping 1","Онлайн-покупки и сайты, часть 1"],["City & Transport","Город и транспорт"],["Weather","Погода"],
+ ["Hobbies","Хобби и свободное время"],["Sport","Спорт"],["Feelings","Чувства и настроение"],["Health & Body","Здоровье и тело"],["Clothes","Одежда"],["Renting","Аренда и жильё"],["Bank & Documents","Банк и документы"],["Phone & Social Media","Телефон, интернет, соцсети"],["Calls & Texting","Телефонный разговор и переписка"],["Slang 1","Сленг, часть 1"],["Travel","Путешествия"],["Friends & Relationships","Друзья и отношения"],["Dating 1","Свидания и флирт, часть 1"],["Character & Looks","Характер и внешность"],["Parties & Nightlife","Вечеринки и ночная жизнь"],["Gaming","Игры и гейминг"],
+ ["Work","Работа"],["Money","Деньги"],["Online Shopping 2","Онлайн-покупки и сайты, часть 2"],["Problems","Проблемы и ситуации"],["Study","Учёба"],["Movies & Music","Фильмы, музыка, развлечения"],["Slang 2","Сленг, часть 2"],["Holidays & Events","Праздники и события"],["Nature & Animals","Природа и животные"],["Dating 2","Свидания и флирт, часть 2"],["Opinions","Мнения и споры"],["Plans & Dreams","Планы и мечты"],["Real Estate","Недвижимость"],["Business & Sales","Бизнес, продажи, переговоры"],["Technology","Технологии"],["News & Society","Новости и общество"],
+ ["Deep Emotions","Эмоции глубже"],["Future","Время и будущее"],["Internet Culture","Интернет-культура"],["Slang 3","Сленг, часть 3"]];
+const WORDS=[
+ ["name","имя","My name is Danya.","Меня зовут Даня."],
+ ["live","жить","I live in Thailand.","Я живу в Таиланде."],
+ ["country","страна","Russia is a big country.","Россия — большая страна."],
+ ["city","город","I like this city.","Мне нравится этот город."],
+ ["family","семья","My family lives in Russia.","Моя семья живёт в России."],
+ ["brother","брат","My brother has a company.","У моего брата есть компания."],
+ ["parents","родители","My parents are in Russia.","Мои родители в России."],
+ ["friend","друг","He is my friend.","Он мой друг."],
+ ["job","работа","I have a job.","У меня есть работа."],
+ ["student","студент","I was a student.","Я был студентом."],
+ ["language","язык","English is a useful language.","Английский — полезный язык."],
+ ["speak","говорить (на языке)","I speak Russian.","Я говорю по-русски."],
+ ["learn","учить","I learn English every day.","Я учу английский каждый день."],
+ ["hobby","хобби","My hobby is games.","Моё хобби — игры."],
+ ["free time","свободное время","I have a lot of free time.","У меня много свободного времени."],
+ ["meet","знакомиться, встречать","Nice to meet you.","Приятно познакомиться."],
+ ["be born","родиться","I was born in Russia.","Я родился в России."],
+ ["years old","лет (о возрасте)","I am 18 years old.","Мне 18 лет."],
+ ["alone","один, в одиночку","I live alone.","Я живу один."],
+ ["age","возраст","Age is just a number.","Возраст — это просто число."]
+].map((w,i)=>({id:"w"+i,en:w[0],ru:w[1],ex:w[2],exRu:w[3]}));
+/* American transcription (озвучка тоже американская). mn — мнемоническая ассоциация, добавим позже */
+const TR={"name":"neɪm","live":"lɪv","country":"ˈkʌntri","city":"ˈsɪti","family":"ˈfæməli","brother":"ˈbrʌðər","parents":"ˈperənts","friend":"frend","job":"dʒɑːb","student":"ˈstuːdənt",
+ "language":"ˈlæŋɡwɪdʒ","speak":"spiːk","learn":"lɜːrn","hobby":"ˈhɑːbi","free time":"friː taɪm","meet":"miːt","be born":"bi bɔːrn","years old":"jɪrz oʊld","alone":"əˈloʊn","age":"eɪdʒ"};
+WORDS.forEach(w=>{w.tr="["+TR[w.en]+"]"});
+const TOPICS=TOPIC_NAMES.map((n,i)=>({id:"t"+i,en:n[0],ru:n[1],words:i===0?WORDS:[]}));
+
+/* Constructions: one at a time. grammar = разбор по частям, pit = чем не путать, fills = фразы для тренажёра */
+const CONS=[
+ {id:"c0",en:"I'm from…",say:"I'm from",ru:"Я из…",
+  simple:"Говоришь, откуда ты родом: страна или город, где ты родился и вырос.",
+  grammar:[["I'm","= I am, «я есть». По-русски «есть» пропускаем, а в английском без него нельзя."],["from","«из». После него — страна или город."],["he / she","вместо I'm говорим is: My brother is from Russia."]],
+  pit:"<b>Не говори «I from Russia».</b> Без ’m (am) фраза неправильная.",
+  ex:[["I'm from Russia.","Я из России."],["I'm from Moscow, but I live in Thailand.","Я из Москвы, но живу в Таиланде."],["Where are you from?","Откуда ты?"]],
+  q:{situation:"Тебя спросили, откуда ты родом",options:["I'm from Russia.","I live in Russia.","I from Russia."],answer:0,
+     notes:["«Я из России» — откуда ты родом.","«Я живу в России» — где живёшь сейчас. Это другой вопрос.","Не хватает ’m (am). Так сказать нельзя."]},
+  builds:[{ru:"Я из России, но живу здесь.",chunks:["I'm from","Russia,","but","I live","here"],extra:["I from"],why:"I'm from — откуда ты родом, I live — где живёшь сейчас. Без ’m нельзя."},
+          {ru:"Мой брат из Москвы.",chunks:["My brother","is from","Moscow"],extra:["I'm from"],why:"Про брата (he) говорим is from, не I'm from."}],
+  fills:[["I'm from Russia.","Я из России."],["I'm from Moscow.","Я из Москвы."],["My brother is from Russia.","Мой брат из России."],["My parents are from Russia.","Мои родители из России."],["My friend is from Thailand.","Мой друг из Таиланда."],["Where are you from?","Откуда ты?"]]},
+ {id:"c1",en:"I live in…",say:"I live in",ru:"Я живу в…",
+  simple:"Где ты живёшь сейчас. Не путай с from: from — откуда ты родом.",
+  grammar:[["I live","«я живу». Просто глагол live, без am."],["in","«в» — перед городом или страной."],["he / she","добавляем -s: My brother lives in Thailand."]],
+  pit:"<b>Не говори «I am live».</b> С обычными глаголами am не нужен: I live.",
+  ex:[["I live in Thailand.","Я живу в Таиланде."],["I live in a big city.","Я живу в большом городе."],["My family lives in Russia.","Моя семья живёт в России."]],
+  q:{situation:"Хочешь сказать, где живёшь сейчас",options:["I'm from Thailand.","I am live in Thailand.","I live in Thailand."],answer:2,
+     notes:["Это «я из Таиланда» — будто ты там родился.","Лишнее am. С глаголом live оно не нужно.","«Я живу в Таиланде»."]},
+  builds:[{ru:"Я живу в большом городе.",chunks:["I live","in","a big city"],extra:["am"],why:"I live — без am. a — «какой-то один», ставится перед big city."},
+          {ru:"Моя семья живёт в России.",chunks:["My family","lives","in Russia"],extra:["live"],why:"Семья = она (she), поэтому lives с -s."}],
+  fills:[["I live in Thailand.","Я живу в Таиланде."],["I live in a big city.","Я живу в большом городе."],["I live alone.","Я живу один."],["My brother lives in Thailand.","Мой брат живёт в Таиланде."],["My family lives in Russia.","Моя семья живёт в России."],["My parents live in Russia.","Мои родители живут в России."]]},
+ {id:"c2",en:"I've been here for…",say:"I've been here for",ru:"Я здесь уже…",
+  simple:"Ты оказался здесь в прошлом и до сих пор здесь. По-русски в таких фразах говорим «уже».",
+  grammar:[["I've","= I have. Здесь have не значит «иметь», это часть конструкции."],["been","форма глагола be («быть»). have been = «был и до сих пор есть»."],["for","«в течение». После for — сколько времени: two months, a year."]],
+  pit:"<b>I'm here for three months</b> — «я здесь на три месяца», это план: потом уедешь. <b>I've been here for three months</b> — «я здесь уже три месяца».",
+  ex:[["I've been here for two months.","Я здесь уже два месяца."],["I've been in Thailand for a year.","Я в Таиланде уже год."],["How long have you been here?","Сколько ты уже здесь?"]],
+  q:{situation:"Хочешь сказать, что ты здесь уже три месяца",options:["I'm here for three months.","I've been here for three months.","I was here for three months."],answer:1,
+     notes:["«Я здесь на три месяца» — про план, сколько ещё пробудешь.","«Я здесь уже три месяца» — приехал и до сих пор здесь.","«Я был здесь три месяца» — ты уже уехал."]},
+  builds:[{ru:"Я здесь уже два месяца.",chunks:["I've been","here","for","two months"],extra:["I'm"],why:"«Уже» = I've been … for. I'm here for — это «я здесь на…», про план."},
+          {ru:"Я в Таиланде уже год.",chunks:["I've been","in Thailand","for","a year"],extra:["since"],why:"После for — сколько времени: for a year, for two months."}],
+  fills:[["I've been here for two months.","Я здесь уже два месяца."],["I've been in Thailand for a year.","Я в Таиланде уже год."],["I've been here for three months.","Я здесь уже три месяца."],["I've been in this city for a month.","Я в этом городе уже месяц."],["How long have you been here?","Сколько ты уже здесь?"]]},
+ {id:"c3",en:"I'm into…",say:"I'm into",ru:"Я увлекаюсь…",
+  simple:"Твоё увлечение, то, от чего ты кайфуешь. Звучит разговорнее и сильнее, чем I like.",
+  grammar:[["I'm","= I am."],["into","дословно «внутрь». I'm into = «я погружён в» → «я увлекаюсь»."],["после into","предмет (music, games) или глагол с -ing (playing)."]],
+  pit:"<b>Не говори «I'm into play».</b> После into — music, games или playing.",
+  ex:[["I'm into football.","Я увлекаюсь футболом."],["I'm into music and games.","Я увлекаюсь музыкой и играми."],["What are you into?","Чем ты увлекаешься?"]],
+  q:{situation:"Хочешь сказать, что увлекаешься играми",options:["I'm into games.","I'm into play games.","I'm from games."],answer:0,
+     notes:["«Я увлекаюсь играми».","После into глагол нужен с -ing: playing games.","from — «из». «Я из игр» — бессмыслица."]},
+  builds:[{ru:"Я увлекаюсь музыкой.",chunks:["I'm into","music"],extra:["play"],why:"После into сразу то, чем увлекаешься: music."},
+          {ru:"Чем ты увлекаешься?",chunks:["What","are you","into"],extra:["do you"],why:"В вопросе into уходит в самый конец: What are you into?"}],
+  fills:[["I'm into games.","Я увлекаюсь играми."],["I'm into music.","Я увлекаюсь музыкой."],["I'm into football.","Я увлекаюсь футболом."],["I'm into guitar.","Я увлекаюсь гитарой."],["I'm into English.","Я увлекаюсь английским."],["My brother is into football.","Мой брат увлекается футболом."],["What are you into?","Чем ты увлекаешься?"]]},
+ {id:"c4",en:"I used to…",say:"I used to",ru:"Раньше я (обычно)…",
+  simple:"То, что ты делал раньше регулярно, а сейчас уже нет.",
+  grammar:[["used to","одно целое, значит «раньше было». Отдельно слова не переводим."],["+ глагол","после to — глагол в словарной форме: play, live. Не played и не playing."]],
+  pit:"<b>I used to play</b> — раньше играл, сейчас нет. <b>I played</b> — просто играл когда-то. <b>I used to played</b> — ошибка.",
+  ex:[["I used to live in Russia.","Раньше я жил в России."],["I used to play football.","Раньше я играл в футбол."],["I used to study in college.","Раньше я учился в колледже."]],
+  q:{situation:"Хочешь сказать, что раньше жил в России, а теперь нет",options:["I live in Russia.","I used to live in Russia.","I used to lived in Russia."],answer:1,
+     notes:["«Я живу в России» — сейчас.","«Раньше я жил в России» — теперь нет.","После used to глагол без -ed: live, не lived."]},
+  builds:[{ru:"Раньше я играл в футбол.",chunks:["I used to","play","football"],extra:["played"],why:"После used to — глагол без окончаний: play, не played."},
+          {ru:"Раньше я жил с родителями.",chunks:["I used to","live","with my parents"],extra:["living"],why:"used to + live. Не living и не lived."}],
+  fills:[["I used to live in Russia.","Раньше я жил в России."],["I used to play football.","Раньше я играл в футбол."],["I used to study in college.","Раньше я учился в колледже."],["I used to live with my parents.","Раньше я жил с родителями."],["I used to speak only Russian.","Раньше я говорил только по-русски."]]}
+];
+
+/* ---------- Present Simple: пошаговая теория, после каждого шага свои задания ---------- */
+const PS_STEPS=[
+ {theory:`<div class="eyebrow">Present Simple · шаг 1 из 5</div><h1>Что это за время</h1>
+  <p class="lead">Present Simple — «настоящее простое». Им говорят о том, что бывает <mark>всегда</mark> или <mark>регулярно</mark>: факты о тебе, привычки, то, что повторяется.</p>
+  <div class="panel exl">
+   <div><b>I live in Thailand.</b><span>Я живу в Таиланде. Факт о тебе.</span></div>
+   <div><b>I learn English every day.</b><span>Я учу английский каждый день. Привычка.</span></div>
+   <div><b>My brother speaks English.</b><span>Мой брат говорит по-английски. Умеет, это всегда так.</span></div>
+  </div>
+  <p class="muted">Для того, что происходит прямо в эту секунду, есть другое время. Оно будет следующим.</p>`,tasks:[]},
+ {theory:`<div class="eyebrow">Present Simple · шаг 2 из 5</div><h1>Утверждение</h1>
+  <p class="lead">Глагол берём как в словаре. Меняется он только в одном случае.</p>
+  <div class="split">
+   <div class="panel"><div class="eyebrow">I · you · we · they</div><div class="fbig">I live</div><div class="muted" style="font-size:14px">я, ты, мы, они. Глагол без изменений.</div></div>
+   <div class="panel hl"><div class="eyebrow">he · she · it</div><div class="fbig">he live<span class="s">s</span></div><div class="muted" style="font-size:14px">он, она, оно. Добавь <b style="color:var(--accent)">-s</b>.</div></div>
+  </div>
+  <div class="rule">Говоришь про <b>одного человека, но не про себя и не про собеседника</b> (my brother, my friend, she) → глагол с <b>-s</b>.<br>Про нескольких (my parents, we) → без -s.</div>
+  <div class="panel tbl"><span>I learn</span><b>he learn<span style="color:var(--accent)">s</span></b><span>I speak</span><b>she speak<span style="color:var(--accent)">s</span></b><span>I live</span><b>my brother live<span style="color:var(--accent)">s</span></b><span>we live</span><b>my parents live</b></div>`,
+  tasks:["a1","a2","a3","a4"]},
+ {theory:`<div class="eyebrow">Present Simple · шаг 3 из 5</div><h1>Отрицание</h1>
+  <p class="lead">Чтобы сказать «не», перед глаголом ставим <mark>don't</mark> или <mark>doesn't</mark>.</p>
+  <div class="split">
+   <div class="panel"><div class="eyebrow">I · you · we · they</div><div class="fbig">I don't live</div><div class="muted" style="font-size:14px">don't = do not</div></div>
+   <div class="panel hl"><div class="eyebrow">he · she · it</div><div class="fbig">he doesn't live</div><div class="muted" style="font-size:14px">doesn't = does not</div></div>
+  </div>
+  <div class="rule">Главная ловушка: -s <b>переходит в doesn't</b>, а глагол остаётся без -s.<br><span class="fbig" style="font-size:17px">he doesn't live<span class="gone">s</span></span></div>`,
+  tasks:["b1","b2","b3"]},
+ {theory:`<div class="eyebrow">Present Simple · шаг 4 из 5</div><h1>Вопрос</h1>
+  <p class="lead">Вопрос начинаем с <mark>Do</mark> или <mark>Does</mark>. Порядок: Do/Does → кто → глагол.</p>
+  <div class="split">
+   <div class="panel"><div class="eyebrow">I · you · we · they</div><div class="fbig">Do you live…?</div></div>
+   <div class="panel hl"><div class="eyebrow">he · she · it</div><div class="fbig">Does he live…?</div></div>
+  </div>
+  <div class="rule">Как и в отрицании, -s <b>переходит в does</b>. Глагол без -s.<br><span class="fbig" style="font-size:17px">Does he live<span class="gone">s</span>?</span></div>
+  <div class="panel exl"><div><b>You live alone. → Do you live alone?</b><span>Ты живёшь один? </span></div><div><b>She speaks English. → Does she speak English?</b><span>Она говорит по-английски?</span></div></div>`,
+  tasks:["c1","c2","c3"]},
+ {theory:`<div class="eyebrow">Present Simple · шаг 5 из 5</div><h1>Слова-подсказки</h1>
+  <p class="lead">Если во фразе есть такие слова, почти всегда нужен Present Simple.</p>
+  <div class="panel tbl"><b>every day</b><span>каждый день</span><b>usually</b><span>обычно</span><b>often</b><span>часто</span><b>always</b><span>всегда</span><b>sometimes</b><span>иногда</span><b>never</b><span>никогда</span></div>
+  <div class="rule">Слова usually, often, always, never ставим <b>перед глаголом</b>: I often speak English. А every day — в конце: I learn English every day.</div>`,
+  tasks:["d1","d2","d3"]}
+];
+const PS_SHEET=`<div class="eyebrow">Шпаргалка</div><h1>Present Simple</h1>
+ <p class="lead">То, что бывает всегда или регулярно.</p>
+ <div class="panel stack"><div class="eyebrow">Утверждение</div><div class="fbig" style="font-size:19px">I live · he live<span class="s">s</span></div></div>
+ <div class="panel stack"><div class="eyebrow">Отрицание</div><div class="fbig" style="font-size:19px">I don't live · he doesn't live</div></div>
+ <div class="panel stack"><div class="eyebrow">Вопрос</div><div class="fbig" style="font-size:19px">Do you live? · Does he live?</div></div>
+ <div class="rule">-s только у he/she/it в утверждении. В отрицании и вопросе он переходит в does.</div>`;
+
+const TI=[ /* tense items — only words and constructions from the lesson */
+ {id:"a1",type:"choice",hint:"Выбери форму",prompt:"My brother ___ in Thailand.",options:["live","lives"],answer:1,notes:["Нет -s, а брат — это он (he).","Брат = he, поэтому -s."]},
+ {id:"a2",type:"choice",hint:"Выбери форму",prompt:"I ___ English every day.",options:["learn","learns"],answer:0,notes:["I — глагол без изменений.","-s только для he/she/it, а тут I."]},
+ {id:"a3",type:"choice",hint:"Выбери форму",prompt:"My parents ___ Russian.",options:["speaks","speak"],answer:1,notes:["Родители — это они (they), -s не нужен.","Родители = they, поэтому без -s."]},
+ {id:"a4",type:"choice",hint:"Переведи",prompt:"Моя семья живёт в России.",ru:true,options:["My family live in Russia.","My family lives in Russia.","My family is live in Russia."],answer:1,notes:["Семья — одна, как she. Нужен -s.","Семья = she, поэтому lives.","Лишнее is. С глаголом live оно не нужно."]},
+ {id:"b1",type:"choice",hint:"Сделай отрицание",prompt:"My friend lives alone.",options:["My friend doesn't lives alone.","My friend don't live alone.","My friend doesn't live alone."],answer:2,notes:["-s уже ушёл в doesn't, у live его быть не должно.","Друг = he, нужен doesn't.","doesn't + live без -s."]},
+ {id:"b2",type:"choice",hint:"Сделай отрицание",prompt:"I live in a big city.",options:["I don't live in a big city.","I doesn't live in a big city."],answer:0,notes:["I → don't.","doesn't только для he/she/it."]},
+ {id:"b3",type:"build",hint:"Собери фразу",ru:"Мой брат не говорит по-английски.",chunks:["My brother","doesn't","speak","English"],extra:["speaks"],why:"Брат = he → doesn't. После doesn't глагол без -s: speak."},
+ {id:"c1",type:"choice",hint:"Сделай вопрос",prompt:"He speaks English.",options:["Does he speak English?","Do he speaks English?","Does he speaks English?"],answer:0,notes:["Does + he + speak без -s.","he → Does, не Do.","-s уже в does, у speak его нет."]},
+ {id:"c2",type:"choice",hint:"Сделай вопрос",prompt:"You live alone.",options:["Does you live alone?","Do you live alone?"],answer:1,notes:["you → Do, не Does.","you → Do."]},
+ {id:"c3",type:"build",hint:"Собери вопрос",ru:"Ты говоришь по-английски?",chunks:["Do","you","speak","English"],extra:["Does"],why:"Вопрос начинается с Do. you → Do, не Does."},
+ {id:"d1",type:"build",hint:"Собери фразу",ru:"Я учу английский каждый день.",chunks:["I","learn","English","every day"],extra:["learns"],why:"I — глагол без -s. every day в конце."},
+ {id:"d2",type:"choice",hint:"Где слово often?",prompt:"Я часто говорю по-английски.",ru:true,options:["I often speak English.","I speak often English.","Often I speaks English."],answer:0,notes:["often — перед глаголом.","often не ставят между глаголом и English.","I → speak без -s."]},
+ {id:"d3",type:"say",ru:"Мой брат живёт один.",en:"My brother lives alone.",pit:"Брат = he, поэтому lives с -s."},
+ /* test */
+ {id:"x1",type:"choice",hint:"Выбери форму",prompt:"My friend ___ Russian.",options:["speak","speaks"],answer:1,notes:["Друг = he, нужен -s.","he → speaks."]},
+ {id:"x2",type:"choice",hint:"Выбери форму",prompt:"We ___ in a big city.",options:["live","lives"],answer:0,notes:["we → без -s.","-s только для he/she/it."]},
+ {id:"x3",type:"choice",hint:"Выбери форму",prompt:"She ___ English every day.",options:["learn","learns"],answer:1,notes:["she → нужен -s.","she → learns."]},
+ {id:"x4",type:"choice",hint:"Сделай отрицание",prompt:"My parents live in Thailand.",options:["My parents doesn't live in Thailand.","My parents don't live in Thailand."],answer:1,notes:["Родители = they → don't.","they → don't."]},
+ {id:"x5",type:"choice",hint:"Сделай вопрос",prompt:"She speaks English.",options:["Does she speaks English?","Do she speak English?","Does she speak English?"],answer:2,notes:["-s уже в does.","she → Does.","Does + she + speak."]},
+ {id:"x6",type:"choice",hint:"Переведи",prompt:"Он не говорит по-английски.",ru:true,options:["He don't speak English.","He doesn't speak English.","He doesn't speaks English."],answer:1,notes:["he → doesn't.","doesn't + speak.","После doesn't глагол без -s."]},
+ {id:"x7",type:"choice",hint:"Переведи",prompt:"Мои родители живут в России.",ru:true,options:["My parents live in Russia.","My parents lives in Russia."],answer:0,notes:["they → без -s.","Родители — они, -s не нужен."]},
+ {id:"x8",type:"build",hint:"Собери фразу",ru:"Она не живёт одна.",chunks:["She","doesn't","live","alone"],extra:["lives"],why:"she → doesn't, глагол без -s."},
+ {id:"x9",type:"build",hint:"Собери вопрос",ru:"Твои родители говорят по-английски?",chunks:["Do","your parents","speak","English"],extra:["Does"],why:"Родители = they → Do."},
+ {id:"x10",type:"choice",hint:"Выбери начало",prompt:"___ you learn English every day?",options:["Do","Does","Are"],answer:0,notes:["you → Do.","Does — для he/she/it.","Are не ставят с обычным глаголом learn."]}
+];
+const TENSE_ITEMS=Object.fromEntries(TI.map(t=>[t.id,t]));
+const PS_TEST_IDS=["x1","x2","x3","x4","x5","x6","x7","x8","x9","x10"];
+const TENSES=["Present Simple","Present Continuous","Past Simple","Future: will / going to","Present Perfect","Past Continuous"];
+
+const LINK=[
+ {type:"say",ru:"Я из России, но живу в Таиланде.",en:"I'm from Russia, but I live in Thailand.",pit:"from — откуда родом, live in — где живёшь сейчас."},
+ {type:"say",ru:"Я здесь уже два месяца.",en:"I've been here for two months.",pit:"Не «I'm here for two months» — это «я здесь на два месяца», про план."},
+ {type:"build",hint:"Собери фразу",ru:"Мой брат живёт в Таиланде.",chunks:["My brother","lives","in Thailand"],extra:["live"],why:"Брат = he → lives."},
+ {type:"say",ru:"Я увлекаюсь играми и музыкой.",en:"I'm into games and music."},
+ {type:"say",ru:"Раньше я учился в колледже.",en:"I used to study in college.",pit:"После used to — study, не studied."},
+ {type:"build",hint:"Собери фразу",ru:"Раньше я жил в России, но сейчас я живу здесь.",chunks:["I used to","live","in Russia,","but now","I live","here"],extra:["lived"],why:"used to + live — раньше. I live — сейчас."},
+ {type:"say",ru:"Моя семья живёт в России.",en:"My family lives in Russia.",pit:"Семья = she → lives."},
+ {type:"say",ru:"Привет, меня зовут Даня. Мне 18 лет.",en:"Hi, my name is Danya. I'm 18 years old."},
+ {type:"say",ru:"Мой брат не говорит по-русски?",en:"Doesn't my brother speak Russian?",skip:true}
+].filter(x=>!x.skip);
+
+const GLOSS={i:"я",you:"ты, вы",he:"он",she:"она",it:"это, оно",we:"мы",they:"они",my:"мой",your:"твой",his:"его",her:"её",
+ "i'm":"я (есть) = I am","i've":"= I have","don't":"не (do not)","doesn't":"не (для he/she/it)",
+ is:"есть, является",am:"есть (с I)",are:"есть (с you/we/they)",was:"был",were:"были",be:"быть",been:"был (форма be)",have:"иметь",has:"имеет",
+ a:"(один, какой-то)",the:"(этот, тот)",and:"и",but:"но",in:"в",on:"на",from:"из",to:"к, в",for:"в течение; для",with:"с",into:"в; be into — увлекаться",
+ do:"вспом. слово для вопроса",does:"вспом. для he/she/it",not:"не",where:"где",how:"как",long:"долго",what:"что",only:"только",now:"сейчас",
+ name:"имя",live:"жить",lives:"живёт",country:"страна",city:"город",family:"семья",brother:"брат",parents:"родители",friend:"друг",job:"работа",student:"студент",
+ language:"язык",speak:"говорить",speaks:"говорит",learn:"учить",learns:"учит",hobby:"хобби",free:"свободный",time:"время",meet:"знакомиться",nice:"приятно",born:"рождённый",years:"лет, годы",year:"год",old:"старый; лет",alone:"один",age:"возраст",
+ just:"просто",number:"число",big:"большой",useful:"полезный",like:"нравиться",this:"этот",company:"компания",lot:"много (a lot of)",
+ english:"английский",russian:"русский",russia:"Россия",thailand:"Таиланд",moscow:"Москва",
+ every:"каждый",day:"день",usually:"обычно",often:"часто",always:"всегда",never:"никогда",sometimes:"иногда",
+ play:"играть",games:"игры",football:"футбол",music:"музыка",guitar:"гитара",study:"учиться",college:"колледж",used:"used to — раньше (было)",here:"здесь",
+ months:"месяцев",month:"месяц",two:"два",three:"три",hi:"привет",danya:"Даня"};
+
+/* ================= STATE ================= */
+const KEY="eng-dani-v2"; /* новый ключ = чистый старт для всех */
+const today=(()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")})();
+function fresh(){return {savedAt:0,words:{},cons:{},tense:{ps:{stage:0,answers:[]}},mistakes:[],custom:[],assoc:{},errors:[],topicsDone:[],settings:{threshold:80},day:{date:today,done:{}}}}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){S=fresh()}
+if(!S.day||S.day.date!==today)S.day={date:today,done:{}};
+S.assoc=S.assoc||{};S.custom=S.custom||[];S.errors=S.errors||[];S.topicsDone=S.topicsDone||[];
+S.mistakes=(S.mistakes||[]).filter(m=>m.kind!=="tense"||TENSE_ITEMS[m.id]);
+function save(){S.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}cloudSave()}
+/* ---------- Telegram: тема, жесты и облачное сохранение прогресса ---------- */
+const TG=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData?window.Telegram.WebApp:null;
+const CLOUD=TG&&TG.isVersionAtLeast&&TG.isVersionAtLeast("6.9")?TG.CloudStorage:null;
+if(TG){try{TG.ready();TG.expand();
+  if(TG.isVersionAtLeast("6.1")){TG.setHeaderColor("#0E1316");TG.setBackgroundColor("#0E1316")}
+  if(TG.isVersionAtLeast("7.7"))TG.disableVerticalSwipes();
+  if(TG.isVersionAtLeast("7.10"))TG.setBottomBarColor&&TG.setBottomBarColor("#161D21");
+}catch(e){}}
+let cloudTimer=null;
+function cloudSave(){if(!CLOUD)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(()=>{
+  try{const str=JSON.stringify(S),parts=[];for(let i=0;i<str.length;i+=4000)parts.push(str.slice(i,i+4000));
+    parts.forEach((c,i)=>CLOUD.setItem("s_"+i,c));CLOUD.setItem("s_meta",JSON.stringify({n:parts.length,at:S.savedAt}))}catch(e){}},1200)}
+function cloudLoad(){if(!CLOUD)return;
+  try{CLOUD.getItem("s_meta",(err,meta)=>{if(err||!meta)return save();let m;try{m=JSON.parse(meta)}catch(e){return}
+    if(m.at<=(S.savedAt||0))return;
+    const keys=[...Array(m.n)].map((_,i)=>"s_"+i);
+    CLOUD.getItems(keys,(err2,vals)=>{if(err2||!vals)return;try{const loaded=JSON.parse(keys.map(k=>vals[k]||"").join(""));
+      if(!loaded||!loaded.words)return;S=loaded;if(!S.day||S.day.date!==today)S.day={date:today,done:{}};
+      S.assoc=S.assoc||{};S.custom=S.custom||[];S.errors=S.errors||[];S.topicsDone=S.topicsDone||[];
+      try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+      if(!document.querySelector(".rtop"))go("home");toast("Прогресс загружен из Telegram")}catch(e){}})})}catch(e){}}
+try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} /* без облака и без отметки времени: сначала смотрим, что лежит в Telegram */
+const wStat=id=>S.words[id]||(S.words[id]={status:"new",ok:0,bad:0});
+const cStat=id=>S.cons[id]||(S.cons[id]={status:"new",ok:0,bad:0});
+function addMistake(kind,id){if(!S.mistakes.some(m=>m.kind===kind&&m.id===id&&m.date===today))S.mistakes.push({kind,id,date:today})}
+
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+const view=$("#view");
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
+const BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>';
+function toast(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1900)}
+function speak(text,lang="en-US"){
+  return new Promise(res=>{
+    try{const s=window.speechSynthesis;if(!s){toast("Озвучка недоступна в этом браузере");return res()}
+      s.cancel();const u=new SpeechSynthesisUtterance(text.replace(/…/g,""));u.lang=lang;
+      const v=s.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith(lang.slice(0,2)));if(v)u.voice=v;
+      u.rate=lang.startsWith("en")?.9:1;let done=false;const fin=()=>{if(!done){done=true;res()}};
+      u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(2500,text.length*120));s.speak(u);
+    }catch(e){res()}
+  });
+}
+const stopSpeech=()=>{try{speechSynthesis.cancel()}catch(e){}};
+const spkBtn=(text,label="Озвучить")=>`<button class="spk" data-say="${esc(text)}">${SPK}${label}</button>`;
+function tt(text,on=true){if(!on)return esc(text);
+  return text.split(/(\s+)/).map(p=>{const k=p.toLowerCase().replace(/[^a-z']/g,"");return GLOSS[k]?`<span class="w" data-t="${esc(GLOSS[k])}">${esc(p)}</span>`:esc(p)}).join("")}
+document.addEventListener("click",e=>{
+  const s=e.target.closest("[data-say]");if(s){speak(s.dataset.say);return}
+  const w=e.target.closest(".w");document.querySelectorAll(".tip").forEach(t=>t.remove());
+  if(w){const r=w.getBoundingClientRect();const t=document.createElement("div");t.className="tip";t.textContent=w.dataset.t;document.body.appendChild(t);
+    const tr=t.getBoundingClientRect();t.style.left=Math.max(8,Math.min(innerWidth-tr.width-8,r.left+r.width/2-tr.width/2))+"px";t.style.top=(r.top-tr.height-8)+"px";setTimeout(()=>t.remove(),2200)}
+});
+function chunkify(en,head){const s=en.replace(/[.?!]$/,"");const h=(head||"").replace("…","").trim();
+  if(h&&s.startsWith(h+" "))return [h,...s.slice(h.length).trim().split(" ")];return s.split(" ")}
+const sentence=t=>t.en||(t.chunks.join(" ")+(/\?$/.test(t.ru)?"?":"."));
+
+
+/* ================= WORD BANK: базовые слова для отметки «уже знаю» и для тренажёра ================= */
+const BANK_CATS=[
+ ["Люди",["mother|мама","father|папа","sister|сестра","girlfriend|девушка","boss|начальник","people|люди","neighbor|сосед","clients|клиенты"]],
+ ["Места",["Thailand|Таиланд","Russia|Россия","Moscow|Москва","Bangkok|Бангкок","Phuket|Пхукет","Serbia|Сербия","Europe|Европа","America|Америка","home|дом","sea|море","beach|пляж","gym|спортзал","cafe|кафе","market|рынок","office|офис","college|колледж","airport|аэропорт","hotel|отель","shop|магазин"]],
+ ["Действия",["play|играть","watch|смотреть","read|читать","cook|готовить","travel|путешествовать","swim|плавать","go|идти, ехать","drink|пить","eat|есть","work|работать","rent|снимать (жильё)","buy|покупать","sell|продавать","call|звонить","text|писать сообщение","move|переезжать","find|находить","help|помогать","pay|платить","order|заказывать","sleep|спать","rest|отдыхать","drive|водить","ride|ездить (на байке)","wait|ждать","study|учиться","walk|гулять"]],
+ ["Вещи и занятия",["English|английский","Thai|тайский","football|футбол","guitar|гитара","games|игры","music|музыка","movies|фильмы","books|книги","sport|спорт","coffee|кофе","tea|чай","food|еда","phone|телефон","car|машина","bike|байк","apartment|квартира","money|деньги"]],
+ ["Время",["today|сегодня","tomorrow|завтра","yesterday|вчера","now|сейчас","morning|утро","evening|вечер","weekend|выходные","week|неделя","month|месяц","year|год"]],
+ ["Описания",["big|большой","small|маленький","good|хороший","bad|плохой","new|новый","cheap|дешёвый","expensive|дорогой","tired|уставший","happy|счастливый","busy|занятой"]]
+];
+/* ключ слова → id прогресса. Слова темы 1 уже есть в WORDS, их не дублируем */
+const WKEY={};WORDS.forEach(w=>{WKEY[w.en.toLowerCase()]=w.id});
+const BANK=[];
+BANK_CATS.forEach(([cat,list])=>list.forEach(s=>{const [en,ru]=s.split("|"),k=en.toLowerCase();
+  if(WKEY[k]){return}const w={id:"b_"+k.replace(/\W/g,"_"),en,ru,cat,tr:"",ex:"",exRu:""};BANK.push(w);WKEY[k]=w.id}));
+BANK.forEach(w=>{const k=w.en.toLowerCase();if(!GLOSS[k])GLOSS[k]=w.ru});
+const isKnownKey=k=>{const id=WKEY[k];return !id||wStat(id).status!=="new"};
+
+/* ================= ЗАГОТОВКИ ДЛЯ ФРАЗ ================= */
+/* Действия: b — как в словаре, ing, pp — 3-я форма (если уместна), ri — «что делать», rf — «что сделать» (если отличается), rp — «делал» (прошлое, м.р.)
+   k: h — привычка, o — разовое действие, b — и то и другое; флаги: s — умение, r — можно попросить, p — «можно ли здесь», d — мечта */
+const ACTS=[
+ ["play football","playing football","played football","играть в футбол","","играл в футбол","b","sp","play football"],
+ ["play guitar","playing guitar","played guitar","играть на гитаре","","играл на гитаре","b","sdk","play guitar"],
+ ["play games","playing games","","играть в игры","","играл в игры","h","","play games"],
+ ["learn English","learning English","","учить английский","","учил английский","b","d","learn english"],
+ ["learn Thai","learning Thai","","учить тайский","","учил тайский","b","d","learn thai"],
+ ["speak English","speaking English","spoken English","говорить по-английски","","говорил по-английски","b","sd","speak english"],
+ ["speak Thai","speaking Thai","spoken Thai","говорить по-тайски","","говорил по-тайски","b","s","speak thai"],
+ ["watch movies","watching movies","","смотреть фильмы","","смотрел фильмы","h","","watch movies"],
+ ["read books","reading books","","читать книги","","читал книги","h","","read books"],
+ ["cook at home","cooking at home","cooked at home","готовить дома","","готовил дома","b","sk","cook home"],
+ ["travel","travelling","","путешествовать","","путешествовал","h","d","travel"],
+ ["swim in the sea","swimming in the sea","swum in the sea","плавать в море","","плавал в море","b","spk","swim sea"],
+ ["go to the gym","going to the gym","been to the gym","ходить в спортзал","сходить в спортзал","ходил в спортзал","b","","go gym"],
+ ["go to the beach","going to the beach","","ходить на пляж","сходить на пляж","ходил на пляж","b","","go beach"],
+ ["drink coffee","drinking coffee","","пить кофе","выпить кофе","пил кофе","b","p","drink coffee"],
+ ["eat Thai food","eating Thai food","eaten Thai food","есть тайскую еду","","ел тайскую еду","h","p","eat thai food"],
+ ["work from home","working from home","worked from home","работать из дома","","работал из дома","h","p","work home"],
+ ["work in an office","working in an office","worked in an office","работать в офисе","","работал в офисе","h","","work office"],
+ ["rent an apartment","renting an apartment","rented an apartment","снимать квартиру","снять квартиру","снимал квартиру","b","pdk","rent apartment"],
+ ["buy a bike","buying a bike","bought a bike","покупать байк","купить байк","","o","pdk","buy bike"],
+ ["buy food at the market","buying food at the market","","покупать еду на рынке","купить еду на рынке","покупал еду на рынке","b","rp","buy food market"],
+ ["call my parents","calling my parents","","звонить родителям","позвонить родителям","звонил родителям","b","r","call parents"],
+ ["text my friend","texting my friend","","писать другу","написать другу","писал другу","b","r","text friend"],
+ ["meet new people","meeting new people","","знакомиться с новыми людьми","","знакомился с новыми людьми","h","","meet new people"],
+ ["move to Serbia","moving to Serbia","","переезжать в Сербию","переехать в Сербию","","o","d","move serbia"],
+ ["find a job","finding a job","","искать работу","найти работу","","o","dk","find job"],
+ ["help my brother","helping my brother","helped my brother","помогать брату","помочь брату","помогал брату","b","r","help brother"],
+ ["pay for the apartment","paying for the apartment","","платить за квартиру","заплатить за квартиру","платил за квартиру","o","rpk","pay apartment"],
+ ["order food","ordering food","","заказывать еду","заказать еду","заказывал еду","b","rpk","order food"],
+ ["sleep a lot","sleeping a lot","","много спать","","много спал","h","","sleep"],
+ ["rest on weekends","resting on weekends","","отдыхать на выходных","","отдыхал на выходных","h","","rest weekend"],
+ ["drive a car","driving a car","driven a car","водить машину","","водил машину","b","spdk","drive car"],
+ ["ride a bike","riding a bike","ridden a bike","ездить на байке","","ездил на байке","b","spk","ride bike"],
+ ["wait for my friend","waiting for my friend","","ждать друга","подождать друга","ждал друга","b","r","wait friend"],
+ ["study in college","studying in college","studied in college","учиться в колледже","","учился в колледже","h","","study college"],
+ ["live alone","living alone","lived alone","жить одному","","жил один","h","","live alone"],
+ ["walk in the evening","walking in the evening","","гулять вечером","","гулял вечером","h","","walk evening"],
+ ["go to the market","going to the market","","ходить на рынок","сходить на рынок","ходил на рынок","b","r","go market"],
+ ["sell my phone","selling my phone","","продавать телефон","продать телефон","","o","r","sell phone"]
+].map(a=>({b:a[0],ing:a[1],pp:a[2],ri:a[3],rf:a[4]||a[3],rp:a[5],k:a[6],f:a[7],w:a[8].split(" ")}));
+const PLACES=[["Thailand","в Таиланде","из Таиланда","thailand"],["Russia","в России","из России","russia"],["Moscow","в Москве","из Москвы","moscow"],["Bangkok","в Бангкоке","из Бангкока","bangkok"],
+ ["Phuket","на Пхукете","с Пхукета","phuket"],["Serbia","в Сербии","из Сербии","serbia"],["Europe","в Европе","из Европы","europe"],["America","в Америке","из Америки","america"],
+ ["a big city","в большом городе","из большого города","big city"],["this city","в этом городе","из этого города","city"],["this country","в этой стране","из этой страны","country"]]
+ .map(p=>({en:p[0],v:p[1],iz:p[2],w:p[3].split(" ")}));
+const DURS=[["a week","неделю","week"],["two weeks","две недели","week"],["a month","месяц","month"],["two months","два месяца","month"],["three months","три месяца","month"],["half a year","полгода","year"],["a year","год","year"],["two years","два года","year"]]
+ .map(d=>({en:d[0],ru:d[1],w:[d[2]]}));
+const NOUNS=[["games","играми","games"],["music","музыкой","music"],["football","футболом","football"],["guitar","гитарой","guitar"],["movies","фильмами","movies"],["English","английским","english"],
+ ["sport","спортом","sport"],["cooking","готовкой","cook"],["travelling","путешествиями","travel"],["books","книгами","books"],["cars","машинами","car"],["bikes","байками","bike"]]
+ .map(n=>({en:n[0],ins:n[1],w:[n[2]]}));
+const actOk=(a,need)=>!need?true:need==="h"?a.k!=="o"&&!!a.rp:need==="pp"?!!a.pp&&!!a.rp:need==="one"?a.rf!==a.ri:[...need].some(ch=>a.f.includes(ch));
+
+/* Генератор: все фразы конструкции из заготовок. onlyKnown — только из знакомых слов */
+const capFirst=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function genPhrases(c,onlyKnown){
+  const out=[],seen=new Set();
+  c.tpl.forEach(t=>{
+    const has=x=>t.en.includes("{"+x);
+    let combos=[{}];
+    const expand=(key,list)=>{const n=[];combos.forEach(cb=>list.forEach(v=>n.push({...cb,[key]:v})));combos=n};
+    if(has("A"))expand("A",ACTS.filter(a=>actOk(a,t.need)));
+    if(has("B")){const n=[];combos.forEach(cb=>shuffle(ACTS.filter(a=>a!==cb.A&&actOk(a,t.need))).slice(0,3).forEach(b=>n.push({...cb,B:b})));combos=n}
+    if(has("P")){if(has("A")){const n=[];combos.forEach(cb=>shuffle(PLACES).slice(0,2).forEach(p=>n.push({...cb,P:p})));combos=n}else expand("P",PLACES)}
+    if(has("D"))expand("D",DURS);
+    if(has("N"))expand("N",NOUNS);
+    combos.forEach(cb=>{
+      const words=[...(t.w||[]),...["A","B","P","D","N"].flatMap(k=>cb[k]?cb[k].w:[])];
+      if(onlyKnown&&!words.every(isKnownKey))return;
+      const en=t.en.replace(/\{(\w)(?:\.(\w+))?\}/g,(m,k,f)=>{const o=cb[k];return k==="A"||k==="B"?o[f||"b"]:o.en});
+      const ru=capFirst(t.ru.replace(/\{(\w)(?:\.(\w+))?\}/g,(m,k,f)=>{const o=cb[k];return k==="A"||k==="B"?o[f||"ri"]:k==="P"?o[f||"v"]:k==="D"?o.ru:o.ins}));
+      if(seen.has(en))return;seen.add(en);out.push({en,ru,cb,t});
+    });
+  });
+  return out;
+}
+
+/* ================= 35 НОВЫХ КОНСТРУКЦИЙ ================= */
+const CGROUPS=["О себе","Желания и нужды","Планы","Умения","Что нравится","Опыт","Просьбы и предложения","Разговорные"];
+const TPL0={
+ c0:[{en:"I'm from {P}.",ru:"Я {P.iz}."},{en:"My friend is from {P}.",ru:"Мой друг {P.iz}.",w:["friend"]},{en:"My parents are from {P}.",ru:"Мои родители {P.iz}.",w:["parents"]}],
+ c1:[{en:"I live in {P}.",ru:"Я живу {P.v}."},{en:"My brother lives in {P}.",ru:"Мой брат живёт {P.v}.",w:["brother"]},{en:"My family lives in {P}.",ru:"Моя семья живёт {P.v}.",w:["family"]}],
+ c2:[{en:"I've been here for {D}.",ru:"Я здесь уже {D}."},{en:"I've been in {P} for {D}.",ru:"Я {P.v} уже {D}."}],
+ c3:[{en:"I'm into {N}.",ru:"Я увлекаюсь {N}."},{en:"My friend is into {N}.",ru:"Мой друг увлекается {N}.",w:["friend"]}],
+ c4:[{en:"I used to {A.b}.",ru:"Раньше я {A.rp}.",need:"h"}]
+};
+CONS.forEach(c=>{c.g="О себе";c.tpl=TPL0[c.id]});
+const C=(id,g,en,ru,simple,grammar,pit,tpl,q)=>({id,g,en,say:en.replace(/…|\?/g,"").replace(/,? please$/,"").trim(),ru,simple,grammar,pit,tpl,q:{situation:q[0],options:q[1],answer:q[2],notes:q[3]}});
+const NEWCONS=[
+ C("c5",1,"I want to…","Я хочу…","Желание: то, чего тебе хочется.",[["want to","«хотеть» + глагол. to обязателен."],["he / she","wants to: My brother wants to…"]],"<b>Не «I want go».</b> Без to нельзя: I want to go.",
+   [{en:"I want to {A.b}.",ru:"Я хочу {A.rf}."},{en:"My brother wants to {A.b}.",ru:"Мой брат хочет {A.rf}.",w:["brother"]}],
+   ["Хочешь сказать, что мечтаешь купить байк",["I want to buy a bike.","I need to buy a bike.","I used to buy a bike."],0,["«Я хочу купить байк» — желание.","«Мне нужно купить байк» — необходимость, а не желание.","«Раньше я покупал байк» — про прошлое."]]),
+ C("c6",1,"I need to…","Мне нужно…","Необходимость: тебе надо что-то сделать.",[["need to","«нужно» + глагол. to обязателен."]],"<b>need to</b> — нужно, важно. <b>want to</b> — просто хочется.",
+   [{en:"I need to {A.b}.",ru:"Мне нужно {A.rf}."},{en:"I need to {A.b} today.",ru:"Мне нужно сегодня {A.rf}.",w:["today"]}],
+   ["Скажи, что тебе обязательно надо позвонить родителям",["I want to call my parents.","I need to call my parents.","I'm into calling my parents."],1,["«Хочу» — желание, а не необходимость.","«Мне нужно позвонить родителям».","into — про увлечения, здесь не подходит."]]),
+ C("c7",1,"I have to…","Мне приходится…","Обязанность из-за обстоятельств: так надо, выбора нет.",[["have to","«приходится, надо». have здесь не «иметь»."],["he / she","has to: He has to work."]],"<b>I have to work</b> — мне надо работать. <b>I have work</b> — у меня есть работа.",
+   [{en:"I have to {A.b} every day.",ru:"Мне приходится каждый день {A.ri}.",need:"h"},{en:"I have to {A.b} today.",ru:"Мне сегодня надо {A.rf}.",w:["today"]}],
+   ["Хочешь сказать, что тебе приходится работать каждый день",["I have to work every day.","I like working every day.","I have work every day."],0,["«Мне приходится» — так требуют обстоятельства.","«Мне нравится» — про удовольствие.","Без to смысл другой: «у меня есть работа каждый день»."]]),
+ C("c8",1,"I'd like to…","Я бы хотел…","Вежливое «хочу». Так говорят в кафе, в магазине, с незнакомыми.",[["I'd","= I would, «я бы»."],["like to","«хотел» + глагол."]],"<b>I'd like to</b> — «я бы хотел». <b>I like to</b> — «я люблю» (вообще).",
+   [{en:"I'd like to {A.b}.",ru:"Я бы хотел {A.rf}."}],
+   ["Вежливо сказать в кафе, что хочешь заказать еду",["I want food.","I'd like to order food.","I like to order food."],1,["Звучит грубовато, как «хочу еду».","Вежливо: «я бы хотел заказать еду».","«Я люблю заказывать еду» — про привычку."]]),
+ C("c9",1,"I feel like…","Мне хочется…","Настроение прямо сейчас: хочется или не хочется.",[["feel like","«хочется», дословно «чувствую как»."],["+ -ing","после feel like глагол с -ing: going, playing."]],"<b>Не «I feel like go».</b> Нужно -ing: I feel like going.",
+   [{en:"I feel like {A.ing}.",ru:"Мне хочется {A.rf}."},{en:"I don't feel like {A.ing} today.",ru:"Мне сегодня не хочется {A.ri}.",w:["today"]}],
+   ["Сказать, что сейчас нет настроения идти в спортзал",["I don't feel like going to the gym.","I don't feel like go to the gym.","I don't like going to the gym."],0,["«Мне не хочется идти в спортзал» — про настроение сейчас.","После feel like нужен -ing: going.","«Я не люблю ходить в спортзал» — вообще, всегда."]]),
+ C("c10",2,"I'm going to…","Я собираюсь…","План, который уже решён.",[["I'm going to","«я собираюсь» + глагол."],["he / she","he's going to, she's going to."]],"<b>I'm going to go</b> — нормально, go повторяется. Так и говорят.",
+   [{en:"I'm going to {A.b}.",ru:"Я собираюсь {A.rf}."},{en:"I'm going to {A.b} tomorrow.",ru:"Завтра я собираюсь {A.rf}.",w:["tomorrow"]}],
+   ["Рассказать о решённом плане: завтра идёшь на пляж",["I'm going to go to the beach tomorrow.","I go to the beach tomorrow.","I used to go to the beach."],0,["План, который уже решён.","Present Simple — про привычки, не про план на завтра.","«Раньше я ходил на пляж» — про прошлое."]]),
+ C("c11",2,"I'm planning to…","Я планирую…","План, который ты обдумываешь и готовишь.",[["planning to","«планирую» + глагол."]],"<b>Не «I'm planning move».</b> Нужно to: planning to move.",
+   [{en:"I'm planning to {A.b}.",ru:"Я планирую {A.rf}."},{en:"We're planning to {A.b} this weekend.",ru:"На этих выходных мы планируем {A.rf}.",w:["weekend"]}],
+   ["Сказать, что планируешь переехать в Сербию",["I'm planning to move to Serbia.","I'm planning move to Serbia.","I plan moving to Serbia."],0,["«Я планирую переехать в Сербию».","Пропущено to: planning to move.","После plan нужен to, а не -ing."]]),
+ C("c12",2,"I'm about to…","Я вот-вот…","Прямо сейчас, через минуту.",[["about to","«вот-вот, как раз собираюсь»."]],"<b>about to</b> — через минуту. <b>going to</b> — план на любое время.",
+   [{en:"I'm about to {A.b}.",ru:"Я прямо сейчас собираюсь {A.rf}.",need:"one"}],
+   ["Друг пишет, а ты уже звонишь родителям. Сказать «я как раз звоню»",["I'm about to call my parents.","I'm going to call my parents next week.","I used to call my parents."],0,["about to — прямо сейчас, через минуту.","going to … next week — план на потом.","«Раньше я звонил родителям» — про прошлое."]]),
+ C("c13",2,"I'm not going to…","Я не собираюсь…","Ты этого делать не будешь.",[["not","ставим после I'm: I'm not going to."]],"<b>Не «I don't going to».</b> Нужно I'm not going to.",
+   [{en:"I'm not going to {A.b}.",ru:"Я не собираюсь {A.ri}."}],
+   ["Сказать, что не собираешься продавать телефон",["I'm not going to sell my phone.","I don't going to sell my phone.","I'm not go to sell my phone."],0,["«Я не собираюсь продавать телефон».","После I нужно am (I'm), don't сюда не подходит.","Нужно going to, а не go to."]]),
+ C("c14",2,"I hope to…","Надеюсь…","Мечта или надежда на будущее.",[["hope to","«надеюсь» + глагол."],["one day","«когда-нибудь»."]],"<b>Не «I hope move».</b> Нужно to: hope to move.",
+   [{en:"I hope to {A.b} one day.",ru:"Надеюсь когда-нибудь {A.rf}.",need:"d"}],
+   ["Сказать, что надеешься когда-нибудь переехать в Сербию",["I hope to move to Serbia one day.","I hope move to Serbia.","I'm hoping for moving to Serbia."],0,["«Надеюсь когда-нибудь переехать в Сербию».","Пропущено to: hope to move.","Так не говорят: после hope — to + глагол."]]),
+ C("c15",3,"I can…","Я умею…","Умение или возможность.",[["can","«могу, умею». Одинаково для всех: he can."],["+ глагол","сразу глагол, без to и без -ing."]],"<b>Не «I can to drive».</b> После can — просто drive.",
+   [{en:"I can {A.b}.",ru:"Я умею {A.ri}.",need:"s"},{en:"My brother can {A.b}.",ru:"Мой брат умеет {A.ri}.",need:"s",w:["brother"]}],
+   ["Сказать, что ты умеешь водить машину",["I can drive a car.","I can to drive a car.","I can driving a car."],0,["После can глагол сразу, без to.","После can не ставят to.","После can не нужен -ing."]]),
+ C("c16",3,"I can't…","Я не умею…","Не умеешь или не можешь.",[["can't","= cannot, «не могу, не умею»."]],"<b>Не «I don't can».</b> Правильно: I can't.",
+   [{en:"I can't {A.b}.",ru:"Я не умею {A.ri}.",need:"s"}],
+   ["Сказать, что не умеешь плавать в море",["I can't swim in the sea.","I don't can swim in the sea.","I can't to swim in the sea."],0,["can't — «не умею».","С can не используют don't.","После can't не ставят to."]]),
+ C("c17",3,"I'm good at…","У меня хорошо получается…","Что у тебя хорошо получается.",[["good at","«хорош в чём-то»."],["+ -ing","глагол с -ing: playing, cooking."]],"<b>good at</b>, а не good in. И глагол с -ing.",
+   [{en:"I'm good at {A.ing}.",ru:"У меня хорошо получается {A.ri}.",need:"s"}],
+   ["Похвастаться, что хорошо играешь в футбол",["I'm good at playing football.","I'm good in play football.","I good at playing football."],0,["good at + глагол с -ing.","Нужно at, а не in, и глагол с -ing.","Пропущено ’m (am)."]]),
+ C("c18",3,"I'm bad at…","У меня плохо получается…","Что у тебя получается плохо.",[["bad at","«плох в чём-то»."],["+ -ing","глагол с -ing."]],"<b>bad at cooking</b>, не bad in cook.",
+   [{en:"I'm bad at {A.ing}.",ru:"У меня плохо получается {A.ri}.",need:"s"}],
+   ["Признаться, что плохо готовишь дома",["I'm bad at cooking at home.","I'm bad in cook at home.","I bad cooking at home."],0,["bad at + глагол с -ing.","Нужно at и -ing: at cooking.","Пропущены ’m и at."]]),
+ C("c19",3,"I learned to…","Я научился…","Чему ты научился.",[["learned","прошедшее время от learn."],["to + глагол","научился что-то делать."]],"<b>Не «I learned ride».</b> Нужно to: learned to ride.",
+   [{en:"I learned to {A.b} in {P}.",ru:"Я научился {A.ri} {P.v}.",need:"s"}],
+   ["Сказать, что научился ездить на байке в Таиланде",["I learned to ride a bike in Thailand.","I learned ride a bike in Thailand.","I learn ride a bike in Thailand."],0,["learned to + глагол: «научился ездить».","Пропущено to.","learn без -ed — настоящее время, и пропущено to."]]),
+ C("c20",4,"I like…","Мне нравится…","Что тебе нравится делать.",[["like","«нравится»."],["+ -ing","like watching (или like to watch)."]],"<b>Не «I'm like».</b> С like am не нужен.",
+   [{en:"I like {A.ing}.",ru:"Мне нравится {A.ri}.",need:"h"}],
+   ["Сказать, что тебе нравится смотреть фильмы",["I like watching movies.","I like watch movies.","I'm like watching movies."],0,["like + глагол с -ing.","После like нужен -ing или to: watching / to watch.","Лишнее ’m: с like am не нужен."]]),
+ C("c21",4,"I love…","Я обожаю…","Что ты обожаешь. Сильнее, чем like.",[["love","«обожаю, очень люблю»."],["+ -ing","love travelling."]],"<b>I love travelling</b> — про занятие. Глагол с -ing.",
+   [{en:"I love {A.ing}.",ru:"Я обожаю {A.ri}.",need:"h"}],
+   ["Сказать, что обожаешь путешествовать",["I love travelling.","I loving travelling.","I'm love travelling."],0,["love + -ing: «обожаю путешествовать».","У love не нужен -ing: просто I love.","Лишнее ’m."]]),
+ C("c22",4,"I don't like…","Я не люблю…","Что ты не любишь делать.",[["don't like","«не нравится»."],["+ -ing","don't like working."]],"<b>Не «I not like».</b> Отрицание — через don't.",
+   [{en:"I don't like {A.ing}.",ru:"Я не люблю {A.ri}.",need:"h"}],
+   ["Сказать, что не любишь работать из дома",["I don't like working from home.","I not like working from home.","I doesn't like working from home."],0,["don't like + -ing.","Отрицание без don't не строится.","doesn't — только для he / she / it."]]),
+ C("c23",4,"I prefer… to…","Мне больше нравится…, чем…","Что тебе нравится больше, чем другое.",[["prefer","«предпочитаю»."],["to","здесь to значит «чем»: prefer A to B."]],"<b>prefer … to …</b>, а не than.",
+   [{en:"I prefer {A.ing} to {B.ing}.",ru:"Мне больше нравится {A.ri}, чем {B.ri}.",need:"h"}],
+   ["Сказать, что больше любишь читать книги, чем смотреть фильмы",["I prefer reading books to watching movies.","I prefer reading books than watching movies.","I more like reading books than watching movies."],0,["prefer … to … — «предпочитаю одно другому».","С prefer используют to, а не than.","Так по-английски не говорят."]]),
+ C("c24",4,"I'd rather…","Я бы лучше…","Что ты бы предпочёл сделать вместо другого.",[["I'd","= I would."],["rather","«лучше, скорее»."],["+ глагол","без to: I'd rather stay."]],"<b>Не «I'd rather to».</b> Без to.",
+   [{en:"I'd rather {A.b} today.",ru:"Сегодня я бы предпочёл {A.rf}.",w:["today"]},{en:"I'd rather {A.b} than {B.b}.",ru:"Я бы предпочёл {A.rf}, а не {B.rf}."}],
+   ["Друг зовёт на пляж, а ты бы лучше поиграл в игры",["I'd rather play games.","I'd rather to play games.","I rather play games."],0,["I'd rather + глагол без to.","После I'd rather to не ставят.","Нужно ’d (would): I'd rather."]]),
+ C("c25",5,"Have you ever…?","Ты когда-нибудь…?","Спросить про опыт: было ли такое хоть раз в жизни.",[["Have you","вопрос в Present Perfect."],["ever","«когда-нибудь»."],["3-я форма","eaten, been, played."]],"<b>Have you ever eaten</b>, а не eat. Нужна 3-я форма (таблица в «Грамматике»).",
+   [{en:"Have you ever {A.pp}?",ru:"Ты когда-нибудь {A.rp}?",need:"pp"},{en:"Have you ever been to {P}?",ru:"Ты когда-нибудь был {P.v}?"}],
+   ["Спросить друга, пробовал ли он когда-нибудь тайскую еду",["Have you ever eaten Thai food?","Did you ever eat Thai food?","Have you ever eat Thai food?"],0,["Have you ever + 3-я форма: eaten.","Звучит как вопрос про конкретный момент в прошлом.","После have нужна 3-я форма: eaten."]]),
+ C("c26",5,"I've never…","Я никогда не…","Такого не было ни разу в жизни.",[["I've","= I have."],["never","«никогда»."],["3-я форма","been, played, eaten."]],"<b>Не «I've never go».</b> Нужна 3-я форма: been.",
+   [{en:"I've never {A.pp}.",ru:"Я никогда не {A.rp}.",need:"pp"},{en:"I've never been to {P}.",ru:"Я никогда не был {P.v}."}],
+   ["Сказать, что ты никогда не был в Америке",["I've never been to America.","I never was in America.","I've never go to America."],0,["«Я никогда не был в Америке» — опыт за всю жизнь.","Неестественно: для опыта нужно I've never been.","После have нужна 3-я форма: been."]]),
+ C("c27",5,"It's my first time in…","Я впервые в…","Ты где-то впервые.",[["It's my first time","«это мой первый раз»."],["in","с городами и странами."]],"<b>Не «I'm first time».</b> Правильно: It's my first time.",
+   [{en:"It's my first time in {P}.",ru:"Я впервые {P.v}."}],
+   ["Сказать, что ты впервые в Бангкоке",["It's my first time in Bangkok.","It's my first time at Bangkok.","I'm first time in Bangkok."],0,["«Я впервые в Бангкоке».","С городами — in, не at.","Так не говорят: нужно It's my first time."]]),
+ C("c28",5,"I've been to…","Я бывал в…","Где ты бывал хотя бы раз.",[["been to","«бывал в…»."]],"<b>I've been to</b> — бывал (опыт). <b>I've been in … for</b> — нахожусь там уже столько-то.",
+   [{en:"I've been to {P}.",ru:"Я был {P.v}."},{en:"My friend has been to {P}.",ru:"Мой друг был {P.v}.",w:["friend"]}],
+   ["Сказать, что ты бывал в Москве (опыт)",["I've been to Moscow.","I've been in Moscow for a year.","I went Moscow."],0,["«Я бывал в Москве» — опыт.","«Я в Москве уже год» — ты там сейчас.","Пропущено to: went to Moscow."]]),
+ C("c29",5,"I've lived in… for…","Я живу в… уже…","Сколько ты уже живёшь где-то и живёшь до сих пор.",[["I've lived","= I have lived: жил и живу."],["for","сколько времени."]],"<b>Не «I live here for a year».</b> Для «уже год» нужно I've lived.",
+   [{en:"I've lived in {P} for {D}.",ru:"Я живу {P.v} уже {D}."}],
+   ["Сказать, что живёшь в Таиланде уже полгода",["I've lived in Thailand for half a year.","I live in Thailand for half a year.","I lived in Thailand half a year."],0,["«Живу уже полгода» — началось раньше и продолжается.","Present Simple не говорит «уже столько-то». Нужно I've lived.","«Я жил полгода» — будто уже уехал."]]),
+ C("c30",6,"Can you…?","Можешь…?","Простая просьба к другу или знакомому.",[["Can you","«можешь…?»"],["+ глагол","без to."]],"<b>Can you</b> — просто. <b>Could you</b> — вежливее.",
+   [{en:"Can you {A.b}?",ru:"Можешь {A.rf}?",need:"r"}],
+   ["Попросить друга (по-простому) помочь брату",["Can you help my brother?","Can you to help my brother?","Do you can help my brother?"],0,["Простая просьба другу.","После can не ставят to.","С can не используют do."]]),
+ C("c31",6,"Could you…, please?","Не мог бы ты…?","Вежливая просьба к незнакомым, в магазине, на работе.",[["Could you","«не мог бы ты…?»"],["please","делает просьбу ещё вежливее."]],"<b>Could you</b> — не про прошлое. Это вежливая форма can.",
+   [{en:"Could you {A.b}, please?",ru:"Не мог бы ты {A.rf}?",need:"r"}],
+   ["Вежливо попросить подождать твоего друга",["Could you wait for my friend, please?","Can you waiting for my friend?","You wait for my friend."],0,["Could you… please — вежливо.","После can глагол без -ing.","Это приказ, звучит грубо."]]),
+ C("c32",6,"Is it possible to…?","Можно ли…?","Узнать, можно ли что-то сделать.",[["Is it possible","«возможно ли…?»"],["to + глагол","to buy, to rent."]],"<b>Не «Is possible».</b> Нужно it: Is it possible.",
+   [{en:"Is it possible to {A.b} here?",ru:"Здесь можно {A.rf}?",need:"p"}],
+   ["Спросить, можно ли здесь купить байк",["Is it possible to buy a bike here?","Is possible to buy a bike here?","It is possible buy a bike here?"],0,["«Здесь можно купить байк?»","Пропущено it: Is it possible.","В вопросе is ставят первым, и нужен to."]]),
+ C("c33",6,"Let's…","Давай…","Предложить сделать что-то вместе.",[["Let's","= let us, «давай(те)»."],["+ глагол","без to и без -ing."]],"<b>Не «Let's to go».</b> Просто Let's go.",
+   [{en:"Let's {A.b} together.",ru:"Давай вместе {A.ri}.",need:"h"}],
+   ["Предложить другу вместе ходить в спортзал",["Let's go to the gym together.","Let's to go to the gym.","Let's going to the gym."],0,["Let's + глагол без to.","После let's не ставят to.","После let's глагол без -ing."]]),
+ C("c34",6,"How about…?","Как насчёт…?","Мягко предложить идею.",[["How about","«как насчёт»."],["+ -ing","going, watching."]],"<b>How about going</b>, не How about go.",
+   [{en:"How about {A.ing}?",ru:"Как насчёт того, чтобы {A.rf}?",need:"one"}],
+   ["Предложить: «как насчёт сходить на пляж?»",["How about going to the beach?","How about go to the beach?","What about to go to the beach?"],0,["How about + -ing.","После how about нужен -ing: going.","После about не ставят to."]]),
+ C("c35",7,"It's hard to…","…сложно","Сказать, что что-то делать сложно.",[["It's hard","«сложно»."],["to + глагол","что именно сложно."]],"<b>It's hard to learn.</b> Начинать с It's проще всего.",
+   [{en:"It's hard to {A.b}.",ru:"{A.ri} сложно.",need:"sd"}],
+   ["Сказать, что учить тайский сложно",["It's hard to learn Thai.","It's hard learn Thai.","Learn Thai is hard."],0,["It's hard to + глагол.","Пропущено to.","Так не говорят: нужно It's hard to learn Thai."]]),
+ C("c36",7,"It's easy to…","…легко","Сказать, что что-то делать легко.",[["It's easy","«легко»."],["to + глагол","что именно легко."]],"<b>Не «It easy».</b> Нужно It's (it is).",
+   [{en:"It's easy to {A.b}.",ru:"{A.ri} легко.",need:"sd"}],
+   ["Сказать, что ездить на байке легко",["It's easy to ride a bike.","It easy to ride a bike.","It's easy ride a bike."],0,["It's easy to + глагол.","Пропущено ’s (is).","Пропущено to."]]),
+ C("c37",7,"I don't know how to…","Я не знаю, как…","Не знаешь, как что-то сделать.",[["how to","«как» + глагол."]],"<b>Не «I don't know how rent».</b> Нужно how to rent.",
+   [{en:"I don't know how to {A.b}.",ru:"Я не знаю, как {A.rf}.",need:"k"}],
+   ["Сказать, что не знаешь, как снять квартиру",["I don't know how to rent an apartment.","I don't know how rent an apartment.","I not know how to rent an apartment."],0,["don't know how to + глагол.","Пропущено to.","Отрицание строится с don't."]]),
+ C("c38",7,"I'm tired of…","Я устал…","Надоело что-то делать.",[["tired of","«устал от»."],["+ -ing","working, waiting."]],"<b>tired of working</b>, не tired to work.",
+   [{en:"I'm tired of {A.ing}.",ru:"Я устал {A.ri}.",need:"h"}],
+   ["Сказать, что устал работать из дома",["I'm tired of working from home.","I'm tired to work from home.","I tired of working from home."],0,["tired of + -ing: «устал от…».","После tired нужен of + -ing.","Пропущено ’m (am)."]]),
+ C("c39",7,"I'm used to…","Я привык…","К чему ты уже привык, это стало нормальным.",[["I'm used to","«я привык к»."],["+ -ing","living, working."]],"<b>I'm used to living</b> — привык. <b>I used to live</b> — раньше жил. Разные вещи!",
+   [{en:"I'm used to {A.ing}.",ru:"Я привык {A.ri}.",need:"h"}],
+   ["Сказать, что уже привык жить один",["I'm used to living alone.","I used to live alone.","I'm used to live alone."],0,["«Я привык жить один» — теперь это нормально.","«Раньше я жил один» — это другое!","После I'm used to нужен -ing: living."]])
+];
+NEWCONS.forEach(c=>{c.g=CGROUPS[c.g];
+  const all=genPhrases(c,false),n=all.length,pick=i=>all[Math.min(n-1,Math.max(0,i))];
+  c.ex=[pick(0),pick(Math.floor(n/2)),pick(n-1)].map(x=>[x.en,x.ru]);
+  c.fills=[0,1,2,3,4,5].map(i=>pick(Math.floor(i*n/6))).map(x=>[x.en,x.ru]);
+  c.builds=[pick(1),pick(n-2)].map(x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple}));
+  CONS.push(c)});
+const TOPIC_CONS=CONS.filter(c=>c.g==="О себе");
+CONS.find(c=>c.id==="c23").say="I prefer";CONS.find(c=>c.id==="c29").say="I've lived in";
+
+
+/* ================= LITTLE WORDS: служебные слова, всегда доступны отдельно ================= */
+const LW_GROUPS=[
+ ["pron","Местоимения","их, его, мой, этот",[
+  "I|я|I live here.|Я живу здесь.","you|ты, вы|You speak English.|Ты говоришь по-английски.","he|он|He is my brother.|Он мой брат.","she|она|She lives in Moscow.|Она живёт в Москве.",
+  "it|оно, это|It is cheap.|Это дёшево.","we|мы|We live in Thailand.|Мы живём в Таиланде.","they|они|They are my friends.|Они мои друзья.",
+  "me|меня, мне|Call me.|Позвони мне.","him|его, ему|I know him.|Я знаю его.","her|её, ей (кого)|I love her.|Я люблю её.","us|нас, нам|Help us.|Помоги нам.","them|их, им (кого)|I see them every day.|Я вижу их каждый день.",
+  "my|мой|my phone|мой телефон","your|твой, ваш|your car|твоя машина","his|его (чей)|his bike|его байк","her|её (чья)|her name|её имя","its|его, её (у вещи)|the city and its beaches|город и его пляжи",
+  "our|наш|our apartment|наша квартира","their|их (чей)|their house|их дом","mine|мой (без слова после)|This phone is mine.|Этот телефон мой.","yours|твой (без слова после)|Is this yours?|Это твоё?",
+  "ours|наш (без слова после)|The car is ours.|Машина наша.","theirs|их (без слова после)|The house is theirs.|Дом их.","myself|сам, себя|I did it myself.|Я сделал это сам.",
+  "this|этот, это|this city|этот город","that|тот, то|that man|тот мужчина","these|эти|these books|эти книги","those|те|those people|те люди","local|здешний, местный|local food|местная еда"]],
+ ["place","Где: предлоги места","под, за, рядом, между",[
+  "in|в (внутри)|in the room|в комнате","on|на (на поверхности)|on the table|на столе","at|у, в (в точке)|at home|дома","under|под|under the bed|под кроватью",
+  "over|над (прямо над)|over the city|над городом","above|выше, над|above the sea|над морем","below|ниже|below zero|ниже нуля","behind|за, позади|behind the house|за домом",
+  "in front of|перед|in front of the hotel|перед отелем","next to|рядом с|next to the market|рядом с рынком","near|около, недалеко|near the beach|недалеко от пляжа",
+  "between|между|between the cafe and the shop|между кафе и магазином","inside|внутри|inside the car|внутри машины","outside|снаружи, на улице|It's hot outside.|На улице жарко.",
+  "around|вокруг, по|around the city|по городу","across|через, на другой стороне|across the street|через улицу","opposite|напротив|opposite the hotel|напротив отеля"]],
+ ["dir","Куда и когда: предлоги","к, из, до, после, с, без",[
+  "to|в, к (куда)|go to the gym|идти в спортзал","from|из, от|from Russia|из России","into|внутрь|come into the room|войти в комнату","out of|из (наружу)|out of the car|из машины",
+  "through|сквозь, через|through the park|через парк","along|вдоль|along the beach|вдоль пляжа","for|для; в течение|for two months|в течение двух месяцев","since|с (какого-то момента)|since May|с мая",
+  "before|до, перед|before work|до работы","after|после|after work|после работы","during|во время|during the day|в течение дня","until|до (пока не)|until Monday|до понедельника",
+  "by|к (сроку)|by Friday|к пятнице","with|с|with my friend|с другом","without|без|without money|без денег","about|о, про|about my family|о моей семье","like|как, похоже на|like a local|как местный"]],
+ ["when","Здесь, там, уже, ещё","здесь, везде, уже, скоро",[
+  "here|здесь, сюда|Come here.|Иди сюда.","there|там, туда|I live there.|Я живу там.","everywhere|везде|Bikes are everywhere.|Байки везде.","somewhere|где-то, куда-то|somewhere in Bangkok|где-то в Бангкоке",
+  "nowhere|нигде, никуда|I have nowhere to go.|Мне некуда идти.","anywhere|где угодно|Sit anywhere.|Садись где угодно.","already|уже|I've already eaten.|Я уже поел.","still|всё ещё|I still live here.|Я всё ещё живу здесь.",
+  "yet|ещё (не)|Not yet.|Ещё нет.","soon|скоро|See you soon.|Скоро увидимся.","later|позже|Call me later.|Позвони мне позже.","again|снова, ещё раз|Say it again.|Скажи ещё раз.",
+  "then|потом, тогда|and then we went home|а потом мы пошли домой","now|сейчас|I'm busy now.|Я сейчас занят.","always|всегда|always tired|всегда уставший","often|часто|I often cook.|Я часто готовлю.",
+  "sometimes|иногда|Sometimes I walk.|Иногда я гуляю.","never|никогда|I never drink coffee.|Я никогда не пью кофе.","usually|обычно|I usually sleep a lot.|Обычно я много сплю."]],
+ ["q","Вопросительные слова","что, где, почему, чей",[
+  "what|что, какой|What is it?|Что это?","who|кто|Who is he?|Кто он?","where|где, куда|Where do you live?|Где ты живёшь?","when|когда|When is it open?|Когда открыто?",
+  "why|почему|Why not?|Почему нет?","how|как|How are you?|Как ты?","which|который, какой (из)|Which one?|Который?","whose|чей|Whose phone is this?|Чей это телефон?",
+  "how much|сколько (нельзя посчитать)|How much is it?|Сколько стоит?","how many|сколько (можно посчитать)|How many days?|Сколько дней?","how long|как долго|How long have you been here?|Сколько ты уже здесь?"]],
+ ["link","Связки","и, но, потому что, если",[
+  "and|и|you and me|ты и я","but|но|cheap but good|дёшево, но хорошо","or|или|tea or coffee?|чай или кофе?","because|потому что|because I'm tired|потому что я устал",
+  "so|поэтому, так что|I'm tired, so I'm going home.|Я устал, поэтому иду домой.","if|если|if you want|если хочешь","than|чем|cheaper than in Russia|дешевле, чем в России",
+  "also|также, тоже|I also speak Thai.|Я тоже говорю по-тайски.","too|тоже; слишком|Me too.|Я тоже.","although|хотя|although it's expensive|хотя это дорого"]],
+ ["qty","Сколько: количество","много, немного, все, каждый",[
+  "some|немного, какие-то|some water|немного воды","any|какой-нибудь (в вопросе и с «не»)|Do you have any money?|У тебя есть деньги?","many|много (можно посчитать)|many people|много людей",
+  "much|много (нельзя посчитать)|not much money|не много денег","a lot of|много (про всё)|a lot of friends|много друзей","a few|несколько|a few days|несколько дней","a little|немного|a little money|немного денег",
+  "all|все, всё|all my friends|все мои друзья","every|каждый|every day|каждый день","each|каждый (по отдельности)|each room|каждая комната","both|оба|both of us|мы оба",
+  "no|никакой, нет|no money|нет денег","none|ни одного|none of them|ни один из них","enough|достаточно|enough time|достаточно времени"]]
+];
+const LW=[];
+LW_GROUPS.forEach(([gid,name,sub,list])=>{const grp=[];list.forEach((s,i)=>{const [en,ru,ex,exRu]=s.split("|");
+  const w={id:"lw_"+gid+"_"+i,en,ru,ex,exRu,tr:"",g:gid};grp.push(w);LW.push(w);const k=en.toLowerCase();if(!GLOSS[k])GLOSS[k]=ru});grp.forEach(w=>w.pool=grp)});
+/* Пары, которые путают русские: разбор каждого варианта */
+const LW_PAIRS=[
+ ["Это их машина.","It's ___ car.",["their","them","they"],0,["their — «их», чья-то вещь: their car.","them — «их» в смысле «вижу их, звоню им».","they — «они», кто делает действие."]],
+ ["Я вижу их каждый день.","I see ___ every day.",["them","their","they"],0,["them — «их, им»: кого вижу.","their — «их» только перед вещью: their car.","they — «они», стоит в начале: They see me."]],
+ ["Это его байк.","It's ___ bike.",["his","him","he"],0,["his — «его», чья вещь.","him — «его, ему» в смысле кого: I know him.","he — «он», кто делает."]],
+ ["Я знаю её.","I know ___.",["her","she","hers"],0,["her — «её» (кого знаю). Ещё her = «её» (чья): her name.","she — «она», стоит в начале: She knows me.","hers — «её» без слова после: The bag is hers."]],
+ ["Этот телефон мой.","This phone is ___.",["mine","my","me"],0,["mine — «мой», когда после нет слова.","my — только перед словом: my phone.","me — «меня, мне»."]],
+ ["Я дома.","I'm ___ home.",["at","in","on"],0,["at home — «дома». Запомни как готовое сочетание.","in the house — внутри здания, но «дома» = at home.","on — на поверхности, здесь не подходит."]],
+ ["Телефон на столе.","The phone is ___ the table.",["on","in","at"],0,["on — на поверхности.","in — внутри: in the bag.","at — у, в какой-то точке: at the door."]],
+ ["Я живу в Бангкоке.","I live ___ Bangkok.",["in","at","on"],0,["in — с городами и странами.","at — точка, место: at home, at work.","on — поверхность или день недели."]],
+ ["Встретимся в 5.","See you ___ 5.",["at","in","on"],0,["at — точное время: at 5.","in — месяцы, годы, части дня: in May.","on — дни: on Monday."]],
+ ["в понедельник","___ Monday",["on","in","at"],0,["on — дни недели и даты.","in — месяцы и годы.","at — точное время."]],
+ ["в мае","___ May",["in","on","at"],0,["in — месяцы, годы, времена года.","on — дни и даты.","at — точное время."]],
+ ["Я здесь уже два месяца.","I've been here ___ two months.",["for","since","during"],0,["for — сколько времени: for two months.","since — с какого момента: since May.","during — во время чего-то: during the trip."]],
+ ["Я здесь с мая.","I've been here ___ May.",["since","for","from"],0,["since — с какого момента и до сих пор.","for — сколько времени, а не с какого момента.","from — «с… до…»: from May to June."]],
+ ["У тебя есть деньги?","Do you have ___ money?",["any","some","many"],0,["any — в вопросах и с «не».","some — в обычных утверждениях: I have some money.","many — со считаемыми: many people. Деньги не считаем."]],
+ ["Я хочу немного воды.","I want ___ water.",["some","any","many"],0,["some — «немного» в утверждении.","any — в вопросах и с «не».","many — только со считаемыми."]],
+ ["Сколько это стоит?","How ___ is it?",["much","many","long"],0,["how much — сколько денег, воды, времени (не посчитать поштучно).","how many — сколько штук: how many days.","how long — как долго."]],
+ ["Сколько дней?","How ___ days?",["many","much","long"],0,["how many — дни можно посчитать.","how much — для того, что не считают поштучно.","how long — «как долго», без слова days."]],
+ ["несколько друзей","___ friends",["a few","a little","much"],0,["a few — несколько штук (можно посчитать).","a little — немного того, что не считают: a little money.","much — много несчитаемого."]],
+ ["немного денег","___ money",["a little","a few","many"],0,["a little — немного несчитаемого.","a few — для считаемых: a few days.","many — много считаемых."]],
+ ["Я иду в спортзал.","I'm going ___ the gym.",["to","at","in"],0,["to — куда (движение).","at — где (уже там): I'm at the gym.","in — внутри."]],
+ ["Я в спортзале.","I'm ___ the gym.",["at","to","on"],0,["at — где ты находишься.","to — куда идёшь.","on — на поверхности."]],
+ ["Иди сюда.","Come ___.",["here","there","where"],0,["here — здесь, сюда.","there — там, туда.","where — где? (вопрос)."]],
+ ["Я всё ещё живу здесь.","I ___ live here.",["still","already","yet"],0,["still — всё ещё.","already — уже.","yet — «ещё не» в отрицании и «уже?» в вопросе."]],
+ ["Ещё нет.","Not ___.",["yet","still","already"],0,["Not yet — «ещё нет».","still — «всё ещё», в утверждении.","already — «уже»."]],
+ ["Я тоже.","Me ___.",["too","also","so"],0,["Me too — «я тоже».","also ставят в середине: I also speak.","so — «поэтому», не «тоже»."]],
+ ["дешевле, чем в России","cheaper ___ in Russia",["than","then","that"],0,["than — «чем» при сравнении.","then — «потом, тогда».","that — «тот, что»."]],
+ ["Я устал, поэтому иду домой.","I'm tired, ___ I'm going home.",["so","because","but"],0,["so — «поэтому»: причина, потом следствие.","because — «потому что»: I'm going home because I'm tired.","but — «но»."]],
+ ["после работы","___ work",["after","before","during"],0,["after — после.","before — до.","during — во время."]],
+ ["Чей это телефон?","___ phone is this?",["Whose","Who","Who's"],0,["Whose — «чей».","Who — «кто».","Who's = who is, «кто есть»."]],
+ ["эти книги","___ books",["these","this","those"],0,["these — эти (рядом, много).","this — этот (один).","those — те (далеко)."]]
+].map((p,i)=>({id:"lp"+i,type:"choice",hint:"Выбери слово · "+p[0],prompt:p[1],options:p[2],answer:p[3],notes:p[4],sayAfter:p[1].replace("___",p[2][p[3]])}));
+
+function shufOpts(t){const ord=shuffle(t.options.map((_,i)=>i));return {...t,options:ord.map(i=>t.options[i]),notes:ord.map(i=>t.notes[i]),answer:ord.indexOf(t.answer)}}
+function lwScreen(){
+  showTabs(false);
+  const st=w=>wStat(w.id).status,done=LW.filter(w=>st(w)!=="new").length;
+  view.innerHTML=`${topBar(done/LW.length*100,`${done} / ${LW.length}`)}<div class="stack">
+   <div><div class="eyebrow">Little Words · всегда доступно</div><h1 style="margin-top:6px">Маленькие слова</h1>
+   <p class="muted" style="margin-top:6px">Местоимения, предлоги, «здесь», «уже», «потому что». Без них не построить ни одну фразу. Учи группами в любой момент, отдельно от тем.</p></div>
+   <button class="btn primary" id="pairs">Тренажёр путаниц: their / them, in / on / at…</button>
+   ${LW_GROUPS.map(([gid,name,sub])=>{const g=LW.filter(w=>w.g===gid),d=g.filter(w=>st(w)!=="new").length,left=g.length-d;
+     return `<div class="panel lwg"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><h3>${esc(name)}</h3><span class="muted" style="font-size:13px">${esc(sub)}</span></div><span class="chip ${d===g.length?"good":""}" style="font-variant-numeric:tabular-nums">${d}/${g.length}</span></div>
+      <div class="bar"><i style="width:${d/g.length*100}%"></i></div>
+      <div class="row" style="margin-top:12px"><button class="btn small primary" data-lw="${gid}">${left?`Учить ${Math.min(left,15)} новых`:"Повторить всё"}</button><button class="btn small ghost" data-lwl="${gid}">Список</button></div></div>`}).join("")}
+  </div>`;
+  bindTop();
+  $("#pairs").onclick=()=>runBlock({title:"Путаницы",phases:[{mode:"train",intro:{eyebrow:"Little Words",title:"Тренажёр путаниц",text:"Пары слов, которые русские путают чаще всего. После ответа — разбор каждого варианта."},tasks:shuffle(LW_PAIRS).slice(0,20).map(shufOpts)}],onFinish:ph=>resultScreen("Путаницы",ph,`<p class="muted">Ошибки попали в «Мои ошибки» с разбором.</p>`)});
+  view.querySelectorAll("[data-lw]").forEach(b=>b.onclick=()=>lwLearn(b.dataset.lw));
+  view.querySelectorAll("[data-lwl]").forEach(b=>b.onclick=()=>lwList(b.dataset.lwl));
+  window.scrollTo(0,0);
+}
+function lwLearn(gid){
+  const g=LW.filter(w=>w.g===gid),name=LW_GROUPS.find(x=>x[0]===gid)[1];
+  const fresh=g.filter(w=>wStat(w.id).status==="new"),set=(fresh.length?fresh:shuffle(g)).slice(0,15);
+  runBlock({title:name,phases:[
+    {mode:"train",intro:{eyebrow:"Little Words",title:name,text:`${set.length} ${plural(set.length,"слово","слова","слов")}. Каждое — в короткой фразе: так маленькие слова запоминаются лучше. Знакомые пропускай кнопкой «Я знаю это слово».`},
+     tasks:()=>{const s=set.filter(w=>wStat(w.id).status!=="learned");return [...s.map(w=>({type:"card",word:w})),...shuffle(s.map(w=>wordQ(w,"en2ru"))),...shuffle(s.map(w=>wordQ(w,"ru2en"))),...shuffle(s).slice(0,5).map(w=>wordQ(w,"say"))]}},
+    {mode:"test",name:"Тест",intro:{eyebrow:"Тест",title:name,text:"Без подсказок. Ошибки уйдут в проверку и в «Мои ошибки»."},tasks:()=>shuffle(set).map((w,i)=>wordQ(w,i%2?"en2ru":"ru2en",{sayAfter:null}))}],
+    onFinish:ph=>resultScreen("Little Words",ph)});
+}
+function lwList(gid){
+  const g=LW.filter(w=>w.g===gid),name=LW_GROUPS.find(x=>x[0]===gid)[1];
+  view.innerHTML=`${topBar(0,name)}<div class="list">${g.map(w=>`<div class="li"><div style="min-width:0"><div class="en">${esc(w.en)} ${statusChip(wStat(w.id).status)}</div><div class="ru">${esc(w.ru)} · <span style="color:var(--fg)">${esc(w.ex)}</span> — ${esc(w.exRu)}</div></div><button class="icon-btn" data-say="${esc(w.ex)}" aria-label="Озвучить">${SPK}</button></div>`).join("")}</div>
+   <div class="foot"><button class="btn ghost" id="bk">Назад к группам</button></div>`;
+  $("#close").onclick=lwScreen;$("#bk").onclick=lwScreen;
+}
+
+const ALLW=()=>[...WORDS,...BANK,...LW];
+/* ================= TASK BUILDERS ================= */
+const others=(pool,excl,key,n=3)=>shuffle(pool.filter(x=>x!==excl&&x.ru!==excl.ru&&x.en!==excl.en)).slice(0,n).map(x=>x[key]);
+function wordQ(w,kind,extra={}){
+  if(kind==="en2ru"){const o=shuffle([w.ru,...others(w.pool||WORDS,w,"ru")]);return {type:"choice",hint:"Выбери перевод",prompt:w.en,say:w.en,options:o,answer:o.indexOf(w.ru),wordId:w.id,...extra}}
+  if(kind==="ru2en"){const o=shuffle([w.en,...others(w.pool||WORDS,w,"en")]);return {type:"choice",hint:"Как по-английски?",prompt:w.ru,ru:true,options:o,answer:o.indexOf(w.en),sayAfter:w.en,wordId:w.id,...extra}}
+  if(kind==="audio"){const o=shuffle([w.en,...others(w.pool||WORDS,w,"en")]);return {type:"choice",hint:"Какое слово прозвучало?",audio:w.en,options:o,answer:o.indexOf(w.en),wordId:w.id,...extra}}
+  if(kind==="say")return {type:"say",ru:w.exRu,en:w.ex,wordId:w.id,...extra};
+}
+const consQ=c=>({type:"choice",hint:"Что подходит по смыслу?",prompt:c.q.situation,ru:true,options:c.q.options,answer:c.q.answer,notes:c.q.notes,consId:c.id,sayAfter:c.q.options[c.q.answer]});
+const consBuild=(c,b)=>({type:"build",hint:"Собери фразу",...b,consId:c.id});
+const fillSay=(c,f)=>({type:"say",ru:f[1],en:f[0],consId:c.id,pit:c.pitPlain});
+const fillBuild=(c,f)=>({type:"build",hint:"Собери фразу",ru:f[1],chunks:chunkify(f[0],c.say),en:f[0],consId:c.id,why:c.simple});
+CONS.forEach(c=>c.pitPlain=c.pit.replace(/<[^>]+>/g,""));
+/* «Я уже это знаю»: 2 быстрых вопроса без подсказок. Оба верно — конструкция выучена и больше не учится */
+const consCheck=c=>[{...consQ(c),knownCheck:true,hint:"Быстрая проверка · 1 из 2"},{...consBuild(c,c.builds[1]),knownCheck:true,kcFinal:true,hint:"Быстрая проверка · 2 из 2",why:""}];
+function consLesson(c){return [{type:"ccard",cons:c,canKnow:true},consQ(c),consBuild(c,c.builds[0]),fillSay(c,c.fills[0]),consBuild(c,c.builds[1]),fillSay(c,c.fills[2])]}
+
+/* ================= RUNNER ================= */
+let runnerLite=false;
+function showTabs(on){$("#tabs").hidden=!on;view.classList.toggle("runner",!on)}
+function topBar(pct,label,canBack){return `<div class="rtop"><button class="x" id="close" aria-label="Закрыть">×</button>${canBack===undefined?"":`<button class="x" id="back" aria-label="Назад" ${canBack?"":"disabled"}>${BACK}</button>`}<div class="rprog"><i style="width:${pct}%"></i></div><div class="rlabel">${esc(label)}</div></div>`}
+function bindTop(cb){$("#close").onclick=()=>{stopSpeech();go("home")};const b=$("#back");if(b&&cb)b.onclick=()=>{stopSpeech();cb({back:true})}}
+
+function runBlock({title,phases,onFinish,lite=false}){
+  showTabs(false);runnerLite=lite;let pi=0;
+  const next=()=>{if(pi>=phases.length){onFinish&&onFinish(phases);return}
+    const ph=phases[pi];const go_=()=>runPhase(ph,()=>{pi++;next()});
+    if(ph.intro)introScreen(ph.intro,go_);else go_()};
+  function introScreen(intro,start){
+    view.innerHTML=`${topBar(0,title)}<div class="stack center" style="padding-top:36px">
+      <div class="eyebrow">${esc(intro.eyebrow||"")}</div><h1>${esc(intro.title)}</h1><p class="muted" style="max-width:34ch">${esc(intro.text)}</p></div>
+      <div class="foot"><button class="btn primary" id="go">Начать</button></div>`;
+    bindTop();$("#go").onclick=start}
+  function runPhase(ph,done){
+    const queue=(typeof ph.tasks==="function"?ph.tasks():ph.tasks).slice();
+    const hist=[];let correct=0,graded=0;const kcFail={};
+    const step=()=>{
+      if(!queue.length){ph.result={correct,graded,pct:graded?Math.round(correct/graded*100):100};return done()}
+      const t=queue.shift();const pct=hist.length/(hist.length+queue.length+1)*100;
+      renderTask(t,ph.mode,pct,ph.mode==="test"?"Тест":title,hist.length>0,res=>{
+        if(res.back){queue.unshift(t);const e=hist.pop();
+          if(e.counted){graded--;if(e.res.ok)correct--}
+          e.added.forEach(a=>{const i=queue.indexOf(a);if(i>=0)queue.splice(i,1)});
+          e.t._again=true;queue.unshift(e.t);return step()}
+        const entry={t,res,added:[],counted:false};
+        if(res.graded){
+          if(!t._retry&&!t.knownCheck){graded++;if(res.ok)correct++;entry.counted=true}
+          if(!t._again){record(t,res.ok,ph.mode);if(!runnerLite&&!t.knownCheck)(res.ok?logRight(t):logError(t,res.picked||""))}
+          if(!res.ok&&ph.mode==="train"&&!t._retry&&!t.knownCheck&&!res.noRetry){const r={...t,_retry:true,_again:false};queue.push(r);entry.added.push(r)}
+          if(t.knownCheck){const k=t.wordId||t.consId;
+            if(!res.ok){kcFail[k]=true;if(t.kcFinal)toast("Не совсем — пройдём как обычно")}
+            else if(t.kcFinal&&!kcFail[k]){const st=t.wordId?wStat(t.wordId):cStat(t.consId);st.status="learned";st.known=true;st.at=Date.now();save();
+              for(let i=queue.length-1;i>=0;i--)if(k===(queue[i].wordId||queue[i].consId))queue.splice(i,1);toast("Засчитано как выученное")}}
+        }
+        if(res.insert){const ins=[].concat(res.insert);queue.unshift(...ins);entry.added.push(...ins)}
+        hist.push(entry);step();
+      });
+    };
+    step();
+  }
+  next();
+}
+
+function record(t,ok,mode){
+  if(runnerLite)return;
+  if(t.wordId){const s=wStat(t.wordId);ok?s.ok++:s.bad++;if(s.status==="new"){s.status="learning";s.at=Date.now()}if(mode==="test"&&!ok)addMistake("word",t.wordId)}
+  if(t.consId){const s=cStat(t.consId);ok?s.ok++:s.bad++;if(s.status==="new"){s.status="learning";s.at=Date.now()}if(mode==="test"&&!ok)addMistake("cons",t.consId)}
+  if(t.tenseId){if(!S.tense.ps.at)S.tense.ps.at=Date.now();const a=S.tense.ps.answers;a.push(ok?1:0);if(a.length>30)a.shift();if(mode==="test"&&!ok)addMistake("tense",t.tenseId)}
+  save();
+}
+
+function whyList(t,picked){
+  if(!t.notes)return "";
+  return `<div class="why">${t.options.map((o,i)=>`<div class="it"><span class="mk ${i===t.answer?"g":"r"}">${i===t.answer?"✓":"✗"}</span><div><b>${esc(o)}</b><span class="muted">${esc(t.notes[i])}</span>${i===picked&&i!==t.answer?' <span class="chip bad">твой ответ</span>':""}</div></div>`).join("")}</div>`;
+}
+
+function renderTask(t,mode,pct,label,canBack,cb){
+  if(t.knownCheck)mode="test"; /* быстрая проверка — без подсказок */
+  const hints=mode!=="test";
+  const top=topBar(pct,label,canBack);
+  if(t.type==="theory"){
+    view.innerHTML=`${top}<div class="theory">${t.html}</div><div class="foot"><button class="btn primary" id="n">Понятно, дальше</button></div>`;
+    bindTop(cb);$("#n").onclick=()=>cb({});return}
+  if(t.type==="card"){
+    const w=t.word;let back=false;
+    const draw=()=>{
+      view.innerHTML=`${top}<div class="card fcard ${back?"is-back":""}" id="fc" role="button" tabindex="0" aria-label="Перевернуть карточку">
+        <div class="row" style="justify-content:space-between"><div class="eyebrow">${back?"Перевод":"Новое слово"}</div><span class="chip">${back?"↺ лицо":"↻ перевернуть"}</span></div>
+        ${back?`
+          <div class="big-en">${esc(w.en)}</div>
+          <div class="fc-ru">${esc(w.ru)}</div>
+          <div class="fc-tr">${esc(w.tr)}</div>
+          ${spkBtn(w.en)}
+          <div class="ex"><div style="font-size:17px">${tt(w.ex)}</div><div class="muted">${esc(w.exRu)}</div>${spkBtn(w.ex,"Фраза")}</div>
+          <div id="assoc"></div>`
+        :`<div class="fc-front"><div class="big-en">${esc(w.en)}</div>${spkBtn(w.en)}<div class="muted" style="font-size:14px">Вспомни перевод и нажми на карточку</div></div>`}
+      </div>
+      <div class="foot">${back?`<button class="btn primary" id="n">Дальше</button>`:`<button class="btn primary" id="flip">Перевернуть</button><button class="btn ghost" id="k">Я знаю это слово</button>`}</div>`;
+      bindTop(cb);
+      const flip=()=>{back=!back;draw()};
+      $("#fc").onclick=e=>{if(e.target.closest("[data-say],.w"))return;flip()};
+      $("#fc").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}};
+      if(back){$("#n").onclick=()=>cb({});assocBlock(w,$("#assoc"))}
+      else{$("#flip").onclick=flip;$("#k").onclick=()=>cb({insert:wordQ(w,"ru2en",{knownCheck:true,kcFinal:true,hint:"Быстрая проверка"})})}
+    };
+    draw();return}
+  if(t.type==="ccard"){
+    const c=t.cons;
+    view.innerHTML=`${top}<div class="card">
+      <div class="eyebrow">Новая конструкция · ${CONS.indexOf(c)+1} из ${CONS.length}</div>
+      <div style="font-family:var(--f-display);font-size:26px;font-weight:700">${esc(c.en)}</div>
+      <div class="ru">${esc(c.ru)}</div>
+      ${spkBtn(c.say,"Озвучить конструкцию")}
+      <div class="sec"><div class="eyebrow">Простыми словами</div><p>${esc(c.simple)}</p></div>
+      <div class="sec"><div class="eyebrow">Разбор по частям</div><div class="parts">${c.grammar.map(g=>`<div class="part"><code>${esc(g[0])}</code><span>${esc(g[1])}</span></div>`).join("")}</div></div>
+      <div class="pit">${c.pit}</div>
+      <div class="sec"><div class="eyebrow">Примеры</div></div>
+      ${c.ex.map(e=>`<div class="ex" style="border:0;padding-top:0"><div style="font-size:17px">${tt(e[0])}</div><div class="muted">${esc(e[1])}</div>${spkBtn(e[0])}</div>`).join("")}
+    </div><div class="foot"><button class="btn primary" id="n">Понятно, тренировать</button>${t.canKnow?`<button class="btn ghost" id="k">Я уже это знаю</button>`:""}</div>`;
+    bindTop(cb);$("#n").onclick=()=>cb({});
+    if(t.canKnow)$("#k").onclick=()=>cb({insert:consCheck(c)});return}
+  if(t.type==="choice"){
+    const prompt=t.audio?`<button class="btn" id="play" style="width:auto;align-self:flex-start">${SPK} Прослушать ещё раз</button>`
+      :`<div class="${t.prompt.length>28?"mid":"big"}">${t.ru?esc(t.prompt):tt(t.prompt,hints)}</div>${t.say&&hints?spkBtn(t.say):""}`;
+    view.innerHTML=`${top}<div class="q"><div class="eyebrow">${esc(t.hint||"")}</div>${prompt}</div>
+      <div class="opts">${t.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div id="after"></div>`;
+    bindTop(cb);
+    if(t.audio){speak(t.audio);$("#play").onclick=()=>speak(t.audio)}
+    view.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i,ok=i===t.answer;
+      view.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+      const picked=t.options[i];
+      if(mode==="test"){b.classList.add("ok");setTimeout(()=>cb({graded:true,ok,picked}),250);return}
+      b.classList.add(ok?"ok":"no");view.querySelectorAll(".opt")[t.answer].classList.add("ok");
+      if(t.sayAfter)speak(t.sayAfter);
+      if(ok&&!t.notes){setTimeout(()=>cb({graded:true,ok,picked}),650);return}
+      $("#after").innerHTML=`<div class="fb ${ok?"ok":"no"}">${ok?"Верно":"Неверно"}</div>${t.notes?`<div class="panel" style="margin-top:10px"><div class="eyebrow">Разбор вариантов</div>${whyList(t,i)}</div>`:`<div class="fb no" style="margin-top:8px"><div class="sub">Правильно: <b>${esc(t.options[t.answer])}</b></div></div>`}
+        <div class="foot"><button class="btn primary" id="n">Дальше</button></div>`;
+      $("#n").onclick=()=>cb({graded:true,ok,picked});
+    });
+    return}
+  if(t.type==="build"){
+    const chunks=t.chunks,full=sentence(t);
+    const tiles=shuffle([...chunks.map((c,i)=>({txt:c,real:i})),...(t.extra||[]).map(c=>({txt:c,real:-1}))]);
+    view.innerHTML=`${top}<div class="q" style="min-height:90px"><div class="eyebrow">${esc(t.hint||"Собери фразу")}</div><div class="mid">${esc(t.ru)}</div></div>
+      <div class="sent" id="sent"></div><div class="pool" id="pool">${tiles.map((x,i)=>`<button class="tok" data-i="${i}">${esc(x.txt)}</button>`).join("")}</div>
+      <div id="hl"></div><div id="after"></div>`;
+    bindTop(cb);
+    if(mode==="test"){ /* free order, check at the end */
+      let picked=[];
+      $("#after").innerHTML=`<div class="foot"><button class="btn primary" id="chk" disabled>Проверить</button></div>`;
+      const draw=()=>{$("#sent").innerHTML=picked.length?picked.map((i,k)=>`<span class="tk" data-k="${k}">${esc(tiles[i].txt)}</span>`).join(""):`<span class="ph">Нажимай на слова по порядку</span>`;
+        view.querySelectorAll("#pool .tok").forEach(b=>b.classList.toggle("used",picked.includes(+b.dataset.i)));
+        $("#chk").disabled=!picked.length;
+        view.querySelectorAll("#sent .tk").forEach(b=>b.onclick=()=>{picked.splice(+b.dataset.k,1);draw()})};
+      view.querySelectorAll("#pool .tok").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(!picked.includes(i)){picked.push(i);draw()}});
+      $("#chk").onclick=()=>{const got=picked.map(i=>tiles[i].txt).join(" ");cb({graded:true,ok:got===chunks.join(" "),picked:got})};
+      draw();return}
+    /* training: the next right piece snaps onto the sentence, a wrong one shakes and explains */
+    let pos=0,errs=0,firstWrong="";
+    const draw=()=>{$("#sent").innerHTML=chunks.slice(0,pos).map((c,i)=>`<span class="${i===pos-1?"new":""}">${esc(c)}</span>`).join("")+(pos<chunks.length?'<span class="caret"></span>':"")};
+    draw();
+    $("#hl").innerHTML=`<button class="btn small ghost" id="hint" style="margin-top:14px">Подсказка: почему так</button>`;
+    $("#hint").onclick=()=>{$("#hl").innerHTML=`<div class="hintline"><b>Подсказка:</b> ${esc(t.why||"")}</div>`};
+    view.querySelectorAll("#pool .tok").forEach(b=>b.onclick=()=>{
+      if(pos>=chunks.length)return;
+      const x=tiles[+b.dataset.i];
+      if(x.txt===chunks[pos]){b.classList.add("used");pos++;draw();
+        if(pos===chunks.length){speak(full);
+          $("#hl").innerHTML="";
+          $("#after").innerHTML=`<div class="fb ${errs?"no":"ok"}">${errs?"Собрано, ошибок: "+errs:"Верно с первого раза"}<div class="sub"><b>${esc(full)}</b></div>${t.why?`<div class="sub" style="margin-top:6px">${esc(t.why)}</div>`:""}</div>
+            <div class="foot"><button class="btn primary" id="n">Дальше</button></div>`;
+          $("#n").onclick=()=>cb({graded:true,ok:errs===0,picked:firstWrong})}}
+      else{if(!errs)firstWrong=`поставил «${x.txt}» там, где нужно «${chunks[pos]}»`;errs++;b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");
+        $("#hl").innerHTML=`<div class="hintline">${x.real<0?"Это слово-ловушка. ":"Не сейчас, оно дальше. "}<b>Подсказка:</b> ${esc(t.why||"")}</div>`}
+    });
+    return}
+  if(t.type==="say"){
+    let tries=0;
+    const ask=()=>{
+      view.innerHTML=`${top}<div class="q"><div class="eyebrow">${tries?`Ещё раз, по памяти · попытка ${tries+1}`:"Скажи вслух по-английски"}</div><div class="mid">${esc(t.ru)}</div></div>
+      <div id="after"><div class="foot"><button class="btn primary" id="show">Сказал, показать ответ</button></div></div>`;
+      bindTop(cb);
+      $("#show").onclick=()=>{speak(t.en);
+        $("#after").innerHTML=`<div class="card"><div style="font-size:20px;font-weight:600">${tt(t.en)}</div>${spkBtn(t.en,"Ещё раз")}${t.pit?`<div class="pit" style="font-size:14px">${esc(t.pit)}</div>`:""}</div>
+        <div class="foot">${runnerLite?`<button class="btn primary" id="n">Дальше</button><button class="btn ghost" id="no">Повторить эту фразу</button>`:
+        `<button class="btn primary" id="y">Сказал так же</button><button class="btn ghost" id="no">Сказал иначе или забыл — повторить</button>`}</div>`;
+        if(runnerLite){$("#n").onclick=()=>cb({});$("#no").onclick=()=>{tries++;ask()}}
+        else{$("#y").onclick=()=>cb({graded:true,ok:tries===0,noRetry:true});$("#no").onclick=()=>{tries++;ask()}}
+      };
+    };
+    ask();
+  }
+}
+
+function resultScreen(title,phases,extra=""){
+  showTabs(false);
+  const tests=phases.filter(p=>p.mode==="test");const th=S.settings.threshold;
+  const allDone=BLOCKS.every(b=>S.day.done[b.key]);
+  view.innerHTML=`<div class="stack center" style="padding-top:36px">
+    <div class="eyebrow">${esc(title)}</div><h1>Блок пройден</h1>
+    ${tests.map(p=>{const pass=p.result.pct>=th;return `<div class="panel" style="width:100%"><div class="score" style="color:${pass?"var(--good)":"var(--bad)"}">${p.result.pct}%</div>
+      <div>${esc(p.name||"Тест")}: ${p.result.correct} из ${p.result.graded}</div><div class="muted">${pass?"Сдано":"Не сдано"} · порог ${th}%</div></div>`}).join("")}
+    ${extra}</div><div class="foot">${allDone?`<button class="btn primary" id="gpt">День закрыт — промпт для ChatGPT</button><button class="btn ghost" id="home">На главную</button>`:`<button class="btn primary" id="home">На главную</button>`}</div>`;
+  $("#home").onclick=()=>go("home");if(allDone)$("#gpt").onclick=gptScreen;
+}
+
+/* ================= BLOCKS ================= */
+const BLOCKS=[
+ {key:"check",name:"Проверка",desc:"Ошибки прошлых дней",min:10},
+ {key:"words",name:"Слова",desc:TOPIC.title,min:25},
+ {key:"cons",name:"Конструкции",desc:"5 штук, по одной",min:20},
+ {key:"tense",name:"Времена",desc:"Present Simple",min:25},
+ {key:"link",name:"Связка",desc:"Скажи вслух и собери фразу",min:10}
+];
+function finishBlock(key){S.day.done[key]=true;save()}
+const tag=it=>({...it,tenseId:it.id});
+
+function startBlock(key){
+  if(key==="check"){
+    const old=S.mistakes.filter(m=>m.date<today);
+    if(!old.length){finishBlock("check");showTabs(false);
+      view.innerHTML=`<div class="stack center" style="padding-top:60px"><h1>Проверять нечего</h1><p class="muted" style="max-width:32ch">Ошибок с прошлых дней нет. Ошибки из сегодняшних тестов появятся здесь завтра.</p></div><div class="foot"><button class="btn primary" id="home">Дальше</button></div>`;
+      $("#home").onclick=()=>go("home");return}
+    const tasks=old.map(m=>{
+      if(m.kind==="word"){const w=ALLW().find(w=>w.id===m.id);return w&&wordQ(w,"ru2en")}
+      if(m.kind==="cons"){const c=CONS.find(c=>c.id===m.id);return c&&consQ(c)}
+      const it=TENSE_ITEMS[m.id];return it&&tag(it);
+    }).filter(Boolean);
+    runBlock({title:"Проверка",phases:[{mode:"test",name:"Проверка ошибок",tasks:shuffle(tasks)}],onFinish:ph=>{
+      S.mistakes=S.mistakes.filter(m=>m.date>=today);finishBlock("check");resultScreen("Проверка",ph)}});
+    return}
+  if(key==="words"){
+    const batch=(b,n)=>({mode:"train",intro:{eyebrow:`Часть ${n} из 2`,title:"10 новых слов",text:"Сначала карточки, потом тренировка. Нажми на любое подчёркнутое слово во фразе, чтобы увидеть перевод."},
+      tasks:()=>{const bb=b.filter(w=>wStat(w.id).status!=="learned");
+        return [...bb.map(w=>({type:"card",word:w})),...shuffle(bb.map(w=>wordQ(w,"en2ru"))),
+          ...shuffle([...bb.map(w=>wordQ(w,"ru2en")),...bb.map(w=>wordQ(w,"audio"))]),...shuffle(bb).slice(0,4).map(w=>wordQ(w,"say"))]}});
+    runBlock({title:"Слова",phases:[batch(WORDS.slice(0,10),1),batch(WORDS.slice(10,20),2),
+      {mode:"test",name:"Тест по словам дня",intro:{eyebrow:"Тест",title:"Все слова дня",text:"Без подсказок и без второй попытки. Ошибки уйдут в завтрашнюю проверку."},
+       tasks:()=>shuffle(WORDS).map((w,i)=>wordQ(w,i%2?"en2ru":"ru2en",{sayAfter:null}))}],
+      onFinish:ph=>{finishBlock("words");const pass=ph[2].result.pct>=S.settings.threshold;
+        if(pass&&!S.topicsDone.includes("t0")){S.topicsDone.push("t0");save()}
+        resultScreen("Слова",ph,pass?`<p class="muted" style="max-width:34ch">Тема «About Me» пройдена — на карте пути открылась следующая.</p>`:"")}});
+    return}
+  if(key==="cons"){
+    const todo=TOPIC_CONS.filter(c=>cStat(c.id).status!=="learned");
+    if(!todo.length){finishBlock("cons");showTabs(false);
+      view.innerHTML=`<div class="stack center" style="padding-top:60px"><h1>Все конструкции уже знаешь</h1><p class="muted" style="max-width:32ch">Все конструкции этой темы отмечены как изученные. Их можно прогнать в тренажёре.</p></div><div class="foot"><button class="btn primary" id="home">Дальше</button></div>`;
+      $("#home").onclick=()=>go("home");return}
+    runBlock({title:"Конструкции",phases:[
+      ...todo.map((c,i)=>({mode:"train",intro:i===0?{eyebrow:`${todo.length} из ${TOPIC_CONS.length} конструкций темы`,title:"По одной за раз",text:"Разбираем конструкцию, закрепляем, и только потом следующая. Если уже знаешь её — нажми «Я уже это знаю»."}:null,tasks:()=>cStat(c.id).status==="learned"?[]:consLesson(c)})),
+      {mode:"test",name:"Тест по конструкциям",intro:{eyebrow:"Большой тест",title:"Все конструкции урока",text:"Без подсказок и без второй попытки. Отмеченные как изученные сюда не входят."},
+       tasks:()=>{const left=todo.filter(c=>cStat(c.id).status!=="learned");const set=left.length?left:todo;return shuffle([...set.map(consQ),...set.map(c=>consBuild(c,c.builds[1]))])}}],
+      onFinish:ph=>{finishBlock("cons");resultScreen("Конструкции",ph)}});
+    return}
+  if(key==="tense"){
+    const st=S.tense.ps.stage,th=S.settings.threshold;
+    if(st>=2){
+      runBlock({title:"Времена",phases:[{mode:"test",name:"Накопительный тест",intro:{eyebrow:"Present Simple закрыто",title:"Накопительный тест",text:"Все пройденные времена вперемешку. В прототипе пока одно время."},tasks:()=>shuffle(TI.filter(t=>t.type!=="say")).slice(0,10).map(tag)}],
+        onFinish:ph=>{finishBlock("tense");resultScreen("Времена",ph,`<p class="muted">Следующее время, Present Continuous, появится в полной версии.</p>`)}});
+      return}
+    const round=st+1;
+    const trainTasks=round===1
+      ?PS_STEPS.flatMap(s=>[{type:"theory",html:s.theory},...s.tasks.map(id=>tag(TENSE_ITEMS[id]))])
+      :(()=>{const miss=S.mistakes.filter(m=>m.kind==="tense").map(m=>TENSE_ITEMS[m.id]).filter(Boolean);
+         const base=TI.filter(t=>!t.id.startsWith("x"));
+         return [{type:"theory",html:PS_SHEET},...shuffle([...new Set([...miss,...shuffle(base)])]).slice(0,10).map(tag)]})();
+    runBlock({title:"Времена",phases:[
+      {mode:"train",intro:{eyebrow:`Present Simple · тренировка ${round}`,title:round===1?"Новое время":"Работа над ошибками",text:round===1?"5 коротких шагов: объяснение, потом сразу задания на него.":"Шпаргалка и задания, где ты ошибался."},tasks:trainTasks},
+      {mode:"test",name:`Тест ${round}`,intro:{eyebrow:"Тест",title:`Тест ${round}: Present Simple`,text:`Без подсказок. Нужно ${th}% или больше.`},tasks:()=>shuffle(PS_TEST_IDS).map(id=>tag(TENSE_ITEMS[id]))}],
+      onFinish:ph=>{const pass=ph[1].result.pct>=th;if(pass)S.tense.ps.stage=st+1;finishBlock("tense");save();
+        resultScreen("Времена",ph,`<p class="muted" style="max-width:34ch">${pass?(st+1>=2?"Present Simple закрыто. Дальше накопительный тест.":"Отлично. Следующий шаг — тренировка 2 и тест 2."):"Не страшно: в следующий раз повторим ошибки и пересдадим."}</p>`)}});
+    return}
+  if(key==="link"){
+    runBlock({title:"Связка",phases:[{mode:"train",intro:{eyebrow:"Связка",title:"Говорим целыми фразами",text:"Слова, конструкции и время вместе. Говори вслух, потом сверяйся."},tasks:LINK}],
+      onFinish:ph=>{finishBlock("link");resultScreen("Связка",ph)}});
+  }
+}
+
+/* ================= CONSTRUCTION DRILL ================= */
+function drill(){
+  showTabs(false);
+  const row=c=>{const known=cStat(c.id).status==="learned",n=genPhrases(c,true).length;
+    return `<div class="li"><button data-c="${c.id}" style="text-align:left;min-width:0"><div class="en">${esc(c.en)} ${known?'<span class="chip good">знаю</span>':""}</div><div class="ru">${esc(c.ru)} · <span style="color:${n>=5?"var(--good)":"var(--warn)"}">${n} ${plural(n,"фраза","фразы","фраз")} из твоих слов</span></div></button>
+      <div class="acts"><button class="btn small primary" data-c="${c.id}">×20</button>${known?`<button class="btn small ghost" data-un="${c.id}">Вернуть</button>`:`<button class="btn small ghost" data-k="${c.id}">Знаю</button>`}</div></div>`};
+  view.innerHTML=`${topBar(0,"Тренажёр")}<div class="stack"><div><div class="eyebrow">Тренажёр конструкций · ${CONS.length}</div><h1 style="margin-top:6px">Выбери одну и прогони 20 раз</h1>
+    <p class="muted" style="margin-top:6px">Каждый раз новые фразы, вперемешку, только из слов, которые ты знаешь.</p></div>
+    <button class="btn ghost" id="kw">Отметить слова, которые я знаю</button>
+    ${CGROUPS.map(g=>`<h2 style="margin-top:8px">${esc(g)}</h2><div class="list">${CONS.filter(c=>c.g===g).map(row).join("")}</div>`).join("")}
+    <p class="muted" style="font-size:13px">«Знаю» — 2 быстрых вопроса. Оба верно — конструкция отметится как изученная и не попадёт в уроки. «Вернуть» снимает отметку.</p></div>`;
+  bindTop();
+  const find=id=>CONS.find(c=>c.id===id);
+  $("#kw").onclick=()=>knownScreen(drill);
+  view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>runDrill(find(b.dataset.c)));
+  view.querySelectorAll("[data-un]").forEach(b=>b.onclick=()=>{cStat(b.dataset.un).status="learning";save();toast("Вернул в изучение");drill()});
+  view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const c=find(b.dataset.k);
+    runBlock({title:"Проверка",phases:[{mode:"train",tasks:consCheck(c)}],onFinish:()=>{const ok=cStat(c.id).status==="learned";
+      showTabs(false);view.innerHTML=`<div class="stack center" style="padding-top:60px"><h1>${ok?"Отмечено как изученное":"Пока не засчитано"}</h1><p class="muted" style="max-width:32ch">${ok?esc(c.en)+" больше не будет в уроках. Прогнать её можно здесь в любой момент.":"Была ошибка, поэтому конструкция остаётся в уроках. Попробуй прогнать её в тренажёре."}</p></div><div class="foot"><button class="btn primary" id="bk">К тренажёру</button></div>`;
+      $("#bk").onclick=drill}})});
+}
+/* Вариант «что подходит»: та же заготовка, вставленная в другие конструкции с таким же местом */
+function drillChoice(c,x){
+  const others=shuffle(CONS.filter(o=>o!==c&&o.g!==c.g)).map(o=>{const t=o.tpl.find(t=>["A","B","P","D","N"].every(k=>!!x.cb[k]===t.en.includes("{"+k)&&(!x.cb.A||actOk(x.cb.A,t.need))));
+    if(!t)return null;const en=t.en.replace(/\{(\w)(?:\.(\w+))?\}/g,(m,k,f)=>{const v=x.cb[k];return k==="A"||k==="B"?v[f||"b"]:v.en});return en===x.en?null:{en,o}}).filter(Boolean);
+  const pickO=[];others.forEach(z=>{if(pickO.length<2&&!pickO.some(p=>p.en===z.en))pickO.push(z)});
+  if(pickO.length<2)return null;
+  const opts=shuffle([{en:x.en,o:c},...pickO]);
+  return {type:"choice",hint:"Как это сказать?",prompt:x.ru,ru:true,options:opts.map(z=>z.en),answer:opts.findIndex(z=>z.o===c),consId:c.id,sayAfter:x.en,
+    notes:opts.map(z=>z.o===c?`Верно: ${c.en} — «${c.ru}». ${c.simple}`:`${z.o.en} — это «${z.o.ru}». ${z.o.simple}`)};
+}
+function runDrill(c,useAll){
+  const known=genPhrases(c,true);
+  if(!useAll&&known.length<5){showTabs(false);const all=genPhrases(c,false).length;
+    view.innerHTML=`${topBar(0,c.en)}<div class="stack center" style="padding-top:30px"><div class="eyebrow">Тренажёр</div><h1>Мало знакомых слов</h1>
+      <p class="muted" style="max-width:34ch">Для ${esc(c.en)} из твоих слов собирается ${known.length} ${plural(known.length,"фраза","фразы","фраз")}. Отметь слова, которые уже знаешь, и фраз станет больше. Всего для этой конструкции есть ${all}.</p></div>
+      <div class="foot"><button class="btn primary" id="mk">Отметить слова, которые я знаю</button><button class="btn ghost" id="all">Прогнать на всех словах</button></div>`;
+    bindTop();$("#mk").onclick=()=>knownScreen(()=>runDrill(c));$("#all").onclick=()=>runDrill(c,true);return}
+  const pool=useAll?genPhrases(c,false):known;
+  const picks=[];while(picks.length<20){const sh=shuffle(pool);if(picks.length&&sh[0]===picks[picks.length-1])sh.push(sh.shift());picks.push(...sh)}
+  const types=shuffle([...Array(20)].map((_,i)=>["say","build","choice"][i%3]));
+  const tasks=picks.slice(0,20).map((x,i)=>{const ty=types[i];
+    if(ty==="choice"){const q=drillChoice(c,x);if(q)return q}
+    if(ty==="build")return {type:"build",hint:"Собери фразу",ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,consId:c.id,why:c.simple};
+    return {type:"say",ru:x.ru,en:x.en,consId:c.id,pit:c.pitPlain}});
+  runBlock({title:`${c.en} ×20`,phases:[{mode:"train",tasks:[{type:"ccard",cons:c},...tasks]}],onFinish:ph=>{
+    showTabs(false);
+    view.innerHTML=`<div class="stack center" style="padding-top:40px"><div class="eyebrow">Тренажёр · 20 повторов</div><h1>${esc(c.en)}</h1>
+      <div class="score" style="color:${ph[0].result.pct>=80?"var(--good)":"var(--warn)"}">${ph[0].result.pct}%</div><p class="muted">с первого раза</p></div>
+      <div class="foot"><button class="btn primary" id="again">Ещё 20</button><button class="btn ghost" id="list">Другая конструкция</button></div>`;
+    $("#again").onclick=()=>runDrill(c,useAll);$("#list").onclick=drill}});
+}
+
+/* ================= «ЧТО Я УЖЕ ЗНАЮ» ================= */
+function knownScreen(back){
+  showTabs(false);if(!S.onboarded){S.onboarded=true;save()}
+  const groups=[["Тема «About Me»",WORDS],...BANK_CATS.map(([cat])=>[cat,BANK.filter(w=>w.cat===cat)]),...LW_GROUPS.map(([gid,name])=>["Little Words · "+name,LW.filter(w=>w.g===gid)])];
+  const isOn=w=>wStat(w.id).status!=="new";
+  const draw=()=>{const total=groups.reduce((s,g)=>s+g[1].length,0),on=groups.reduce((s,g)=>s+g[1].filter(isOn).length,0);
+    view.innerHTML=`<div class="rtop"><button class="x" id="kb" aria-label="Готово">${BACK}</button><div class="rprog"><i style="width:${on/total*100}%"></i></div><div class="rlabel">${on} из ${total}</div></div>
+    <div class="stack"><div><div class="eyebrow">Что я уже знаю</div><h1 style="margin-top:6px">Отметь знакомые слова</h1>
+    <p class="muted" style="margin-top:6px">Нажми на слово, если знаешь его. Отмеченные не попадутся в уроках как новые, а в тренажёре фразы будут собираться из них.</p></div>
+    ${groups.map(([g,list],gi)=>{const n=list.filter(isOn).length;return `<div class="panel stack"><div class="row" style="justify-content:space-between"><h3>${esc(g)}</h3><button class="btn small ghost" data-all="${gi}">${n===list.length?"Снять все":"Знаю все"}</button></div>
+      <div class="kchips">${list.map(w=>`<button class="kchip ${isOn(w)?"on":""}" data-w="${w.id}"><b>${esc(w.en)}</b><span>${esc(w.ru)}</span></button>`).join("")}</div></div>`}).join("")}
+    <button class="btn primary" id="kd">Готово</button></div>`;
+    const done=()=>{(back||(()=>go("home")))()};
+    $("#kb").onclick=done;$("#kd").onclick=done;
+    const set=(w,v)=>{const s=wStat(w.id);if(v){if(s.status==="new"){s.status="learned";s.known=true}}else if(s.known||s.status==="learned"){s.status="new";s.known=false}};
+    view.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{const w=ALLW().find(x=>x.id===b.dataset.w);set(w,!isOn(w));save();
+      b.classList.toggle("on",isOn(w));const ids=groups.flatMap(g=>g[1]);$(".rlabel").textContent=`${ids.filter(isOn).length} из ${ids.length}`;$(".rprog i").style.width=ids.filter(isOn).length/ids.length*100+"%"});
+    view.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{const list=groups[+b.dataset.all][1],all=list.every(isOn);list.forEach(w=>set(w,!all));save();const y=scrollY;draw();scrollTo(0,y)});
+  };
+  draw();window.scrollTo(0,0);
+}
+
+/* ================= CHATGPT PROMPT ================= */
+/* Промпт для ОДНОГО постоянного чата: каждый раз полный срез знаний, поэтому ChatGPT ничего не нужно помнить */
+const DAY=864e5;
+function knowledge(){
+  const items=[...ALLW().map(x=>({k:"w",x,s:wStat(x.id)})),...CONS.map(x=>({k:"c",x,s:cStat(x.id)}))].filter(i=>i.s.status!=="new");
+  const since=S.lastPromptAt||0,now=Date.now();
+  let fresh=since?items.filter(i=>!i.s.known&&i.s.at&&i.s.at>since):[],freshWhy="с прошлого промпта";
+  if(!fresh.length){fresh=items.filter(i=>!i.s.known&&i.s.at&&now-i.s.at<2*DAY);freshWhy="за последние 2 дня"}
+  /* не больше 12 слов и 4 конструкций, самые свежие; остальное уходит в повторение */
+  fresh.sort((a,b)=>b.s.at-a.s.at);fresh=[...fresh.filter(i=>i.k==="w").slice(0,12),...fresh.filter(i=>i.k==="c").slice(0,4)];
+  const old=items.filter(i=>!fresh.includes(i));
+  const weak=old.filter(i=>(i.s.bad||0)>0).sort((a,b)=>(b.s.bad||0)-(a.s.bad||0)).slice(0,6);
+  const review=[...weak,...shuffle(old.filter(i=>!weak.includes(i)&&!i.s.known)).slice(0,10-weak.length)];
+  const psOn=S.tense.ps.stage>0||S.tense.ps.answers.length>0,psNew=psOn&&S.tense.ps.at&&(S.tense.ps.at>since||now-S.tense.ps.at<2*DAY);
+  return {items,fresh,freshWhy,review,psOn,psNew,errs:errGroups().slice(0,3)};
+}
+const fmtW=i=>`${i.x.en} — ${i.x.ru}`, fmtC=i=>`${i.x.en} (${i.x.ru})`;
+const PS_RULE="Present Simple: he/she/it + -s (he lives); отрицание don't/doesn't + глагол без -s; вопрос Do/Does + глагол без -s";
+function buildPrompt(){
+  const K=knowledge();
+  const fw=K.fresh.filter(i=>i.k==="w"),fc=K.fresh.filter(i=>i.k==="c");
+  const rw=K.review.filter(i=>i.k==="w"),rc=K.review.filter(i=>i.k==="c");
+  const allW=K.items.filter(i=>i.k==="w").map(i=>i.x.en),allC=K.items.filter(i=>i.k==="c").map(i=>i.x.en);
+  const L=[];
+  L.push("ТРЕНИРОВКА РАЗГОВОРА");
+  L.push("Это сообщение — полное и актуальное. Всё нужное есть здесь. Если старые сообщения этого чата с ним расходятся, верь этому.");
+  L.push("");
+  L.push("Кто я: Даня, 18 лет, живу в Таиланде. Понимаю английский примерно на A2, говорю пока слабо. Цель — начать свободно говорить.");
+  L.push("");
+  L.push("1) НОВОЕ — главный фокус, примерно 70% вопросов:");
+  if(fw.length)L.push("Слова: "+fw.map(fmtW).join("; "));
+  if(fc.length)L.push("Конструкции: "+fc.map(fmtC).join("; "));
+  if(K.psNew)L.push("Грамматика: "+PS_RULE);
+  if(!fw.length&&!fc.length&&!K.psNew)L.push("Нового нет — сделай упор на повторение ниже.");
+  L.push("");
+  L.push("2) ПОВТОРИТЬ — пройдено раньше, вставляй органично, примерно 30% вопросов:");
+  const rev=[...rw.map(fmtW),...rc.map(fmtC)];if(K.psOn&&!K.psNew)rev.push(PS_RULE);
+  L.push(rev.length?rev.join("; "):"Пока нечего — всё пройденное новое.");
+  if(K.errs.length){L.push("");L.push("3) МОИ ЧАСТЫЕ ОШИБКИ — лови их особенно внимательно:");K.errs.forEach(g=>L.push("- "+g.rule+": "+ruleInfo(g.key).tip))}
+  L.push("");
+  L.push((K.errs.length?"4":"3")+") ВСЁ, ЧТО Я ЗНАЮ — строй вопросы в основном из этих слов:");
+  L.push("Слова: "+(allW.length?allW.join(", "):"пока почти ничего, говори очень просто"));
+  if(allC.length)L.push("Конструкции: "+allC.join(", "));
+  L.push("Времена: "+(K.psOn?"Present Simple":"пока ни одного, используй самые простые фразы"));
+  L.push("");
+  L.push("Как проводить разговор:");
+  L.push("- Живой разговор: вопросы по одному, простой английский. Темы из моей жизни: Таиланд, работа, семья, увлечения, планы.");
+  L.push("- Строй вопросы так, чтобы в ответе мне нужно было использовать НОВОЕ. Каждое новое слово и конструкцию я должен употребить хотя бы 2 раза.");
+  L.push("- Время от времени незаметно вставляй вопросы на ПОВТОРИТЬ, внутри разговора, а не отдельным тестом.");
+  L.push("- После каждого моего ответа коротко, по-русски, исправь ошибки и покажи, как сказать естественнее. Потом следующий вопрос.");
+  L.push("- Если я долго не использую что-то из НОВОГО, специально подведи меня к этому.");
+  L.push("- Слова не из моих списков давай с переводом в скобках.");
+  L.push("- После 15–20 вопросов подведи итог: ИТОГ — что получается / где ошибаюсь / что повторить в следующий раз.");
+  L.push("");
+  L.push("Начни с первого вопроса.");
+  return {text:L.join("\n"),K,fw,fc,rev};
+}
+const SETUP_PROMPT=`Привет! Это будет наш постоянный чат для практики разговорного английского.
+
+Как он работает:
+- Я учу английский в своём приложении. Перед каждой практикой я присылаю сообщение, которое начинается со слов «ТРЕНИРОВКА РАЗГОВОРА».
+- В нём всегда полный актуальный список: что я прошёл недавно (НОВОЕ), что пора повторить (ПОВТОРИТЬ), мои частые ошибки и все слова, которые я знаю.
+- Всегда ориентируйся на ПОСЛЕДНЕЕ такое сообщение. Не пытайся вспоминать старые списки из начала чата — они могли устареть.
+- Каждый раз веди разговор по правилам из этого сообщения: вопросы по одному, после моего ответа — короткие исправления по-русски, в конце — итог.
+
+Если понял, ответь коротко «Понял, жду тренировку» и больше ничего.`;
+function gptScreen(){
+  showTabs(false);let mode="daily";
+  const draw=()=>{const P=buildPrompt(),text=mode==="daily"?P.text:SETUP_PROMPT;
+    view.innerHTML=`${topBar(100,"ChatGPT")}<div class="stack"><div><div class="eyebrow">Один постоянный чат</div><h1 style="margin-top:6px">Промпт для ChatGPT</h1>
+     <p class="muted" style="margin-top:6px">Каждый промпт содержит всё, что ты знаешь, поэтому ChatGPT ничего не нужно помнить. Кидай его в один и тот же чат перед каждой практикой.</p></div>
+     <div class="seg" style="grid-template-columns:1fr 1fr"><button data-m="daily" class="${mode==="daily"?"on":""}">Перед практикой</button><button data-m="setup" class="${mode==="setup"?"on":""}">Первый раз</button></div>
+     ${mode==="daily"?`<div class="gstats"><div><b>${P.fw.length+P.fc.length+(P.K.psNew?1:0)}</b><span>новое · ${esc(P.K.freshWhy)}</span></div><div><b>${P.rev.length}</b><span>повторить</span></div><div><b>${P.K.errs.length}</b><span>частые ошибки</span></div></div>`
+       :`<div class="rule" style="font-size:14px">Отправь это один раз, когда создашь чат. Потом перед каждой практикой — промпт со вкладки «Перед практикой».</div>`}
+     <textarea id="pt" readonly>${esc(text)}</textarea>
+     <button class="btn primary" id="cp">Скопировать</button>
+     <a class="btn ghost" href="https://chatgpt.com/" target="_blank" rel="noopener" style="text-decoration:none;color:var(--fg)">Открыть ChatGPT</a>
+     ${mode==="daily"?`<p class="muted" style="font-size:13px">После копирования счётчик «новое» начнётся заново: в следующий раз в НОВОЕ попадёт только то, что ты пройдёшь после этого. Если чат станет слишком длинным и начнёт тормозить, просто начни новый — ничего не потеряется.</p>`:""}</div>`;
+    bindTop();
+    view.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;draw()});
+    $("#cp").onclick=()=>{const ta=$("#pt");
+      const ok=()=>{toast("Скопировано");if(mode==="daily"){S.lastPromptAt=Date.now();save()}};
+      const fallback=()=>{ta.focus();ta.select();toast("Текст выделен — скопируй вручную");if(mode==="daily"){S.lastPromptAt=Date.now();save()}};
+      try{navigator.clipboard.writeText(text).then(ok,fallback)}catch(e){fallback()}};
+  };
+  draw();window.scrollTo(0,0);
+}
+
+/* ================= LITE MODE ================= */
+function lite(){
+  showTabs(false);
+  view.innerHTML=`${topBar(0,"Лайт")}
+  <div class="stack"><div><div class="eyebrow">Лайт-режим</div><h1 style="margin-top:6px">Когда нет сил</h1>
+  <p class="muted" style="margin-top:6px">Только лёгкое повторение. Без оценок. День не засчитывается.</p></div>
+  <div class="tiles">
+   <button class="tile" data-l="cards"><span class="t">Карточки слов</span><span class="d">Нажал — увидел перевод</span></button>
+   <button class="tile" data-l="ccards"><span class="t">Карточки связок</span><span class="d">I'm from, I've been here for…</span></button>
+   <button class="tile" data-l="listen"><span class="t">Послушать</span><span class="d">Английский, пауза, русский</span></button>
+   <button class="tile" data-l="say"><span class="t">Скажи вслух</span><span class="d">Без отметок</span></button>
+   <button class="tile" data-l="sheet"><span class="t">Шпаргалка</span><span class="d">Present Simple</span></button>
+  </div></div>`;
+  bindTop();
+  view.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{
+    const m=b.dataset.l;
+    if(m==="cards")liteCards("word");
+    if(m==="ccards")liteCards("cons");
+    if(m==="listen")liteListen();
+    if(m==="say")runBlock({title:"Лайт",lite:true,phases:[{mode:"train",tasks:shuffle([...WORDS.map(w=>({type:"say",ru:w.exRu,en:w.ex})),...CONS.map(c=>({type:"say",ru:c.ex[0][1],en:c.ex[0][0]}))]).slice(0,10)}],onFinish:()=>lite()});
+    if(m==="sheet"){view.innerHTML=`${topBar(100,"Шпаргалка")}<div class="theory">${PS_SHEET}</div><div class="foot"><button class="btn primary" id="b">Назад</button></div>`;$("#close").onclick=lite;$("#b").onclick=lite}
+  });
+}
+function liteCards(kind){
+  const deck=shuffle(kind==="word"?WORDS.map(w=>({en:w.en,ru:w.ru,sub:w.tr,kind:"word",id:w.id}))
+    :CONS.map(c=>({en:c.en,ru:c.ru,sub:c.ex[0][0]+" — "+c.ex[0][1],kind:"cons",id:c.id,say:c.say})));
+  let i=0,flipped=false;
+  const draw=()=>{const c=deck[i];
+    view.innerHTML=`${topBar(i/deck.length*100,`${kind==="word"?"Слова":"Связки"} · ${i+1} / ${deck.length}`)}
+    <button class="card flip" id="f"><div class="eyebrow">${kind==="word"?"Слово":"Связка"}</div><div style="font-family:var(--f-display);font-size:${kind==="word"?28:24}px;font-weight:700">${esc(flipped?c.ru:c.en)}</div><div class="${flipped&&kind==="word"?"fc-tr":"muted"}">${flipped?esc(c.sub):"Нажми, чтобы перевернуть"}</div>${flipped?`<div class="muted" style="font-size:14px">${esc(c.en)}</div>`:""}</button>
+    <div class="foot"><button class="btn primary" id="n">Дальше</button><div class="row"><button class="btn ghost" id="s">${SPK} Озвучить</button><button class="btn ghost" id="m">В проверку</button></div></div>`;
+    $("#close").onclick=lite;
+    $("#f").onclick=()=>{flipped=!flipped;draw()};
+    $("#s").onclick=()=>speak(c.say||c.en);
+    $("#m").onclick=()=>{S.mistakes.push({kind:c.kind,id:c.id,date:"0000-00-00"});save();toast("Добавлено в следующую проверку")};
+    $("#n").onclick=()=>{i=(i+1)%deck.length;flipped=false;draw()};
+  };draw();
+}
+function liteListen(){
+  const items=shuffle([...WORDS.map(w=>[w.ex,w.exRu]),...CONS.map(c=>c.ex[0])]);let i=0,on=false;
+  const draw=showRu=>{const it=items[i%items.length];
+    view.innerHTML=`${topBar(100,"Послушать")}<div class="card flip" style="cursor:default"><div style="font-size:22px;font-weight:600">${esc(it[0])}</div><div class="muted" style="min-height:1.5em">${showRu?esc(it[1]):""}</div></div>
+    <div class="foot"><button class="btn primary" id="p">${on?"Пауза":"Слушать"}</button></div>`;
+    $("#close").onclick=()=>{on=false;stopSpeech();lite()};
+    $("#p").onclick=()=>{on=!on;if(on)loop();else{stopSpeech();draw(false)}}};
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  async function loop(){while(on){const it=items[i%items.length];draw(false);await speak(it[0]);if(!on)break;await wait(1500);if(!on)break;draw(true);await speak(it[1],"ru-RU");if(!on)break;await wait(1200);i++}}
+  draw(false);
+}
+
+/* ================= GRAMMAR REFERENCE ================= */
+const TENSE_REF=[ /* [en, ru name, когда, формула, пример, перевод, учим сейчас] */
+ ["Present Simple","Настоящее простое","Регулярно, всегда, факты о тебе","I work · he works","I live in Thailand.","Я живу в Таиланде.",1],
+ ["Present Continuous","Настоящее длительное","Прямо сейчас, в этот момент","am / is / are + глагол-ing","I'm learning English now.","Я учу английский прямо сейчас.",1],
+ ["Present Perfect","Настоящее совершённое","Было раньше, но важен результат или опыт сейчас","have / has + 3-я форма","I've lost my phone.","Я потерял телефон (и сейчас его нет).",1],
+ ["Present Perfect Continuous","Настоящее совершённое длительное","Началось раньше и всё ещё идёт","have / has been + глагол-ing","I've been learning English for a month.","Я учу английский уже месяц.",0],
+ ["Past Simple","Прошедшее простое","Было и закончилось","глагол-ed или 2-я форма","I lived in Russia.","Я жил в России.",1],
+ ["Past Continuous","Прошедшее длительное","Процесс в какой-то момент в прошлом","was / were + глагол-ing","I was sleeping at 10.","В 10 часов я спал.",1],
+ ["Past Perfect","Прошедшее совершённое","Случилось раньше другого события в прошлом","had + 3-я форма","I had eaten before he came.","Я поел до того, как он пришёл.",0],
+ ["Past Perfect Continuous","Прошедшее совершённое длительное","Длилось до какого-то момента в прошлом","had been + глагол-ing","I had been waiting for an hour.","Я ждал уже час (к тому моменту).",0],
+ ["Future Simple · will","Будущее простое","Решение прямо сейчас, обещание, прогноз","will + глагол","I'll call you.","Я тебе позвоню.",1],
+ ["be going to","Собираюсь (план)","Заранее решённый план. Учим вместе с will","am / is / are going to + глагол","I'm going to move.","Я собираюсь переехать.",1],
+ ["Future Continuous","Будущее длительное","Процесс в какой-то момент в будущем","will be + глагол-ing","I'll be working at 5.","В 5 я буду работать.",0],
+ ["Future Perfect","Будущее совершённое","Будет закончено к моменту в будущем","will have + 3-я форма","I'll have finished by Monday.","Я закончу к понедельнику.",0],
+ ["Future Perfect Continuous","Будущее совершённое длительное","Будет длиться уже какое-то время к моменту в будущем","will have been + глагол-ing","By May I'll have been living here for a year.","К маю я буду жить здесь уже год.",0]
+];
+const IRR=[ /* по частоте употребления */
+ ["be","was / were","been","быть"],["have","had","had","иметь"],["do","did","done","делать"],["say","said","said","сказать"],["go","went","gone","идти, ехать"],
+ ["get","got","got","получать; становиться"],["make","made","made","делать, создавать"],["know","knew","known","знать"],["think","thought","thought","думать"],["take","took","taken","брать"],
+ ["see","saw","seen","видеть"],["come","came","come","приходить"],["give","gave","given","давать"],["find","found","found","находить"],["tell","told","told","рассказывать"],
+ ["feel","felt","felt","чувствовать"],["become","became","become","становиться"],["leave","left","left","уходить, оставлять"],["put","put","put","класть"],["bring","brought","brought","приносить"],
+ ["begin","began","begun","начинать"],["keep","kept","kept","держать, продолжать"],["write","wrote","written","писать"],["hear","heard","heard","слышать"],["meet","met","met","встречать"],
+ ["pay","paid","paid","платить"],["sit","sat","sat","сидеть"],["speak","spoke","spoken","говорить"],["read","read","read","читать (в прошлом звучит «ред»)"],["lose","lost","lost","терять"],
+ ["send","sent","sent","отправлять"],["understand","understood","understood","понимать"],["spend","spent","spent","тратить (деньги, время)"],["buy","bought","bought","покупать"],["sleep","slept","slept","спать"],
+ ["eat","ate","eaten","есть"],["drink","drank","drunk","пить"],["drive","drove","driven","водить машину"],["forget","forgot","forgotten","забывать"],["sell","sold","sold","продавать"],
+ ["teach","taught","taught","учить кого-то"],["win","won","won","выигрывать"],["wear","wore","worn","носить (одежду)"],["choose","chose","chosen","выбирать"],["break","broke","broken","ломать"],
+ ["fly","flew","flown","летать"],["swim","swam","swum","плавать"],["cost","cost","cost","стоить"],["run","ran","run","бегать"],["grow","grew","grown","расти"]
+];
+const SOUNDS=[ /* [символ, слово, как произносить, нет в русском] */
+ ["θ","think","Кончик языка между зубами, выдыхай без голоса. Не «с» и не «ф».",1],
+ ["ð","this","Язык так же между зубами, но с голосом. Не «з» и не «д».",1],
+ ["w","water","Губы трубочкой, как для «у», и быстро раскрой. Не «в».",1],
+ ["ŋ","sing","«Н» задней частью языка, как в носу. Звук «г» в конце не произносим.",1],
+ ["h","house","Лёгкий выдох, как будто греешь руки. Не хриплое «х».",1],
+ ["æ","cat","Между «а» и «э»: рот широко, как для «а», а говори «э».",1],
+ ["ʌ","cup","Короткое «а», рот почти не раскрыт.",0],
+ ["ɜːr","bird","Похоже на «ё» без «й», язык в середине рта, конец с английским r.",1],
+ ["ə","about","Очень слабый безударный звук, что-то между «а» и «э».",0],
+ ["iː / ɪ","sheep / ship","Долгое «и» и короткое, открытое, почти «ы». От длины меняется смысл.",1],
+ ["r","red","Язык не вибрирует и не касается нёба, кончик загнут назад.",1],
+ ["d / t","bed / bet","Звонкий в конце слова остаётся звонким. bed — кровать, bet — ставка.",1]
+];
+const SIGNS=[["ˈ","ударение: слог после значка ударный","ˈfæməli"],["ː","звук долгий","spiːk"],["eɪ","«эй»","neɪm"],["aɪ","«ай»","taɪm"],["oʊ","«оу»","oʊld"],["aʊ","«ау»","naʊ"],["dʒ","мягкое «дж»","dʒɑːb"],["tʃ","«ч»","tʃaɪld"],["ʃ","«ш», мягче русского","ʃiː"]];
+
+const GTOPICS=[
+ {key:"tenses",t:"Времена",d:"Все 12, с русскими названиями и примерами"},
+ {key:"be",t:"Местоимения и to be",d:"I, you, he… и am, is, are"},
+ {key:"sounds",t:"Транскрипция и произношение",d:"Как читать значки и звуки, которых нет в русском"},
+ {key:"irr",t:"Неправильные глаголы",d:`${IRR.length} самых ходовых, частые сверху`},
+ {key:"art",t:"Артикли a, an, the",d:"Когда какой и когда без артикля"},
+ {key:"order",t:"Порядок слов",d:"Утверждение, отрицание, вопрос"},
+ {key:"prep",t:"Предлоги in, on, at",d:"Места и времени"}
+];
+function grammar(){
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Справочник</div><h1 style="margin-top:4px">Грамматика</h1></div></div>
+  <p class="muted" style="margin:-6px 0 16px">Сюда можно заглянуть в любой момент, даже посреди урока.</p>
+  <div class="glist">${GTOPICS.map((g,i)=>`<button class="gitem" data-g="${g.key}"><span class="gnum">${i+1}</span><span style="min-width:0"><b>${esc(g.t)}</b><span>${esc(g.d)}</span></span><span class="muted">›</span></button>`).join("")}</div>`;
+  view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>gPage(b.dataset.g));
+}
+function gPage(key){
+  showTabs(false);const g=GTOPICS.find(x=>x.key===key);
+  view.innerHTML=`<div class="rtop"><button class="x" id="gback" aria-label="Назад">${BACK}</button><div style="flex:1"></div><div class="rlabel">Грамматика · ${GTOPICS.indexOf(g)+1} из ${GTOPICS.length}</div></div>
+   <div class="gsec"><h1>${esc(g.t)}</h1>${G[key]()}</div>
+   <div class="foot"><button class="btn ghost" id="gback2">К списку тем</button></div>`;
+  const back=()=>{stopSpeech();go("grammar")};$("#gback").onclick=back;$("#gback2").onclick=back;
+  if(key==="irr"){const inp=$("#irrq");inp.oninput=()=>{const q=inp.value.trim().toLowerCase();
+    view.querySelectorAll("#irrt tbody tr").forEach(r=>{r.hidden=q&&!r.textContent.toLowerCase().includes(q)})}}
+  window.scrollTo(0,0);
+}
+const ex2=(en,ru)=>`<div class="exl"><div><b>${esc(en)}</b><span>${esc(ru)}</span></div></div>`;
+const G={
+ tenses:()=>{
+  const grid=[["Present","Настоящее",0],["Past","Прошедшее",4],["Future","Будущее",8]];
+  const cell=i=>{const r=TENSE_REF[i];return `<td class="${r[6]?"cur":""}"><span class="f">${esc(r[4].split(/[.,]/)[0])}</span><br><span class="muted" style="font-size:12px">${esc(r[1])}</span></td>`};
+  return `<p class="lead">В английском 12 времён: 3 момента (настоящее, прошлое, будущее) × 4 вида. Выделенные — те, что учим в первую очередь, их хватает для большинства разговоров.</p>
+  <div class="scroll"><table class="t tgrid"><thead><tr><th></th><th>Simple<br>простое</th><th>Continuous<br>длительное</th><th>Perfect<br>совершённое</th><th>Perfect Cont.<br>соверш. длит.</th></tr></thead>
+   <tbody>${grid.map(([en,ru,s])=>`<tr><th style="border-bottom:1px solid var(--line)">${en}<br><span style="text-transform:none;letter-spacing:0">${ru}</span></th>${[0,1,2,3].map(k=>cell(s===8?[8,10,11,12][k]:s+k)).join("")}</tr>`).join("")}</tbody></table></div>
+  <div class="rule">Простое — факт. Длительное — процесс. Совершённое — результат. Совершённое длительное — процесс, который длится до какого-то момента.</div>
+  ${TENSE_REF.map(r=>`<div class="tcard ${r[6]?"now":""}"><div class="nm"><b>${esc(r[0])}</b>${r[6]?'<span class="chip good">учим сейчас</span>':'<span class="chip">позже</span>'}</div>
+   <div class="runame">${esc(r[1])}</div><div>${esc(r[2])}</div><div><code>${esc(r[3])}</code></div>
+   <div class="ex"><div style="font-size:17px;font-weight:600">${esc(r[4])}</div><div class="muted">${esc(r[5])}</div>${spkBtn(r[4])}</div></div>`).join("")}`},
+ be:()=>`<p class="lead">To be — «быть». В русском мы его пропускаем («я студент»), в английском он обязателен: <b>I am a student</b>.</p>
+  <div class="scroll"><table class="t"><thead><tr><th>Кто</th><th>to be</th><th>Коротко</th><th>Отрицание</th><th>Вопрос</th></tr></thead><tbody>
+   ${[["I · я","am","I'm","I'm not","Am I…?"],["you · ты, вы","are","you're","you aren't","Are you…?"],["he · он","is","he's","he isn't","Is he…?"],["she · она","is","she's","she isn't","Is she…?"],["it · оно, это","is","it's","it isn't","Is it…?"],["we · мы","are","we're","we aren't","Are we…?"],["they · они","are","they're","they aren't","Are they…?"]]
+     .map(r=>`<tr><td>${r[0]}</td><td class="f" style="color:var(--accent)">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join("")}</tbody></table></div>
+  <div class="rule">В прошлом: I / he / she / it → <b>was</b>, you / we / they → <b>were</b>. I was a student. They were at home.</div>
+  <h2>Когда нужен to be</h2>
+  <div class="panel exl"><div><b>Кто ты: I'm a student.</b><span>Я студент.</span></div><div><b>Какой ты: I'm tired.</b><span>Я устал.</span></div><div><b>Где ты: I'm in Thailand.</b><span>Я в Таиланде.</span></div><div><b>Возраст: I'm 18.</b><span>Мне 18.</span></div></div>
+  <div class="pit"><b>С обычным глаголом to be не ставим.</b> I live, а не I am live. I like, а не I am like.</div>
+  <h2>Местоимения</h2>
+  <div class="scroll"><table class="t"><thead><tr><th>Кто</th><th>Кого, кому</th><th>Чей</th></tr></thead><tbody>
+   ${[["I · я","me · меня, мне","my · мой"],["you · ты","you · тебя, тебе","your · твой"],["he · он","him · его, ему","his · его"],["she · она","her · её, ей","her · её"],["it · оно","it","its · его, её"],["we · мы","us · нас, нам","our · наш"],["they · они","them · их, им","their · их"]].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+  ${ex2("My brother lives in Thailand. I often call him.","Мой брат живёт в Таиланде. Я часто звоню ему.")}`,
+ sounds:()=>`<p class="lead">Транскрипция — запись того, как слово <mark>звучит</mark>, а не как пишется. Она стоит в квадратных скобках: <b>[neɪm]</b>.</p>
+  <h2>Как читать значки</h2>
+  <div class="scroll"><table class="t"><thead><tr><th>Значок</th><th>Что значит</th><th>Пример</th></tr></thead><tbody>${SIGNS.map(s=>`<tr><td class="f" style="color:var(--accent);font-size:17px">${s[0]}</td><td>${s[1]}</td><td>[${s[2]}]</td></tr>`).join("")}</tbody></table></div>
+  <h2>Звуки, которых нет в русском</h2>
+  <div class="panel">${SOUNDS.map(s=>`<div class="snd"><div class="sym">${s[0]}</div><div class="stack" style="gap:6px"><div class="row" style="flex-wrap:wrap"><b style="font-size:17px">${s[1]}</b>${s[3]?'<span class="chip bad">нет в русском</span>':""}</div><span class="muted" style="font-size:14px">${esc(s[2])}</span>${spkBtn(s[1].replace(" / ",", "),"Послушать")}</div></div>`).join("")}</div>
+  <div class="rule">Самая частая ошибка русских: <b>th</b> как «с» или «з». Think звучит не «синк». Потренируй перед зеркалом: язык видно между зубами.</div>`,
+ irr:()=>`<p class="lead">Обычные глаголы в прошлом получают <b>-ed</b> (work → worked). Неправильные меняются целиком — их нужно просто запомнить.</p>
+  <div class="rule"><b>2-я форма</b> — для Past Simple: I went. <b>3-я форма</b> — для Perfect: I have gone. Первые 15 — самые частые, начни с них.</div>
+  <input type="text" id="irrq" placeholder="Найти глагол или перевод" autocomplete="off">
+  <div class="scroll"><table class="t" id="irrt"><thead><tr><th>#</th><th>1 · сейчас</th><th>2 · прошлое</th><th>3 · perfect</th><th>Перевод</th><th></th></tr></thead><tbody>
+   ${IRR.map((v,i)=>`<tr${i<15?' style="background:var(--accent-bg)"':""}><td class="muted" style="font-variant-numeric:tabular-nums">${i+1}</td><td class="f">${v[0]}</td><td class="f">${v[1]}</td><td class="f">${v[2]}</td><td>${esc(v[3])}</td><td><button class="icon-btn" data-say="${esc(v[0]+", "+v[1].replace(" / ",", ")+", "+v[2])}" aria-label="Озвучить">${SPK}</button></td></tr>`).join("")}</tbody></table></div>`,
+ art:()=>`<p class="lead">Артикль — маленькое слово перед существительным. В русском их нет, поэтому простая проверка: можно ли по-русски сказать «<mark>какой-то, один</mark>» или «<mark>этот, тот самый</mark>».</p>
+  <div class="split"><div class="panel"><div class="fbig">a / an</div><div class="muted" style="font-size:14px">«какой-то, один из многих». Впервые упоминаешь.</div></div><div class="panel hl"><div class="fbig">the</div><div class="muted" style="font-size:14px">«этот, тот самый». Понятно, о каком речь, или он один такой.</div></div></div>
+  <h2>a или an</h2>
+  <div class="rule">Смотрим на <b>звук</b>, а не на букву. Согласный звук → <b>a</b>, гласный звук → <b>an</b>.</div>
+  <div class="panel exl"><div><b>a job, a big city</b><span>согласный звук</span></div><div><b>an apple, an old friend</b><span>гласный звук</span></div><div><b>an hour</b><span>h не читается, первый звук гласный</span></div><div><b>a university</b><span>первый звук «ю», это согласный</span></div></div>
+  <h2>a или the</h2>
+  <div class="panel exl"><div><b>I have a job. The job is interesting.</b><span>У меня есть работа (впервые). Эта работа интересная (уже знаем, какая).</span></div><div><b>the sun, the internet</b><span>он один такой</span></div></div>
+  <h2>Без артикля</h2>
+  <div class="panel exl"><div><b>I live in Thailand. I speak English.</b><span>страны, города, языки</span></div><div><b>I like games. I like music.</b><span>что-то вообще, во множественном числе или то, что не посчитать</span></div><div><b>my brother, your city</b><span>после my, your, his… артикль не нужен</span></div></div>`,
+ order:()=>`<p class="lead">В русском слова можно переставлять. В английском порядок <mark>жёсткий</mark>: переставишь — смысл сломается или появится ошибка.</p>
+  <div class="wo-l"><span style="color:var(--good)">■ кто</span><span style="color:var(--accent)">■ действие</span><span>■ что</span><span style="color:var(--warn)">■ где / когда</span><span style="color:var(--bad)">■ вспомогательное</span></div>
+  <h2>Утверждение</h2>
+  <div class="panel stack"><div class="wo"><span class="c1">I</span><span class="c2">learn</span><span class="c3">English</span><span class="c4">at home</span><span class="c4">every day</span></div><span class="muted" style="font-size:14px">Кто → действие → что → где → когда. Место раньше времени.</span></div>
+  <h2>Отрицание</h2>
+  <div class="panel stack"><div class="wo"><span class="c1">I</span><span class="c5">don't</span><span class="c2">speak</span><span class="c3">Thai</span></div><span class="muted" style="font-size:14px">Кто → don't / doesn't / didn't / am not → действие. «Не» стоит перед действием.</span></div>
+  <h2>Вопрос</h2>
+  <div class="panel stack"><div class="wo"><span class="c5">Do</span><span class="c1">you</span><span class="c2">speak</span><span class="c3">English</span><span>?</span></div>
+   <div class="wo"><span class="c3">Where</span><span class="c5">do</span><span class="c1">you</span><span class="c2">live</span><span>?</span></div>
+   <div class="wo"><span class="c3">What</span><span class="c5">are</span><span class="c1">you</span><span class="c2">doing</span><span>?</span></div>
+   <span class="muted" style="font-size:14px">(Вопросительное слово) → вспомогательное → кто → действие. Вспомогательное всегда раньше «кто».</span></div>
+  <div class="rule">Слова <b>often, usually, always, never</b> — перед действием: I often speak. Но после am / is / are: I'm often tired.</div>
+  <div class="pit"><b>Не говори «Where you live?»</b> Без do вопрос неправильный: Where do you live?</div>`,
+ prep:()=>`<p class="lead">Удобно запомнить пирамидой: <mark>at</mark> — точка, <mark>on</mark> — поверхность или день, <mark>in</mark> — что-то большое, внутри или долгий период.</p>
+  <div class="pyr"><div class="p1"><b>at</b> · точка</div><div class="p2"><b>on</b> · поверхность, день</div><div class="p3"><b>in</b> · внутри, большое, период</div></div>
+  <h2>Время</h2>
+  <div class="scroll"><table class="t"><tbody>
+   <tr><td class="f" style="color:var(--accent)">at</td><td>точное время<br><b>at 5 o'clock, at night, at the moment</b></td></tr>
+   <tr><td class="f" style="color:var(--accent)">on</td><td>дни и даты<br><b>on Monday, on May 5, on my birthday</b></td></tr>
+   <tr><td class="f" style="color:var(--accent)">in</td><td>месяцы, годы, части дня, периоды<br><b>in May, in 2026, in the morning, in two weeks</b></td></tr></tbody></table></div>
+  <h2>Место</h2>
+  <div class="scroll"><table class="t"><tbody>
+   <tr><td class="f" style="color:var(--accent)">at</td><td>точка, место, где что-то делаешь<br><b>at home, at work, at the airport</b></td></tr>
+   <tr><td class="f" style="color:var(--accent)">on</td><td>на поверхности, на улице, в большом транспорте<br><b>on the table, on the street, on the bus</b></td></tr>
+   <tr><td class="f" style="color:var(--accent)">in</td><td>внутри, город, страна, машина<br><b>in the room, in Bangkok, in Thailand, in a car</b></td></tr></tbody></table></div>
+  <div class="pit"><b>Исключения, которые надо запомнить:</b> at night (но in the morning), on the bus (но in a car), at home (без the).</div>
+  ${ex2("I'm at home in the evening, and on Monday I'm at work.","Вечером я дома, а в понедельник на работе.")}`
+};
+
+
+/* ================= MY MISTAKES (с объяснением) ================= */
+const RULE_OF={a1:"s",a2:"s",a3:"s",a4:"s",x1:"s",x2:"s",x3:"s",x7:"s",b1:"neg",b2:"neg",b3:"neg",x4:"neg",x6:"neg",x8:"neg",c1:"q",c2:"q",c3:"q",x5:"q",x9:"q",x10:"q",d1:"ord",d2:"ord",d3:"s"};
+const RULES={
+ s:{t:"-s после he / she / it",tip:"Говоришь про одного человека, но не про себя и не про собеседника (he, she, my brother, my family) — глагол получает -s: he lives. Про I, you, we, they и про нескольких (my parents) — без -s."},
+ neg:{t:"Отрицание: don't / doesn't",tip:"I, you, we, they → don't. He, she, it → doesn't. После doesn't глагол всегда без -s: he doesn't live, а не doesn't lives."},
+ q:{t:"Вопрос: Do / Does",tip:"Вопрос начинается с Do (I, you, we, they) или Does (he, she, it). После Does глагол без -s: Does he speak?"},
+ ord:{t:"Порядок слов",tip:"Кто → действие → что → где → когда. Often, usually, always, never — перед глаголом."},
+ w:{t:"Перевод слов",tip:"Слова путаются, когда похожи по смыслу или звучанию. Помогает своя ассоциация на карточке слова."},
+ wa:{t:"Слова на слух",tip:"Похожие на слух слова лучше сравнить: послушай оба подряд и повтори вслух."},
+ lw:{t:"Маленькие слова: путаницы",tip:"Смотри, что стоит рядом: вещь после слова (their car), кто делает (they) или кого (them). Для in / on / at: at — точка, on — поверхность и дни, in — внутри, города, месяцы."},
+ link:{t:"Связки и целые фразы",tip:"Разбери фразу по частям: какая конструкция, какое время, кто действует."}
+};
+const plural=(n,a,b,c)=>{const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c};
+function taskKey(t){return t.tenseId?"t:"+t.tenseId:t.wordId?"w:"+t.wordId+":"+(t.audio?"audio":t.hint||t.type):t.consId?"c:"+t.consId+":"+t.type+":"+(t.ru||t.prompt):"x:"+(t.ru||t.prompt)}
+function ruleOf(t){if(t.id&&/^lp\d/.test(t.id))return "lw";if(t.tenseId)return RULE_OF[t.tenseId]||"s";if(t.wordId)return t.audio?"wa":"w";if(t.consId)return "c:"+t.consId;return "link"}
+function ruleInfo(r){if(r.startsWith("c:")){const c=CONS.find(x=>x.id===r.slice(2));return {t:"Конструкция "+c.en,tip:c.simple+" "+c.pitPlain}}return RULES[r]}
+const SNAP=["type","hint","prompt","ru","en","options","answer","notes","chunks","extra","why","pit","wordId","consId","tenseId","audio","say","sayAfter"];
+function snapTask(t){const o={};SNAP.forEach(k=>{if(t[k]!==undefined&&t[k]!==null)o[k]=t[k]});return o}
+function logError(t,picked){
+  if(!["choice","build","say"].includes(t.type))return;
+  const key=taskKey(t);let e=S.errors.find(x=>x.key===key);
+  if(!e){e={key,rule:ruleOf(t),task:snapTask(t),n:0};S.errors.unshift(e)}
+  e.n++;e.picked=picked;e.streak=0;e.fixed=false;e.date=today;save();
+}
+function logRight(t){const e=S.errors.find(x=>x.key===taskKey(t));if(e&&!e.fixed){e.streak=(e.streak||0)+1;if(e.streak>=2)e.fixed=true;save()}}
+const openErrors=()=>S.errors.filter(e=>!e.fixed);
+function errGroups(){const m={};openErrors().forEach(e=>{(m[e.rule]=m[e.rule]||{rule:ruleInfo(e.rule).t,key:e.rule,items:[],n:0});m[e.rule].items.push(e);m[e.rule].n+=e.n});return Object.values(m).sort((a,b)=>b.n-a.n)}
+function explain(e){
+  const t=e.task,p=e.picked||"";
+  if(t.type==="choice"){
+    const right=t.options[t.answer],i=t.options.indexOf(p);
+    let why="";
+    if(t.notes){why=(i>=0&&i!==t.answer?`«${p}»: ${t.notes[i]} `:"")+`Правильно «${right}»: ${t.notes[t.answer]}`}
+    else if(t.wordId){const pool=ALLW(),rw=pool.find(w=>w.id===t.wordId),pw=(rw.pool||pool).find(w=>w.ru===p||w.en===p);
+      if(t.audio)why=`Прозвучало «${rw.en}»${rw.tr?" "+rw.tr:""} — «${rw.ru}». Ты выбрал «${p}»${pw?" "+pw.tr:""}. Послушай оба слова подряд и сравни.`;
+      else if(t.ru)why=`«${t.prompt}» по-английски — ${rw.en}${rw.tr?" "+rw.tr:""}.${pw?` А ${pw.en} значит «${pw.ru}».`:""}`;
+      else why=`${rw.en} значит «${rw.ru}».${pw?` А «${pw.ru}» по-английски — ${pw.en}.`:""}`}
+    return {q:t.audio?"Слово на слух":t.prompt,yours:p,right,why}}
+  if(t.type==="build")return {q:t.ru,yours:p?(p.startsWith("поставил")?p[0].toUpperCase()+p.slice(1):p):"",right:sentence(t),why:t.why||""};
+  return {q:t.ru,yours:"Сказал иначе или забыл",right:t.en,why:t.pit||"Повтори правильную фразу вслух 3 раза: медленно, потом в обычном темпе."};
+}
+function errorsScreen(){
+  showTabs(false);const groups=errGroups(),fixed=S.errors.filter(e=>e.fixed);
+  view.innerHTML=`${topBar(0,"Мои ошибки")}<div class="stack">
+   <div><div class="eyebrow">Разбор</div><h1 style="margin-top:6px">Мои ошибки</h1>
+   <p class="muted" style="margin-top:6px">${openErrors().length?`${openErrors().length} ${plural(openErrors().length,"ошибка","ошибки","ошибок")} в ${groups.length} ${plural(groups.length,"правиле","правилах","правилах")}. Ошибка уходит в «Исправлено», когда ответишь верно 2 раза подряд.`:"Ошибок пока нет. Всё, в чём ошибёшься на тренировках и тестах, появится здесь с объяснением."}</p></div>
+   ${openErrors().length?`<button class="btn primary" id="fix">Потренировать ошибки</button>`:""}
+   ${groups.map(g=>{const info=ruleInfo(g.key);return `<div class="panel stack egroup"><div class="row" style="justify-content:space-between;align-items:flex-start"><h3>${esc(g.rule)}</h3><span class="chip bad">×${g.n}</span></div>
+     <div class="rule" style="font-size:14px">${esc(info.tip)}</div>
+     ${g.items.map(e=>{const x=explain(e);return `<div class="ecard"><div class="eq">${esc(x.q)}</div>
+       ${x.yours?`<div class="ey"><span>Ты</span>${esc(x.yours)}</div>`:""}<div class="er"><span>Верно</span>${esc(x.right)}</div>
+       ${x.why?`<div class="ew"><b>Почему:</b> ${esc(x.why)}</div>`:""}<div class="muted" style="font-size:12px">ошибся ${e.n} ${plural(e.n,"раз","раза","раз")}${e.streak?` · верно подряд: ${e.streak} из 2`:""}</div></div>`}).join("")}</div>`}).join("")}
+   ${fixed.length?`<details class="panel"><summary style="cursor:pointer;font-weight:600">Исправлено (${fixed.length})</summary><div class="stack" style="margin-top:10px">${fixed.map(e=>{const x=explain(e);return `<div class="muted" style="font-size:14px">✓ ${esc(x.q)} → ${esc(x.right)}</div>`}).join("")}</div></details>`:""}
+  </div>`;
+  bindTop();
+  const f=$("#fix");if(f)f.onclick=()=>runBlock({title:"Работа над ошибками",phases:[{mode:"train",intro:{eyebrow:"Мои ошибки",title:"Работа над ошибками",text:"Только то, где ты ошибался. Два верных ответа подряд — и ошибка исправлена."},
+    tasks:shuffle(openErrors()).slice(0,12).map(e=>{const t={...e.task};if(t.type==="choice"&&t.wordId&&!t.notes){const o=shuffle(t.options);t.answer=o.indexOf(t.options[t.answer]);t.options=o}return t})}],onFinish:()=>errorsScreen()});
+}
+
+/* ================= PATH MAP (как у Duolingo) ================= */
+const STAGES=[{t:"Этап 1 · Основа",from:0,to:8},{t:"Этап 2 · Жизнь и общение",from:9,to:24},{t:"Этап 3 · Серьёзные темы",from:25,to:40},{t:"Этап 4 · Продвинутый",from:41,to:44}];
+const curTopicIdx=()=>{const i=TOPICS.findIndex(t=>!S.topicsDone.includes(t.id));return i<0?TOPICS.length:i};
+function pathCard(){
+  const i=curTopicIdx(),t=TOPICS[Math.min(i,TOPICS.length-1)],st=STAGES.find(s=>i>=s.from&&i<=s.to)||STAGES[3];
+  return `<button class="pathcard" id="pc"><span class="pnode cur small">${i+1}</span><span style="min-width:0;flex:1;text-align:left"><span class="eyebrow">${esc(st.t)}</span><b>Тема ${i+1} из ${TOPICS.length} · ${esc(t.en)}</b><span class="bar"><i style="width:${S.topicsDone.length/TOPICS.length*100}%"></i></span></span><span class="muted">›</span></button>`;
+}
+const ICON_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>';
+const ICON_CUP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3M12 14v4M8 20h8"/></svg>';
+function pathScreen(){
+  showTabs(false);
+  const cur=curTopicIdx(),OFF=[0,56,84,56,0,-56,-84,-56];let k=0;
+  view.innerHTML=`${topBar(S.topicsDone.length/TOPICS.length*100,`${S.topicsDone.length} / ${TOPICS.length}`)}
+   <div class="eyebrow">Карта пути</div><h1 style="margin:6px 0 4px">45 тем до свободной речи</h1>
+   <p class="muted" style="margin-bottom:8px">Зелёные — пройдены, жёлтая — текущая, серые откроются по очереди.</p>
+   ${STAGES.map((st,si)=>{const done=TOPICS.slice(st.from,st.to+1).filter(t=>S.topicsDone.includes(t.id)).length,total=st.to-st.from+1;
+     return `<div class="stage ${cur>st.to?"sdone":cur>=st.from?"scur":""}"><div><b>${esc(st.t)}</b><span>${done} из ${total} тем</span></div><span class="chip">${cur>st.to?"пройден":cur>=st.from?"сейчас":"закрыт"}</span></div>
+     <div class="path">${TOPICS.slice(st.from,st.to+1).map((t,j)=>{const i=st.from+j,state=S.topicsDone.includes(t.id)?"done":i===cur?"cur":"lock";const x=OFF[k++%OFF.length];
+       return `<div class="pstep" style="transform:translateX(${x}px)">${state==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${state}" data-t="${i}" aria-label="${esc(t.ru)}">${state==="done"?ICON_CHECK:state==="cur"?ICON_STAR:ICON_LOCK}</button><div class="plabel"><b>${esc(t.en)}</b><span>${esc(t.ru)}</span></div></div>`}).join("")}
+       <div class="pstep" style="transform:translateX(${OFF[k++%OFF.length]}px)"><div class="pnode trophy ${cur>st.to?"done":"lock"}" title="Итоговый тест этапа">${ICON_CUP}</div><div class="plabel"><b>Итоговый тест</b><span>${esc(st.t.split(" · ")[1])}</span></div></div></div>`}).join("")}`;
+  bindTop();
+  view.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{const i=+b.dataset.t,t=TOPICS[i];
+    if(S.topicsDone.includes(t.id)){dictAt=t.id;go("dict");return}
+    if(i===cur){if(t.words.length)go("home");else toast("Слова этой темы добавим в полной версии");return}
+    toast(`Откроется после темы ${i}: ${TOPICS[i-1].en}`)});
+  const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50);
+}
+
+/* ================= TABS ================= */
+function go(tab){
+  stopSpeech();showTabs(true);runnerLite=false;
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  ({home,dict,grammar,stats,settings})[tab]();window.scrollTo(0,0);
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="dict")dictAt=null;go(b.dataset.tab)});
+
+function home(){
+  const seen=WORDS.filter(w=>wStat(w.id).status!=="new").length;
+  const cur=BLOCKS.find(b=>!S.day.done[b.key]);
+  const doneN=BLOCKS.filter(b=>S.day.done[b.key]).length;
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Сегодня</div><h1 style="margin-top:4px">${cur?"План на день":"День закрыт"}</h1></div><span class="proto">Прототип v10</span></div>
+  ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
+  ${pathCard()}
+  <div class="now">
+    <div class="panel"><div class="eyebrow">Слова темы</div><div class="val">${TOPIC.title}</div><div class="muted" style="font-size:13px;font-variant-numeric:tabular-nums">${seen}/${TOPIC.total} слов</div><div class="bar"><i style="width:${seen/TOPIC.total*100}%"></i></div></div>
+    <div class="panel"><div class="eyebrow">Время</div><div class="val">Present Simple</div><div class="muted" style="font-size:13px">${["Шаги и тест 1","Тренировка 2 и тест 2","Накопительный тест"][Math.min(S.tense.ps.stage,2)]}</div><div class="bar"><i style="width:${Math.min(S.tense.ps.stage,2)/2*100}%"></i></div></div>
+  </div>
+  ${cur?`<button class="btn primary" id="cont">${doneN?"Продолжить":"Начать"}: ${cur.name}</button>`:`<button class="btn primary" id="gpt">Промпт для ChatGPT</button>`}
+  <div class="panel" style="margin-top:14px;padding-block:6px"><div class="plan">
+   ${BLOCKS.map((b,i)=>{const d=S.day.done[b.key],c=cur&&cur.key===b.key;return `<button data-b="${b.key}"><span class="dot ${d?"done":c?"cur":""}">${d?"✓":i+1}</span><span><span class="t">${b.name}</span><br><span class="d">${esc(b.desc)}</span></span><span class="m">${b.min} мин</span></button>`}).join("")}
+  </div></div>
+  <div class="extras">
+   <button class="xbtn wide lwt" id="lwb"><b>Little Words · маленькие слова</b><span>их, его, под, за, уже, потому что — ${LW.filter(w=>wStat(w.id).status!=="new").length} из ${LW.length} выучено</span></button>
+   <button class="xbtn" id="drill"><b>Тренажёр</b><span>Прогнать одну конструкцию</span></button>
+   <button class="xbtn" id="lite"><b>Лайт-режим</b><span>Нет сил — просто повтори</span></button>
+   <button class="xbtn" id="errs"><b>Мои ошибки</b><span>${openErrors().length?openErrors().length+" с разбором":"Пока нет"}</span></button>
+   <button class="xbtn" id="pathb"><b>Карта пути</b><span>Все 45 тем</span></button>
+   ${cur?`<button class="xbtn wide" id="gpt2"><b>Промпт для ChatGPT</b><span>Один постоянный чат: новое + повторение</span></button>`:""}
+  </div>`;
+  if(cur)$("#cont").onclick=()=>startBlock(cur.key);else $("#gpt").onclick=gptScreen;
+  const g2=$("#gpt2");if(g2)g2.onclick=gptScreen;
+  view.querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>startBlock(b.dataset.b));
+  $("#lite").onclick=lite;$("#drill").onclick=drill;$("#lwb").onclick=lwScreen;$("#errs").onclick=errorsScreen;$("#pathb").onclick=pathScreen;const ob=$("#onb");if(ob)ob.onclick=()=>knownScreen();$("#pc").onclick=pathScreen;
+}
+
+/* ---------- Dictionary: folders by topic ---------- */
+const statusChip=s=>s==="learned"?'<span class="chip good">выучено</span>':s==="learning"?'<span class="chip warn">в процессе</span>':'<span class="chip">новое</span>';
+const FOLDER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+/* Папка темы появляется, когда тема открыта. Первая открыта всегда, следующие — после теста по предыдущей */
+const topicOpen=(t,i)=>i===0||t.words.some(w=>wStat(w.id).status!=="new")||S.topicsOpen&&S.topicsOpen.includes(t.id);
+let dictAt=null;
+function dict(){
+  if(dictAt)return dictFolder(dictAt);
+  const open=TOPICS.filter(topicOpen);
+  const folder=(id,title,sub,count)=>`<button class="folder" data-f="${id}"><span class="ficon">${FOLDER_SVG}</span><span style="min-width:0"><b>${esc(title)}</b><span>${esc(sub)}</span></span><span class="fcount">${count}</span></button>`;
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Словарь</div><h1 style="margin-top:4px">Папки</h1></div></div>
+  <div class="eyebrow" style="margin-bottom:8px">Темы · ${open.length} из ${TOPIC_NAMES.length}</div>
+  <div class="folders">${open.map(t=>{const d=t.words.filter(w=>wStat(w.id).status!=="new").length;return folder(t.id,t.en,t.ru,`${d}/${t.words.length}`)}).join("")}</div>
+  <p class="muted" style="font-size:13px;margin:10px 2px 0">Новые темы появляются здесь сами, когда ты до них доходишь.</p>
+  <div class="eyebrow" style="margin:22px 0 8px">Ещё</div>
+  <div class="folders">${folder("basics","Basics","Базовые слова",`${BANK.filter(w=>wStat(w.id).status!=="new").length}/${BANK.length}`)}${folder("cons","Constructions","Конструкции",CONS.length)}${folder("custom","My words","Мои слова",S.custom.length)}</div>`;
+  view.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{dictAt=b.dataset.f;dictFolder(dictAt)});
+}
+function dictFolder(id){
+  const top=title=>`<div class="rtop" style="margin-bottom:14px"><button class="x" id="fback" aria-label="К папкам">${BACK}</button><div style="flex:1;min-width:0"><div class="eyebrow">Словарь</div><h1 style="font-size:19px">${esc(title)}</h1></div></div>`;
+  const bind=()=>{$("#fback").onclick=()=>{dictAt=null;dict()}};
+  if(id==="cons"){
+    view.innerHTML=`${top("Constructions")}<div class="list">${CONS.map(c=>`${c===CONS.find(x=>x.g===c.g)?`<h2 style="margin:16px 0 4px">${esc(c.g)}</h2>`:""}<div class="li"><div><div class="en">${esc(c.en)} ${statusChip(cStat(c.id).status)}</div><div class="ru">${esc(c.ru)}</div></div><div class="acts"><button class="icon-btn" data-say="${esc(c.say)}" aria-label="Озвучить">${SPK}</button><button class="btn small ghost" data-dr="${c.id}">Прогнать</button></div></div>`).join("")}</div>`;
+    bind();view.querySelectorAll("[data-dr]").forEach(b=>b.onclick=()=>runDrill(CONS.find(c=>c.id===b.dataset.dr)));return}
+  if(id==="basics"){
+    view.innerHTML=`${top("Basics")}<button class="btn ghost" id="kw" style="margin-bottom:10px">Отметить, что я уже знаю</button>
+    ${BANK_CATS.map(([cat])=>`<h2 style="margin:16px 0 4px">${esc(cat)}</h2><div class="list">${BANK.filter(w=>w.cat===cat).map(w=>`<button class="li" data-w="${w.id}" style="text-align:left"><div><div class="en">${esc(w.en)} ${statusChip(wStat(w.id).status)}</div><div class="ru">${esc(w.ru)}</div></div><span class="muted">›</span></button>`).join("")}</div>`).join("")}`;
+    bind();$("#kw").onclick=()=>knownScreen(()=>{dictAt="basics";go("dict")});
+    view.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>wordDetail(BANK.find(w=>w.id===b.dataset.w),"basics"));return}
+  if(id==="custom"){
+    view.innerHTML=`${top("My words")}
+    <div class="panel stack"><h3>Добавить своё слово</h3><input type="text" id="aen" placeholder="Слово по-английски" autocomplete="off"><input type="text" id="aru" placeholder="Перевод" autocomplete="off"><button class="btn primary" id="add">Добавить</button></div>
+    ${S.custom.length?`<div class="list" style="margin-top:12px">${S.custom.map((w,i)=>`<button class="li" data-cw="${i}" style="text-align:left"><div><div class="en">${esc(w.en)}</div><div class="ru">${esc(w.ru)}${S.assoc["u"+i]?" · есть ассоциация":""}</div></div><span class="muted">›</span></button>`).join("")}</div>`:`<p class="muted" style="margin-top:14px">Пока пусто. Встретил новое слово — добавь сюда.</p>`}`;
+    bind();
+    $("#add").onclick=()=>{const en=$("#aen").value.trim(),ru=$("#aru").value.trim();if(!en||!ru){toast("Заполни оба поля");return}S.custom.push({en,ru});save();toast("Слово добавлено");dictFolder("custom")};
+    view.querySelectorAll("[data-cw]").forEach(b=>b.onclick=()=>{const i=+b.dataset.cw;const w=S.custom[i];wordDetail({id:"u"+i,en:w.en,ru:w.ru,tr:"",ex:"",exRu:""},"custom")});
+    return}
+  const t=TOPICS.find(x=>x.id===id);
+  view.innerHTML=`${top(t.en)}<p class="muted" style="margin:-6px 0 8px">${esc(t.ru)} · нажми на слово, чтобы открыть карточку</p>
+   <div class="list">${t.words.map(w=>`<button class="li" data-w="${w.id}" style="text-align:left"><div style="min-width:0"><div class="en">${esc(w.en)} ${statusChip(wStat(w.id).status)}</div><div class="ru"><span style="color:var(--accent)">${esc(w.tr)}</span> · ${esc(w.ru)}${S.assoc[w.id]?' · <span style="color:var(--good)">ассоциация</span>':""}</div></div><span class="muted">›</span></button>`).join("")}</div>`;
+  bind();
+  view.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>wordDetail(WORDS.find(w=>w.id===b.dataset.w),id));
+}
+function wordDetail(w,folderId){
+  view.innerHTML=`<div class="rtop" style="margin-bottom:14px"><button class="x" id="wback" aria-label="Назад в папку">${BACK}</button><div class="rlabel" style="flex:1">Карточка слова</div></div>
+   <div class="card">
+    <div class="big-en">${esc(w.en)}</div>
+    <div class="fc-ru">${esc(w.ru)}</div>
+    ${w.tr?`<div class="fc-tr">${esc(w.tr)}</div>`:""}
+    ${spkBtn(w.en)}
+    ${w.ex?`<div class="ex"><div style="font-size:17px">${tt(w.ex)}</div><div class="muted">${esc(w.exRu)}</div>${spkBtn(w.ex,"Фраза")}</div>`:""}
+    <div id="assoc"></div>
+   </div>`;
+  $("#wback").onclick=()=>dictFolder(folderId);
+  assocBlock(w,$("#assoc"));
+  window.scrollTo(0,0);
+}
+/* Своя ассоциация: показать, добавить, изменить. Живёт в прогрессе, доступна и в уроке, и в словаре */
+function assocBlock(w,el,editing=false){
+  const cur=S.assoc[w.id]||"";
+  if(editing||!cur&&el.dataset.open){
+    el.innerHTML=`<div class="sec"><div class="eyebrow">Моя ассоциация</div>
+      <textarea id="as-${w.id}" class="assoc-in" placeholder="Например: name — «нейм» → «на мне» написано имя">${esc(cur)}</textarea>
+      <div class="row"><button class="btn small primary" data-as="save">Сохранить</button><button class="btn small ghost" data-as="cancel">Отмена</button>${cur?'<button class="btn small ghost" data-as="del" style="color:var(--bad)">Удалить</button>':""}</div></div>`;
+    const ta=el.querySelector("textarea");ta.focus();
+    el.querySelector('[data-as="save"]').onclick=e=>{e.stopPropagation();const v=ta.value.trim();if(v)S.assoc[w.id]=v;else delete S.assoc[w.id];save();toast(v?"Ассоциация сохранена":"Ассоциация удалена");delete el.dataset.open;assocBlock(w,el)};
+    el.querySelector('[data-as="cancel"]').onclick=e=>{e.stopPropagation();delete el.dataset.open;assocBlock(w,el)};
+    const d=el.querySelector('[data-as="del"]');if(d)d.onclick=e=>{e.stopPropagation();delete S.assoc[w.id];save();toast("Ассоциация удалена");assocBlock(w,el)};
+    el.onclick=e=>e.stopPropagation();
+    return}
+  el.innerHTML=cur
+    ?`<div class="sec"><div class="row" style="justify-content:space-between"><div class="eyebrow">Моя ассоциация</div><button class="btn small ghost" data-as="edit">Изменить</button></div><p class="assoc-txt">${esc(cur)}</p></div>`
+    :`<div class="sec"><button class="btn ghost" data-as="add">+ Вписать свою ассоциацию</button></div>`;
+  el.querySelector("[data-as]").onclick=e=>{e.stopPropagation();el.dataset.open="1";assocBlock(w,el,true)};
+}
+
+function stats(){
+  const cnt=(ids,get)=>{const r={learned:0,learning:0,new:0};ids.forEach(id=>r[get(id).status]++);return r};
+  const w=cnt(WORDS.map(x=>x.id),wStat),c=cnt(CONS.map(x=>x.id),cStat);
+  const a=S.tense.ps.answers,pct=a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length*100):null;
+  const col=p=>p==null?"var(--line)":p>85?"var(--good)":p>=60?"var(--warn)":"var(--bad)";
+  const grid=r=>`<div class="statgrid"><div><b style="color:var(--good)">${r.learned}</b><span>выучено</span></div><div><b style="color:var(--warn)">${r.learning}</b><span>в процессе</span></div><div><b>${r.new}</b><span>не начато</span></div></div>`;
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Статистика</div><h1 style="margin-top:4px">Прогресс</h1></div></div>
+  <div class="stack">
+  <div class="panel"><h3>Слова</h3>${grid(w)}<div class="tense" style="border:0;padding-bottom:0"><span>${TOPIC.title}</span><span class="muted" style="font-variant-numeric:tabular-nums">${w.learned+w.learning}/${TOPIC.total}</span><div class="bar"><i style="width:${(w.learned+w.learning)/TOPIC.total*100}%"></i></div></div></div>
+  <div class="panel"><h3>Конструкции</h3>${grid(c)}</div>
+  <div class="panel"><h3>Времена</h3><p class="muted" style="margin:4px 0 6px;font-size:13px">По последним 30 ответам. Зелёный больше 85%, жёлтый 60–85%, красный меньше 60%.</p>
+   ${TENSES.map((t,i)=>i===0?`<div class="tense"><span>${t}</span><span style="color:${col(pct)};font-weight:700;font-variant-numeric:tabular-nums">${pct==null?"нет ответов":pct+"%"}</span><div class="bar"><i style="width:${pct||0}%;background:${col(pct)}"></i></div></div>`
+     :`<div class="tense locked"><span>${t}</span><span class="muted">закрыто</span></div>`).join("")}
+  </div>
+  <div class="panel"><h3>Где ошибаешься чаще всего</h3>${errGroups().slice(0,3).map(g=>`<div class="tense"><span>${esc(g.rule)}</span><span class="chip bad">${g.n} ${plural(g.n,"ошибка","ошибки","ошибок")}</span></div>`).join("")||'<p class="muted" style="margin-top:6px">Ошибок пока нет.</p>'}
+  ${openErrors().length?`<button class="btn ghost" id="toerr" style="margin-top:12px">Открыть «Мои ошибки»</button>`:""}
+  ${pct!=null&&pct<=85?`<button class="btn ghost" id="weak" style="margin-top:12px">Тренировать слабые места</button>`:""}</div>
+  </div>`;
+  const te=$("#toerr");if(te)te.onclick=errorsScreen;
+  const wk=$("#weak");if(wk)wk.onclick=()=>runBlock({title:"Слабые места",phases:[{mode:"train",tasks:shuffle(TI.filter(t=>t.type!=="say")).slice(0,10).map(tag)}],onFinish:ph=>resultScreen("Слабые места",ph)});
+}
+
+function settings(){
+  const th=S.settings.threshold;
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Настройки</div><h1 style="margin-top:4px">Настройки</h1></div></div>
+  <div class="stack">
+   <div class="panel stack"><div><h3>Что я уже знаю</h3><p class="muted" style="margin-top:4px;font-size:14px">Отметь знакомые слова: они не будут попадаться как новые.</p></div><button class="btn ghost" id="kw">Отметить слова</button></div>
+   <div class="panel stack"><div><h3>Порог теста</h3><p class="muted" style="margin-top:4px;font-size:14px">Сколько нужно набрать, чтобы открылось новое.</p></div>
+    <div class="seg">${[70,80,90].map(v=>`<button data-th="${v}" class="${v===th?"on":""}">${v}%</button>`).join("")}</div></div>
+   <div class="panel"><h3>Напоминания</h3><div class="chips" style="margin:10px 0 8px"><span class="chip">12:00</span><span class="chip">16:00</span><span class="chip">21:00</span></div><p class="muted" style="font-size:14px">По времени Таиланда. Заработают, когда подключим бота.</p></div>
+   <div class="panel stack"><div><h3>Начать заново</h3><p class="muted" style="margin-top:4px;font-size:14px">Сбросить отметки сегодняшнего дня или весь прогресс.</p></div>
+    <button class="btn ghost" id="rday">Сбросить сегодняшний день</button>
+    <button class="btn ghost" id="rall" style="color:var(--bad)">Сбросить весь прогресс</button><div id="conf"></div></div>
+  </div>`;
+  view.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{S.settings.threshold=+b.dataset.th;save();settings()});
+  $("#kw").onclick=()=>knownScreen(()=>go("settings"));
+  $("#rday").onclick=()=>{S.day.done={};save();toast("День сброшен")};
+  $("#rall").onclick=()=>{$("#conf").innerHTML=`<div class="row"><button class="btn small" id="cy" style="background:var(--bad);color:var(--bg)">Да, сбросить всё</button><button class="btn small ghost" id="cn">Отмена</button></div>`;
+    $("#cy").onclick=()=>{S=fresh();save();toast("Прогресс сброшен");settings()};$("#cn").onclick=()=>$("#conf").innerHTML=""};
+}
+
+try{speechSynthesis.getVoices()}catch(e){}
+go("home");
+cloudLoad();
+</script>
+
+</body></html>
