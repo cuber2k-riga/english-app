@@ -234,6 +234,8 @@ details summary{list-style:none} details summary::-webkit-details-marker{display
 .pnode:active{transform:translateY(3px)}
 .plabel{text-align:center;display:flex;flex-direction:column;max-width:150px}
 .plabel b{font-size:13px}
+.qk{margin:5px auto 0;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;font-weight:600}
+.qk.on{color:var(--good);border-color:var(--good)}
 .plabel span{font-size:11px;color:var(--muted);line-height:1.25}
 .pbubble{background:var(--fg);color:var(--bg);font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;position:relative;margin-bottom:4px;animation:bob 1.6s ease-in-out infinite}
 .pbubble:after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--fg)}
@@ -1340,7 +1342,7 @@ function phrasesFor(c,n){
 /* перед уроком конструкции фразы для тренировки собираются заново — из твоих слов и последних тем */
 function refreshCons(c){
   if(c.lvl!==2&&!c.dyn)return;const p=phrasesFor(c,8);if(p.length<4)return;
-  c.fills=p.slice(0,6).map(x=>[x.en,x.ru]);while(c.fills.length<6)c.fills.push(c.fills[0]);
+  c.fills=p.slice(0,6).map(x=>[x.en,x.ru]);
   c.builds=[p[6]||p[1],p[7]||p[2]].map(x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple}))}
 
 /* ---------- фразовые глаголы: 4 группы в тропе конструкций ---------- */
@@ -1625,7 +1627,26 @@ function consParts(c){
   const extra=Object.keys(CONTR).filter(k=>new RegExp("(^|\\s)"+k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(\\s|…|$)","i").test(c.en)&&!rows.some(r=>r[0]===k)).map(k=>[k,CONTR[k]]);
   return [...extra,...rows];
 }
-function consLesson(c){return [{type:"ccard",cons:c,canKnow:true},consQ(c),consBuild(c,c.builds[0]),fillSay(c,c.fills[0]),consBuild(c,c.builds[1]),fillSay(c,c.fills[2])]}
+/* План урока: все фразы разные и не совпадают с примерами на карточке */
+const nrm=x=>String(x).toLowerCase().replace(/[^a-z' ]/g," ").replace(/\s+/g," ").trim();
+function lessonPlan(c){
+  c.ex=c.ex.filter((e,i,a)=>a.findIndex(z=>nrm(z[0])===nrm(e[0]))===i);
+  const used=new Set(c.ex.map(e=>nrm(e[0])));if(c.q)used.add(nrm(c.q.options[c.q.answer]));
+  const take=(arr,n,key)=>{const out=[];for(const it of arr){if(out.length>=n)break;const k=nrm(key(it));if(!k||used.has(k))continue;used.add(k);out.push(it)}return out};
+  const bSent=b=>b.en||b.chunks.join(" ");
+  let pool=[];try{pool=phrasesFor(c,24)}catch(e){}
+  const asBuild=x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple});
+  const B=[...c.builds,...pool.map(asBuild)],F=[...(c.fills||[]),...pool.map(x=>[x.en,x.ru])];
+  let tb=take(B,2,bSent),ts=take(F,2,f=>f[0]);
+  /* фраз мало (редкая конструкция): лучше повторить пример с карточки, чем оставить урок пустым */
+  if(tb.length<2||ts.length<1){const inT=new Set([...tb.map(b=>nrm(bSent(b))),...ts.map(f=>nrm(f[0]))]);
+    for(const b of B){if(tb.length>=2)break;const k=nrm(bSent(b));if(!inT.has(k)){inT.add(k);tb.push(b)}}
+    for(const f of F){if(ts.length>=1)break;const k=nrm(f[0]);if(!inT.has(k)){inT.add(k);ts.push(f)}}}
+  const xb=take(pool.map(asBuild),2,bSent);
+  const xc=take(pool,3,x=>x.en);
+  return c._plan={tb,ts,xb:xb.length?xb:tb,xc}}
+function consLesson(c){const P=lessonPlan(c);
+  return [{type:"ccard",cons:c,canKnow:true},consQ(c),...(P.tb[0]?[consBuild(c,P.tb[0])]:[]),...(P.ts[0]?[fillSay(c,P.ts[0])]:[]),...(P.tb[1]?[consBuild(c,P.tb[1])]:[]),...(P.ts[1]?[fillSay(c,P.ts[1])]:[])]}
 
 /* ================= RUNNER ================= */
 let runnerLite=false;
@@ -1714,8 +1735,9 @@ function renderTask(t,mode,pct,label,canBack,cb){
       <div class="foot">${back?`<button class="btn primary" id="n">Дальше</button>`:`<button class="btn primary" id="flip">Перевернуть</button><button class="btn ghost" id="k">Я знаю это слово</button>`}</div>`;
       bindTop(cb);
       const flip=()=>{back=!back;draw()};
-      $("#fc").onclick=e=>{if(e.target.closest("[data-say],.w"))return;flip()};
-      $("#fc").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}};
+      const typing=e=>e.target.closest("#assoc,input,textarea,select,[contenteditable]");
+      $("#fc").onclick=e=>{if(e.target.closest("[data-say],.w,button,a")||typing(e))return;flip()};
+      $("#fc").onkeydown=e=>{if(typing(e)||e.target!==e.currentTarget)return;if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}};
       if(back){$("#n").onclick=()=>cb({});assocBlock(w,$("#assoc"))}
       else{$("#flip").onclick=flip;$("#k").onclick=()=>cb({insert:wordQ(w,"ru2en",{knownCheck:true,kcFinal:true,hint:"Быстрая проверка"})})}
     };
@@ -1870,7 +1892,7 @@ function startBlock(key){
     const batch=(b,n)=>({mode:"train",intro:{eyebrow:`${t.en} · часть ${n} из ${parts.length}`,title:`${b.length} новых слов`,text:"Сначала карточки, потом тренировка. Знакомое пропускай кнопкой «Я знаю это слово»."},
       tasks:()=>{const bb=b.filter(w=>wStat(w.id).status!=="learned");
         return [...bb.map(w=>({type:"card",word:w})),...shuffle(bb.map(w=>wordQ(w,"en2ru"))),
-          ...shuffle([...bb.map(w=>wordQ(w,"ru2en")),...bb.map(w=>wordQ(w,"audio"))]),...shuffle(bb).slice(0,4).map(w=>wordQ(w,"say"))]}});
+          ...shuffle([...bb.map(w=>wordQ(w,"ru2en")),...bb.map(w=>wordQ(w,"audio"))]),...shuffle(bb).filter((w,i,a)=>w.ex&&a.findIndex(z=>z.ex===w.ex)===i).slice(0,4).map(w=>wordQ(w,"say"))]}});
     runBlock({title:"Слова",phases:[...parts.map((b,n)=>batch(b,n+1)),
       {mode:"test",name:"Тест по словам дня",intro:{eyebrow:"Тест",title:"Все слова дня",text:"Без подсказок и без второй попытки. Ошибки уйдут в завтрашнюю проверку."},
        tasks:()=>shuffle(day.filter(w=>!wStat(w.id).known)).map((w,i)=>wordQ(w,i%2?"en2ru":"ru2en",{sayAfter:null}))}],
@@ -1939,10 +1961,7 @@ function drill(){
   $("#kw").onclick=()=>knownScreen(drill);
   view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>runDrill(find(b.dataset.c)));
   view.querySelectorAll("[data-un]").forEach(b=>b.onclick=()=>{cStat(b.dataset.un).status="learning";save();toast("Вернул в изучение");drill()});
-  view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const c=find(b.dataset.k);
-    runBlock({title:"Проверка",phases:[{mode:"train",tasks:consCheck(c)}],onFinish:()=>{const ok=cStat(c.id).status==="learned";
-      showTabs(false);view.innerHTML=`<div class="stack center" style="padding-top:60px"><h1>${ok?"Отмечено как изученное":"Пока не засчитано"}</h1><p class="muted" style="max-width:32ch">${ok?esc(c.en)+" больше не будет в уроках. Прогнать её можно здесь в любой момент.":"Была ошибка, поэтому конструкция остаётся в уроках. Попробуй прогнать её в тренажёре."}</p></div><div class="foot"><button class="btn primary" id="bk">К тренажёру</button></div>`;
-      $("#bk").onclick=drill}})});
+  view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{markConsKnown(find(b.dataset.k),true);toast("Отмечено: знаю");drill()});
 }
 /* Вариант «что подходит»: та же заготовка, вставленная в другие конструкции с таким же местом */
 function drillChoice(c,x){
@@ -1963,17 +1982,17 @@ function runDrill(c,useAll){
       <div class="foot"><button class="btn primary" id="mk">Отметить слова, которые я знаю</button><button class="btn ghost" id="all">Прогнать на всех словах</button></div>`;
     bindTop();$("#mk").onclick=()=>knownScreen(()=>runDrill(c));$("#all").onclick=()=>runDrill(c,true);return}
   const pool=recentWeight(useAll?genPhrases(c,false):known);
-  const picks=[];while(picks.length<20){const sh=shuffle(pool);if(picks.length&&sh[0]===picks[picks.length-1])sh.push(sh.shift());picks.push(...sh)}
-  const types=shuffle([...Array(20)].map((_,i)=>["say","build","choice"][i%3]));
-  const tasks=picks.slice(0,20).map((x,i)=>{const ty=types[i];
+  const picks=[],seenEn=new Set();for(const x of shuffle(pool)){if(picks.length>=20)break;if(seenEn.has(x.en))continue;seenEn.add(x.en);picks.push(x)}
+  const N=picks.length,types=shuffle([...Array(N)].map((_,i)=>["say","build","choice"][i%3]));
+  const tasks=picks.map((x,i)=>{const ty=types[i];
     if(ty==="choice"){const q=drillChoice(c,x);if(q)return q}
     if(ty==="build")return {type:"build",hint:"Собери фразу",ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,consId:c.id,why:c.simple};
     return {type:"say",ru:x.ru,en:x.en,consId:c.id,pit:c.pitPlain}});
-  runBlock({title:`${c.en} ×20`,phases:[{mode:"train",tasks:[{type:"ccard",cons:c},...tasks]}],onFinish:ph=>{
+  runBlock({title:`${c.en} ×${N}`,phases:[{mode:"train",tasks:[{type:"ccard",cons:c},...tasks]}],onFinish:ph=>{
     showTabs(false);
-    view.innerHTML=`<div class="stack center" style="padding-top:40px"><div class="eyebrow">Тренажёр · 20 повторов</div><h1>${esc(c.en)}</h1>
+    view.innerHTML=`<div class="stack center" style="padding-top:40px"><div class="eyebrow">Тренажёр · ${N} ${plural(N,"фраза","фразы","фраз")} без повторов</div><h1>${esc(c.en)}</h1>
       <div class="score" style="color:${ph[0].result.pct>=80?"var(--good)":"var(--warn)"}">${ph[0].result.pct}%</div><p class="muted">с первого раза</p></div>
-      <div class="foot"><button class="btn primary" id="again">Ещё 20</button><button class="btn ghost" id="list">Другая конструкция</button></div>`;
+      <div class="foot"><button class="btn primary" id="again">Ещё раз</button><button class="btn ghost" id="list">Другая конструкция</button></div>`;
     $("#again").onclick=()=>runDrill(c,useAll);$("#list").onclick=drill}});
 }
 
@@ -2357,6 +2376,16 @@ const ICON_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ICON_STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>';
 const ICON_CUP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3M12 14v4M8 20h8"/></svg>';
+/* Позиция на тропе: возвращаемся туда, откуда ушли */
+const PATH_Y={};
+function rememberPath(k){PATH_Y[k]=window.scrollY}
+function restorePath(k){const y=PATH_Y[k];if(y!=null){requestAnimationFrame(()=>window.scrollTo(0,y));return true}return false}
+/* «Знаю» прямо на тропе: без проверки */
+function markTopicKnown(i,on){const t=TOPICS[i];
+  t.words.forEach(w=>{const s=wStat(w.id);if(on){if(s.status==="new"){s.status="learned";s.known=true;s.at=Date.now()}}else if(s.known){s.status="new";s.known=false}});
+  if(on){if(!S.topicsDone.includes(t.id))S.topicsDone.push(t.id);if(S.curTopic===i)S.curTopic=nextTopic(i)}
+  else S.topicsDone=S.topicsDone.filter(x=>x!==t.id);save()}
+function markConsKnown(c,on){const s=cStat(c.id);if(on){s.status="learned";s.known=true;if(!s.at)s.at=Date.now();if(curC(KIND(c))===c||S[KCFG[KIND(c)].key]===c.id)setCur(nextCons(c))}else{s.status="new";s.known=false}save()}
 function pathScreen(){
   showTabs(false);
   const cur=curTopicIdx(),OFF=[0,56,84,56,0,-56,-84,-56];let k=0;
@@ -2366,12 +2395,13 @@ function pathScreen(){
    ${STAGES.map((st,si)=>{const done=TOPICS.slice(st.from,st.to+1).filter(t=>S.topicsDone.includes(t.id)).length,total=st.to-st.from+1;
      const sDone=done===total;return `<div class="stage ${sDone?"sdone":cur>=st.from&&cur<=st.to?"scur":""}"><div><b>${esc(st.t)}</b><span>${done} из ${total} тем</span></div><span class="chip">${sDone?"пройден":cur>=st.from&&cur<=st.to?"сейчас":"открыт"}</span></div>
      <div class="path">${TOPICS.slice(st.from,st.to+1).map((t,j)=>{const i=st.from+j,state=i===cur?"cur":S.topicsDone.includes(t.id)?"done":"open";const x=OFF[k++%OFF.length];
-       return `<div class="pstep" style="transform:translateX(${x}px)">${state==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${state}" data-t="${i}" aria-label="${esc(t.ru)}">${state==="done"?ICON_CHECK:state==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(t.en)}</b><span>${esc(t.ru)} · ${t.words.filter(w=>wStat(w.id).status!=="new").length}/${t.words.length}</span></div></div>`}).join("")}
+       return `<div class="pstep" style="transform:translateX(${x}px)">${state==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${state}" data-t="${i}" aria-label="${esc(t.ru)}">${state==="done"?ICON_CHECK:state==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(t.en)}</b><button class="qk ${S.topicsDone.includes(t.id)?"on":""}" data-qk="${i}">${S.topicsDone.includes(t.id)?"✓ знаю":"знаю"}</button><span>${esc(t.ru)} · ${t.words.filter(w=>wStat(w.id).status!=="new").length}/${t.words.length}</span></div></div>`}).join("")}
        <div class="pstep" style="transform:translateX(${OFF[k++%OFF.length]}px)"><button class="pnode trophy ${done===total?"done":"open"}" data-st="${si}" aria-label="Итоговый тест этапа">${ICON_CUP}</button><div class="plabel"><b>Итоговый тест</b><span>${esc(st.t.split(" · ")[1])}</span></div></div></div>`}).join("")}`;
   bindTop();
-  view.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>topicScreen(+b.dataset.t));
-  view.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>stageTest(STAGES[+b.dataset.st]));
-  const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50);
+  view.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{rememberPath("words");topicScreen(+b.dataset.t)});
+  view.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{rememberPath("words");stageTest(STAGES[+b.dataset.st])});
+  view.querySelectorAll("[data-qk]").forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.qk;markTopicKnown(i,!S.topicsDone.includes(TOPICS[i].id));rememberPath("words");pathScreen()});
+  if(!restorePath("words")){const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50)}
 }
 
 function topicScreen(i){
@@ -2427,7 +2457,7 @@ function home(){
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v19</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v20</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
@@ -2461,13 +2491,14 @@ function consPathScreen(kind){
    ${G.map((g,gi)=>{const list=L.filter(c=>c.g===g),d=list.filter(c=>cStat(c.id).status==="learned").length,isCur=cur.g===g;
      return `<div class="stage ${d===list.length?"sdone":isCur?"scur":""}"><div><b>${esc(g)}</b><span>${d} из ${list.length}</span></div><span class="chip">${d===list.length?"пройдено":isCur?"сейчас":"открыто"}</span></div>
      <div class="path">${list.map(c=>{const st=c===cur?"cur":cStat(c.id).status==="learned"?"done":"open",x=OFF[k++%OFF.length];
-       return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-c="${c.id}" aria-label="${esc(c.en)}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${L.indexOf(c)+1}</span>`}</button><div class="plabel"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span></div></div>`}).join("")}
+       return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-c="${c.id}" aria-label="${esc(c.en)}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${L.indexOf(c)+1}</span>`}</button><div class="plabel"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span><button class="qk ${st==="done"?"on":""}" data-qk="${c.id}">${st==="done"?"✓ знаю":"знаю"}</button></div></div>`}).join("")}
       <div class="pstep" style="transform:translateX(${OFF[k++%OFF.length]}px)"><button class="pnode trophy ${d===list.length?"done":"open"}" data-g="${gi}" aria-label="Тест группы">${ICON_CUP}</button><div class="plabel"><b>Тест группы</b><span>${esc(g)}</span></div></div></div>`}).join("")}`;
   bindTop();
-  view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>consScreen(CONS.find(c=>c.id===b.dataset.c)));
-  view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>consGroupTest(G[+b.dataset.g]));
-  $("#ckn").onclick=()=>consKnownScreen(kind);
-  const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50);
+  view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{rememberPath(kind);consScreen(CONS.find(c=>c.id===b.dataset.c))});
+  view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{rememberPath(kind);consGroupTest(G[+b.dataset.g])});
+  view.querySelectorAll("[data-qk]").forEach(b=>b.onclick=e=>{e.stopPropagation();const c=CONS.find(x=>x.id===b.dataset.qk);markConsKnown(c,cStat(c.id).status!=="learned");rememberPath(kind);consPathScreen(kind)});
+  $("#ckn").onclick=()=>{rememberPath(kind);consKnownScreen(kind)};
+  if(!restorePath(kind)){const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50)}
 }
 function consKnownScreen(kind){
   kind=kind||"cons";const K=KCFG[kind],L=KL(kind),G=K.groups();
@@ -2506,9 +2537,7 @@ function consScreen(c){
   $("#cb").onclick=()=>consPathScreen(kind);
   $("#learn").onclick=()=>consLearn(c);$("#drill20").onclick=()=>runDrill(c);
   const u=$("#un");if(u)u.onclick=()=>{cStat(c.id).status="learning";save();toast("Вернул в изучение");consScreen(c)};
-  const kn=$("#know");if(kn)kn.onclick=()=>runBlock({title:"Проверка",phases:[{mode:"train",tasks:consCheck(c)}],onFinish:()=>{
-    const ok=cStat(c.id).status==="learned";if(ok&&curC(kind)===c){setCur(nextCons(c));save()}
-    toast(ok?"Отмечено как изученное":"Была ошибка — остаётся в изучении");consScreen(c)}});
+  const kn=$("#know");if(kn)kn.onclick=()=>{markConsKnown(c,true);toast("Отмечено: знаю");consScreen(c)};
   window.scrollTo(0,0);
 }
 /* Урок одной конструкции/связки: разбор → тренировка → тест. Сдал — пройдена, следующая становится текущей */
@@ -2517,7 +2546,7 @@ function consLearn(c){
   runBlock({title:c.en,phases:[
     {mode:"train",intro:{eyebrow:`${c.g} · ${L.indexOf(c)+1} из ${L.length}`,title:c.en,text:"Разбор, тренировка и короткий тест. Фразы — из твоих слов и последних тем. Сдашь — отметится как пройденная."},tasks:consLesson(c)},
     {mode:"test",name:"Тест: "+c.en,intro:{eyebrow:"Тест",title:c.en,text:`Без подсказок. Нужно ${th}%.`},
-     tasks:()=>{const ph=phrasesFor(c,6).map(x=>drillChoice(c,x)).filter(Boolean).slice(0,3);return shuffle([consQ(c),consBuild(c,c.builds[0]),consBuild(c,c.builds[1]),...ph])}}],
+     tasks:()=>{const P=c._plan||lessonPlan(c),ph=P.xc.map(x=>drillChoice(c,x)).filter(Boolean);return shuffle([consQ(c),...P.xb.map(b=>consBuild(c,b)),...ph])}}],
     onFinish:ph=>{const pass=ph[1].result.pct>=th;let extra;
       if(pass){const s=cStat(c.id);s.status="learned";if(!s.at)s.at=Date.now();const nx=nextCons(c);setCur(nx);save();
         extra=`<p class="muted" style="max-width:34ch">${esc(c.en)} пройдена. Следующая на тропе: <b style="color:var(--fg)">${esc(nx.en)}</b> — ${esc(nx.ru)}.</p>`}
@@ -2543,10 +2572,12 @@ function tensePathScreen(){
    <div class="eyebrow">Тропа времён</div><h1 style="margin:6px 0 4px">6 времён по порядку</h1>
    <p class="muted" style="margin-bottom:8px">Каждое: шаги теории → тест 1 → тренировка 2 → тест 2 → накопительный тест. Шпаргалка любого — в «Грамматике».</p>
    <div class="path">${TENSE_DEFS.map((d,i)=>{const st=S.tense[d.key].stage>=3?"done":d===cur?"cur":"open",x=[0,56,84,56,0,-56][i];
-     return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-k="${d.key}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(d.name)}</b><span>${esc(d.ru)}${d===cur?" · "+["шаги и тест 1","тренировка 2","накопительный тест","закрыто"][S.tense[d.key].stage]:""}</span></div></div>`}).join("")}</div>
+     return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-k="${d.key}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(d.name)}</b><span>${esc(d.ru)}${d===cur?" · "+["шаги и тест 1","тренировка 2","накопительный тест","закрыто"][S.tense[d.key].stage]:""}</span><button class="qk ${st==="done"?"on":""}" data-qk="${d.key}">${st==="done"?"✓ знаю":"знаю"}</button></div></div>`}).join("")}</div>
    <div class="foot"><button class="btn primary" id="go">Учить: ${esc(cur.name)}</button><button class="btn ghost" id="tpr">Практика ×12 на моих словах</button></div>`;
   bindTop();$("#go").onclick=()=>startBlock("tense");$("#tpr").onclick=tensePracticeRun;
-  view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const d=TENSE_DEFS.find(x=>x.key===b.dataset.k);
+  view.querySelectorAll("[data-qk]").forEach(b=>b.onclick=e=>{e.stopPropagation();const ts=S.tense[b.dataset.qk];ts.stage=ts.stage>=3?0:3;save();rememberPath("tense");tensePathScreen()});
+  restorePath("tense");
+  view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{rememberPath("tense");const d=TENSE_DEFS.find(x=>x.key===b.dataset.k);
     if(d===cur){startBlock("tense");return}
     view.innerHTML=`${topBar(100,d.name)}<div class="theory">${d.sheet}</div><div class="foot"><button class="btn primary" id="bk">К тропе времён</button></div>`;
     $("#close").onclick=tensePathScreen;$("#bk").onclick=tensePathScreen;window.scrollTo(0,0)});
