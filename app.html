@@ -809,7 +809,11 @@ document.addEventListener("click",e=>{
     const tr=t.getBoundingClientRect();t.style.left=Math.max(8,Math.min(innerWidth-tr.width-8,r.left+r.width/2-tr.width/2))+"px";t.style.top=(r.top-tr.height-8)+"px";setTimeout(()=>t.remove(),2200)}
 });
 function chunkify(en,head){const s=en.replace(/[.?!]$/,"");const h=(head||"").replace("…","").trim();
-  if(h&&s.startsWith(h+" "))return [h,...s.slice(h.length).trim().split(" ")];return s.split(" ")}
+  if(h.split(" ").length>4)return s.split(" ");
+  if(h&&s.startsWith(h+" "))return [h,...s.slice(h.length).trim().split(" ")];
+  if(h&&h.includes(" ")){const m=new RegExp("(^|\\s)"+h.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(,?)(?=\\s|$)").exec(s);
+    if(m){const i=m.index+m[1].length,pre=s.slice(0,i).trim(),post=s.slice(i+h.length+m[2].length).trim();return [...(pre?pre.split(" "):[]),h+m[2],...(post?post.split(" "):[])]}}
+  return s.split(" ")}
 const sentence=t=>t.en||(t.chunks.join(" ")+(/\?$/.test(t.ru)?"?":"."));
 
 
@@ -829,7 +833,7 @@ const BANK=[];
 BANK_CATS.forEach(([cat,list])=>list.forEach(s=>{const [en,ru]=s.split("|"),k=en.toLowerCase();
   if(WKEY[k]){return}const w={id:"b_"+k.replace(/\W/g,"_"),en,ru,cat,tr:"",ex:"",exRu:""};BANK.push(w);WKEY[k]=w.id}));
 BANK.forEach(w=>{const k=w.en.toLowerCase();if(!GLOSS[k])GLOSS[k]=w.ru});
-const isKnownKey=k=>{const id=WKEY[k];return !id||wStat(id).status!=="new"};
+const isKnownKey=k=>{if(k.startsWith("pv:"))return cStat(k.slice(3)).status!=="new";const id=WKEY[k];return !id||wStat(id).status!=="new"};
 
 /* ================= ЗАГОТОВКИ ДЛЯ ФРАЗ ================= */
 /* Действия: b — как в словаре, ing, pp — 3-я форма (если уместна), ri — «что делать», rf — «что сделать» (если отличается), rp — «делал» (прошлое, м.р.)
@@ -1194,6 +1198,281 @@ LEVEL2.forEach(c=>{
     c.q={situation:`Как сказать: «${x.ru}»`,options:opts.map(z=>z.en),answer:opts.findIndex(z=>z.c===c),notes:opts.map(z=>z.c===c?`Верно: ${c.en} — «${c.ru}».`:`${z.c.en} — это «${z.c.ru}», другой смысл.`)}}
 });
 CONS.forEach(c=>{if(!c.lvl)c.lvl=1});
+const TOPIC_ACTS_RAW=["1|visit my grandmother|visited my grandmother|visited my grandmother|навещать бабушку|навестить бабушку|навещал бабушку|навещаю бабушку|навещу бабушку|навестил бабушку|b|grandmother", "1|call my mother|called my mother|called my mother|звонить маме|позвонить маме|звонил маме|звоню маме|позвоню маме|позвонил маме|b|mother", "1|get along with my sister|got along with my sister|got along with my sister|ладить с сестрой|поладить с сестрой|ладил с сестрой|лажу с сестрой|полажу с сестрой|поладил с сестрой|h|get along", "1|look after my cousin|looked after my cousin|looked after my cousin|присматривать за двоюродным братом|присмотреть за двоюродным братом|присматривал за двоюродным братом|присматриваю за двоюродным братом|присмотрю за двоюродным братом|присмотрел за двоюродным братом|b|cousin", "2|wake up early|woke up early|woken up early|просыпаться рано|проснуться рано|просыпался рано|просыпаюсь рано|проснусь рано|проснулся рано|b|wake up", "2|take a shower|took a shower|taken a shower|принимать душ|принять душ|принимал душ|принимаю душ|приму душ|принял душ|b|shower", "2|have breakfast|had breakfast|had breakfast|завтракать|позавтракать|завтракал|завтракаю|позавтракаю|позавтракал|b|breakfast", "2|go to bed late|went to bed late|gone to bed late|ложиться спать поздно|лечь спать поздно|ложился спать поздно|ложусь спать поздно|лягу спать поздно|лёг спать поздно|b|go to bed", "3|clean my room|cleaned my room|cleaned my room|убирать комнату|убрать комнату|убирал комнату|убираю комнату|уберу комнату|убрал комнату|b|clean", "3|wash the dishes|washed the dishes|washed the dishes|мыть посуду|помыть посуду|мыл посуду|мою посуду|помою посуду|помыл посуду|b|wash the dishes", "3|do laundry|did laundry|done laundry|стирать|постирать|стирал|стираю|постираю|постирал|b|laundry", "3|take out the trash|took out the trash|taken out the trash|выносить мусор|вынести мусор|выносил мусор|выношу мусор|вынесу мусор|вынес мусор|b|trash", "4|order noodles|ordered noodles|ordered noodles|заказывать лапшу|заказать лапшу|заказывал лапшу|заказываю лапшу|закажу лапшу|заказал лапшу|b|noodles", "4|ask for the bill|asked for the bill|asked for the bill|просить счёт|попросить счёт|просил счёт|прошу счёт|попрошу счёт|попросил счёт|b|bill", "4|leave a tip|left a tip|left a tip|оставлять чаевые|оставить чаевые|оставлял чаевые|оставляю чаевые|оставлю чаевые|оставил чаевые|b|tip", "4|eat spicy food|ate spicy food|eaten spicy food|есть острое|поесть острого|ел острое|ем острое|поем острого|поел острого|h|spicy", "5|pay in cash|paid in cash|paid in cash|платить наличными|заплатить наличными|платил наличными|плачу наличными|заплачу наличными|заплатил наличными|b|cash", "5|try it on|tried it on|tried it on|примерять это|примерить это|примерял это|примеряю это|примерю это|примерил это|o|try on", "5|ask for a discount|asked for a discount|asked for a discount|просить скидку|попросить скидку|просил скидку|прошу скидку|попрошу скидку|попросил скидку|b|discount", "5|keep the receipt|kept the receipt|kept the receipt|сохранять чек|сохранить чек|сохранял чек|сохраняю чек|сохраню чек|сохранил чек|b|receipt", "6|add it to cart|added it to cart|added it to cart|добавлять это в корзину|добавить это в корзину|добавлял это в корзину|добавляю это в корзину|добавлю это в корзину|добавил это в корзину|b|cart", "6|place an order|placed an order|placed an order|оформлять заказ|оформить заказ|оформлял заказ|оформляю заказ|оформлю заказ|оформил заказ|b|place an order", "6|track the package|tracked the package|tracked the package|отслеживать посылку|отследить посылку|отслеживал посылку|отслеживаю посылку|отслежу посылку|отследил посылку|b|package", "6|ask for a refund|asked for a refund|asked for a refund|просить возврат денег|попросить возврат денег|просил возврат денег|прошу возврат денег|попрошу возврат денег|попросил возврат денег|b|refund", "7|take a taxi|took a taxi|taken a taxi|брать такси|взять такси|брал такси|беру такси|возьму такси|взял такси|b|taxi", "7|catch the bus|caught the bus|caught the bus|успевать на автобус|успеть на автобус|успевал на автобус|успеваю на автобус|успею на автобус|успел на автобус|b|bus", "7|get lost|got lost|got lost|теряться|заблудиться|терялся|теряюсь|заблужусь|заблудился|b|lost", "7|walk in the park|walked in the park|walked in the park|гулять в парке|погулять в парке|гулял в парке|гуляю в парке|погуляю в парке|погулял в парке|h|park", "8|take an umbrella|took an umbrella|taken an umbrella|брать зонт|взять зонт|брал зонт|беру зонт|возьму зонт|взял зонт|b|umbrella", "8|watch the sunset|watched the sunset|watched the sunset|смотреть на закат|посмотреть на закат|смотрел на закат|смотрю на закат|посмотрю на закат|посмотрел на закат|b|sunset", "8|check the forecast|checked the forecast|checked the forecast|смотреть прогноз|посмотреть прогноз|смотрел прогноз|смотрю прогноз|посмотрю прогноз|посмотрел прогноз|b|forecast", "8|stay inside in the rain|stayed inside in the rain|stayed inside in the rain|сидеть дома в дождь|остаться дома в дождь|сидел дома в дождь|сижу дома в дождь|останусь дома в дождь|остался дома в дождь|b|rain", "9|take photos|took photos|taken photos|фотографировать|пофотографировать|фотографировал|фотографирую|пофотографирую|пофотографировал|h|take photos", "9|go hiking|went hiking|gone hiking|ходить в походы|сходить в поход|ходил в походы|хожу в походы|схожу в поход|сходил в поход|b|hiking", "9|listen to podcasts|listened to podcasts|listened to podcasts|слушать подкасты|послушать подкаст|слушал подкасты|слушаю подкасты|послушаю подкаст|послушал подкаст|h|podcast", "9|do yoga|did yoga|done yoga|заниматься йогой|позаниматься йогой|занимался йогой|занимаюсь йогой|позанимаюсь йогой|позанимался йогой|h|yoga", "10|go running|went running|gone running|бегать|побегать|бегал|бегаю|побегаю|побегал|h|run", "10|lift weights|lifted weights|lifted weights|тягать железо|потягать железо|тягал железо|тягаю железо|потягаю железо|потягал железо|h|lift weights", "10|watch the match|watched the match|watched the match|смотреть матч|посмотреть матч|смотрел матч|смотрю матч|посмотрю матч|посмотрел матч|b|match", "10|try Muay Thai|tried Muay Thai|tried Muay Thai|пробовать тайский бокс|попробовать тайский бокс|пробовал тайский бокс|пробую тайский бокс|попробую тайский бокс|попробовал тайский бокс|o|Muay Thai", "11|feel lonely|felt lonely|felt lonely|чувствовать себя одиноко|почувствовать себя одиноко|чувствовал себя одиноко|чувствую себя одиноко|почувствую себя одиноко|почувствовал себя одиноко|h|lonely", "11|calm down|calmed down|calmed down|успокаиваться|успокоиться|успокаивался|успокаиваюсь|успокоюсь|успокоился|b|calm", "11|laugh at his jokes|laughed at his jokes|laughed at his jokes|смеяться над его шутками|посмеяться над его шутками|смеялся над его шутками|смеюсь над его шутками|посмеюсь над его шутками|посмеялся над его шутками|h|laugh", "11|worry about money|worried about money|worried about money|переживать из-за денег|попереживать из-за денег|переживал из-за денег|переживаю из-за денег|буду переживать из-за денег|попереживал из-за денег|h|worried", "12|see a doctor|saw a doctor|seen a doctor|ходить к врачу|сходить к врачу|ходил к врачу|хожу к врачу|схожу к врачу|сходил к врачу|b|doctor", "12|take medicine|took medicine|taken medicine|пить лекарство|выпить лекарство|пил лекарство|пью лекарство|выпью лекарство|выпил лекарство|b|medicine", "12|eat healthy food|ate healthy food|eaten healthy food|есть здоровую еду|поесть здоровой еды|ел здоровую еду|ем здоровую еду|поем здоровой еды|поел здоровой еды|h|healthy", "12|book an appointment|booked an appointment|booked an appointment|записываться к врачу|записаться к врачу|записывался к врачу|записываюсь к врачу|запишусь к врачу|записался к врачу|b|appointment", "13|wear shorts|wore shorts|worn shorts|носить шорты|надеть шорты|носил шорты|ношу шорты|надену шорты|надел шорты|h|shorts", "13|buy new sneakers|bought new sneakers|bought new sneakers|покупать новые кроссовки|купить новые кроссовки|покупал новые кроссовки|покупаю новые кроссовки|куплю новые кроссовки|купил новые кроссовки|o|sneakers", "13|put on a hoodie|put on a hoodie|put on a hoodie|надевать худи|надеть худи|надевал худи|надеваю худи|надену худи|надел худи|b|hoodie", "13|take off my shoes|took off my shoes|taken off my shoes|снимать обувь|снять обувь|снимал обувь|снимаю обувь|сниму обувь|снял обувь|b|take off", "14|sign the lease|signed the lease|signed the lease|подписывать договор|подписать договор|подписывал договор|подписываю договор|подпишу договор|подписал договор|o|lease", "14|pay the deposit|paid the deposit|paid the deposit|платить залог|заплатить залог|платил залог|плачу залог|заплачу залог|заплатил залог|o|deposit", "14|move into a condo|moved into a condo|moved into a condo|переезжать в кондо|переехать в кондо|переезжал в кондо|переезжаю в кондо|перееду в кондо|переехал в кондо|o|condo", "14|call the landlord|called the landlord|called the landlord|звонить хозяину квартиры|позвонить хозяину квартиры|звонил хозяину квартиры|звоню хозяину квартиры|позвоню хозяину квартиры|позвонил хозяину квартиры|b|landlord", "15|extend my visa|extended my visa|extended my visa|продлевать визу|продлить визу|продлевал визу|продлеваю визу|продлю визу|продлил визу|o|visa", "15|withdraw cash|withdrew cash|withdrawn cash|снимать наличные|снять наличные|снимал наличные|снимаю наличные|сниму наличные|снял наличные|b|withdraw", "15|fill in the form|filled in the form|filled in the form|заполнять анкету|заполнить анкету|заполнял анкету|заполняю анкету|заполню анкету|заполнил анкету|b|fill in", "15|transfer money|transferred money|transferred money|переводить деньги|перевести деньги|переводил деньги|перевожу деньги|переведу деньги|перевёл деньги|b|transfer", "16|charge my phone|charged my phone|charged my phone|заряжать телефон|зарядить телефон|заряжал телефон|заряжаю телефон|заряжу телефон|зарядил телефон|b|charge", "16|download the app|downloaded the app|downloaded the app|скачивать приложение|скачать приложение|скачивал приложение|скачиваю приложение|скачаю приложение|скачал приложение|o|download", "16|post a photo|posted a photo|posted a photo|выкладывать фото|выложить фото|выкладывал фото|выкладываю фото|выложу фото|выложил фото|b|post", "16|send a voice message|sent a voice message|sent a voice message|отправлять голосовое|отправить голосовое|отправлял голосовые|отправляю голосовое|отправлю голосовое|отправил голосовое|b|voice message", "17|call you back|called you back|called you back|перезванивать тебе|перезвонить тебе|перезванивал тебе|перезваниваю тебе|перезвоню тебе|перезвонил тебе|o|call back", "17|answer the phone|answered the phone|answered the phone|отвечать на звонок|ответить на звонок|отвечал на звонки|отвечаю на звонок|отвечу на звонок|ответил на звонок|b|answer", "17|reply to messages|replied to messages|replied to messages|отвечать на сообщения|ответить на сообщения|отвечал на сообщения|отвечаю на сообщения|отвечу на сообщения|ответил на сообщения|b|reply", "17|check my messages|checked my messages|checked my messages|проверять сообщения|проверить сообщения|проверял сообщения|проверяю сообщения|проверю сообщения|проверил сообщения|b|check", "18|hang out with friends|hung out with friends|hung out with friends|тусоваться с друзьями|потусоваться с друзьями|тусовался с друзьями|тусуюсь с друзьями|потусуюсь с друзьями|потусовался с друзьями|h|hang out", "18|chill at home|chilled at home|chilled at home|отдыхать дома|отдохнуть дома|отдыхал дома|отдыхаю дома|отдохну дома|отдохнул дома|h|chill", "18|grab a coffee|grabbed a coffee|grabbed a coffee|брать кофе|взять кофе|брал кофе|беру кофе|возьму кофе|взял кофе|b|grab", "18|crash at a friend's place|crashed at a friend's place|crashed at a friend's place|ночевать у друга|переночевать у друга|ночевал у друга|ночую у друга|переночую у друга|переночевал у друга|o|crash", "19|book a hotel|booked a hotel|booked a hotel|бронировать отель|забронировать отель|бронировал отель|бронирую отель|забронирую отель|забронировал отель|o|book a hotel", "19|pack my suitcase|packed my suitcase|packed my suitcase|собирать чемодан|собрать чемодан|собирал чемодан|собираю чемодан|соберу чемодан|собрал чемодан|o|suitcase", "19|go sightseeing|went sightseeing|gone sightseeing|осматривать достопримечательности|посмотреть достопримечательности|осматривал достопримечательности|осматриваю достопримечательности|посмотрю достопримечательности|посмотрел достопримечательности|b|sightseeing", "19|do a visa run|did a visa run|done a visa run|делать визаран|сделать визаран|делал визаран|делаю визаран|сделаю визаран|сделал визаран|o|visa run", "20|keep in touch with my friends|kept in touch with my friends|kept in touch with my friends|поддерживать связь с друзьями|поддержать связь с друзьями|поддерживал связь с друзьями|поддерживаю связь с друзьями|буду поддерживать связь с друзьями|поддержал связь с друзьями|h|keep in touch", "20|give advice|gave advice|given advice|давать советы|дать совет|давал советы|даю советы|дам совет|дал совет|b|advice", "20|apologize to him|apologized to him|apologized to him|извиняться перед ним|извиниться перед ним|извинялся перед ним|извиняюсь перед ним|извинюсь перед ним|извинился перед ним|o|apologize", "20|meet up with friends|met up with friends|met up with friends|встречаться с друзьями|встретиться с друзьями|встречался с друзьями|встречаюсь с друзьями|встречусь с друзьями|встретился с друзьями|b|meet up", "21|ask her out|asked her out|asked her out|приглашать её на свидание|пригласить её на свидание|приглашал её на свидание|приглашаю её на свидание|приглашу её на свидание|пригласил её на свидание|o|ask out", "21|go on a date|went on a date|gone on a date|ходить на свидание|сходить на свидание|ходил на свидания|хожу на свидания|схожу на свидание|сходил на свидание|b|date", "21|pay her a compliment|paid her a compliment|paid her a compliment|делать ей комплимент|сделать ей комплимент|делал ей комплименты|делаю ей комплименты|сделаю ей комплимент|сделал ей комплимент|b|compliment", "21|text her first|texted her first|texted her first|писать ей первым|написать ей первым|писал ей первым|пишу ей первым|напишу ей первым|написал ей первым|b|text me", "22|grow a beard|grew a beard|grown a beard|отращивать бороду|отрастить бороду|отращивал бороду|отращиваю бороду|отращу бороду|отрастил бороду|o|beard", "22|get a tattoo|got a tattoo|got a tattoo|делать татуировку|сделать татуировку|делал татуировку|делаю татуировку|сделаю татуировку|сделал татуировку|o|tattoo", "22|be patient|was patient|been patient|быть терпеливым|проявить терпение|был терпеливым|стараюсь быть терпеливым|буду терпеливым|проявил терпение|h|patient", "22|be polite|was polite|been polite|быть вежливым|быть вежливым|был вежливым|стараюсь быть вежливым|буду вежливым|был вежливым|h|polite", "23|go out|went out|gone out|ходить тусить|пойти потусить|ходил тусить|хожу тусить|пойду тусить|пошёл тусить|b|go out", "23|celebrate my birthday|celebrated my birthday|celebrated my birthday|праздновать день рождения|отпраздновать день рождения|праздновал день рождения|праздную день рождения|отпраздную день рождения|отпраздновал день рождения|o|celebrate", "23|stay in|stayed in|stayed in|оставаться дома|остаться дома|оставался дома|остаюсь дома|останусь дома|остался дома|b|stay in", "23|dance all night|danced all night|danced all night|танцевать всю ночь|протанцевать всю ночь|танцевал всю ночь|танцую всю ночь|протанцую всю ночь|протанцевал всю ночь|b|dance floor", "24|play online games|played online games|played online games|играть в онлайн-игры|поиграть в онлайн-игры|играл в онлайн-игры|играю в онлайн-игры|поиграю в онлайн-игры|поиграл в онлайн-игры|h|online game", "24|watch streams|watched streams|watched streams|смотреть стримы|посмотреть стрим|смотрел стримы|смотрю стримы|посмотрю стрим|посмотрел стрим|h|stream", "24|level up|levelled up|levelled up|прокачиваться|прокачаться|прокачивался|прокачиваюсь|прокачаюсь|прокачался|b|level", "24|team up with my friend|teamed up with my friend|teamed up with my friend|играть в команде с другом|объединиться с другом|играл в команде с другом|играю в команде с другом|объединюсь с другом|объединился с другом|b|team up", "25|apply for the job|applied for the job|applied for the job|откликаться на вакансию|откликнуться на вакансию|откликался на вакансии|откликаюсь на вакансии|откликнусь на вакансию|откликнулся на вакансию|o|apply", "25|meet the deadline|met the deadline|met the deadline|укладываться в дедлайн|уложиться в дедлайн|укладывался в дедлайн|укладываюсь в дедлайн|уложусь в дедлайн|уложился в дедлайн|b|deadline", "25|work overtime|worked overtime|worked overtime|работать сверхурочно|поработать сверхурочно|работал сверхурочно|работаю сверхурочно|поработаю сверхурочно|поработал сверхурочно|h|overtime", "25|collect leads|collected leads|collected leads|собирать лиды|собрать лиды|собирал лиды|собираю лиды|соберу лиды|собрал лиды|h|leads", "26|save money|saved money|saved money|копить деньги|накопить деньги|копил деньги|коплю деньги|накоплю деньги|накопил деньги|h|save money", "26|borrow money|borrowed money|borrowed money|занимать деньги|занять деньги|занимал деньги|занимаю деньги|займу деньги|занял деньги|b|borrow", "26|split the bill|split the bill|split the bill|делить счёт|разделить счёт|делил счёт|делю счёт|разделю счёт|разделил счёт|b|split the bill", "26|spend less money|spent less money|spent less money|тратить меньше денег|потратить меньше денег|тратил меньше денег|трачу меньше денег|буду тратить меньше денег|потратил меньше денег|h|spend", "27|read the FAQ|read the FAQ|read the FAQ|читать FAQ|прочитать FAQ|читал FAQ|читаю FAQ|прочитаю FAQ|прочитал FAQ|b|FAQ", "27|cancel the order|cancelled the order|cancelled the order|отменять заказ|отменить заказ|отменял заказ|отменяю заказ|отменю заказ|отменил заказ|o|cancel", "27|contact customer service|contacted customer service|contacted customer service|писать в поддержку|написать в поддержку|писал в поддержку|пишу в поддержку|напишу в поддержку|написал в поддержку|b|customer service", "27|check the warranty|checked the warranty|checked the warranty|проверять гарантию|проверить гарантию|проверял гарантию|проверяю гарантию|проверю гарантию|проверил гарантию|b|warranty", "28|miss the bus|missed the bus|missed the bus|опаздывать на автобус|опоздать на автобус|опаздывал на автобус|опаздываю на автобус|опоздаю на автобус|опоздал на автобус|b|miss the bus", "28|call the police|called the police|called the police|звонить в полицию|позвонить в полицию|звонил в полицию|звоню в полицию|позвоню в полицию|позвонил в полицию|o|police", "28|fix the problem|fixed the problem|fixed the problem|решать проблему|решить проблему|решал проблему|решаю проблему|решу проблему|решил проблему|b|problem", "28|forget my keys|forgot my keys|forgotten my keys|забывать ключи|забыть ключи|забывал ключи|забываю ключи|забуду ключи|забыл ключи|b|forget", "29|do my homework|did my homework|done my homework|делать домашку|сделать домашку|делал домашку|делаю домашку|сделаю домашку|сделал домашку|b|homework", "29|pass the exam|passed the exam|passed the exam|сдавать экзамен|сдать экзамен|сдавал экзамен|сдаю экзамен|сдам экзамен|сдал экзамен|o|exam", "29|improve my pronunciation|improved my pronunciation|improved my pronunciation|улучшать произношение|улучшить произношение|улучшал произношение|улучшаю произношение|улучшу произношение|улучшил произношение|b|pronunciation", "29|learn words by heart|learned words by heart|learned words by heart|учить слова наизусть|выучить слова наизусть|учил слова наизусть|учу слова наизусть|выучу слова наизусть|выучил слова наизусть|h|learn by heart", "30|go to the cinema|went to the cinema|been to the cinema|ходить в кино|сходить в кино|ходил в кино|хожу в кино|схожу в кино|сходил в кино|b|cinema", "30|watch films with subtitles|watched films with subtitles|watched films with subtitles|смотреть фильмы с субтитрами|посмотреть фильм с субтитрами|смотрел фильмы с субтитрами|смотрю фильмы с субтитрами|посмотрю фильм с субтитрами|посмотрел фильм с субтитрами|h|subtitles", "30|listen to rap|listened to rap|listened to rap|слушать рэп|послушать рэп|слушал рэп|слушаю рэп|послушаю рэп|послушал рэп|h|rap", "30|go to a concert|went to a concert|been to a concert|ходить на концерты|сходить на концерт|ходил на концерты|хожу на концерты|схожу на концерт|сходил на концерт|b|concert", "31|flex my new car|flexed my new car|flexed my new car|хвастаться новой машиной|похвастаться новой машиной|хвастался новой машиной|хвастаюсь новой машиной|похвастаюсь новой машиной|похвастался новой машиной|b|flex", "31|ghost him|ghosted him|ghosted him|игнорить его|проигнорить его|игнорил его|игнорю его|проигнорю его|проигнорил его|b|ghost", "31|touch grass|touched grass|touched grass|выходить на улицу|выйти на улицу|выходил на улицу|выхожу на улицу|выйду на улицу|вышел на улицу|b|touch grass", "31|spill the tea|spilled the tea|spilled the tea|рассказывать сплетни|рассказать сплетни|рассказывал сплетни|рассказываю сплетни|расскажу сплетни|рассказал сплетни|b|spill the tea", "32|buy a gift|bought a gift|bought a gift|покупать подарок|купить подарок|покупал подарок|покупаю подарок|куплю подарок|купил подарок|o|gift", "32|go to a wedding|went to a wedding|been to a wedding|ходить на свадьбу|сходить на свадьбу|ходил на свадьбу|хожу на свадьбы|схожу на свадьбу|сходил на свадьбу|o|wedding", "32|celebrate Songkran|celebrated Songkran|celebrated Songkran|праздновать Сонгкран|отпраздновать Сонгкран|праздновал Сонгкран|праздную Сонгкран|отпраздную Сонгкран|отпраздновал Сонгкран|b|Songkran", "32|make a toast|made a toast|made a toast|говорить тост|сказать тост|говорил тост|говорю тост|скажу тост|сказал тост|b|toast", "33|feed the cat|fed the cat|fed the cat|кормить кошку|покормить кошку|кормил кошку|кормлю кошку|покормлю кошку|покормил кошку|b|feed", "33|go to the waterfall|went to the waterfall|been to the waterfall|ездить к водопаду|съездить к водопаду|ездил к водопаду|езжу к водопаду|съезжу к водопаду|съездил к водопаду|b|waterfall", "33|walk the dog|walked the dog|walked the dog|выгуливать собаку|выгулять собаку|выгуливал собаку|выгуливаю собаку|выгуляю собаку|выгулял собаку|b|dog", "33|swim in the river|swam in the river|swum in the river|плавать в реке|поплавать в реке|плавал в реке|плаваю в реке|поплаваю в реке|поплавал в реке|b|river", "34|move in with her|moved in with her|moved in with her|съезжаться с ней|съехаться с ней|съезжался с ней|съезжаюсь с ней|съедусь с ней|съехался с ней|o|move in together", "34|get married|got married|got married|жениться|жениться|женился|женюсь|женюсь|женился|o|get married", "34|make it work|made it work|made it work|налаживать отношения|наладить отношения|налаживал отношения|налаживаю отношения|налажу отношения|наладил отношения|b|make it work", "34|move on|moved on|moved on|жить дальше|начать жить дальше|жил дальше|живу дальше|буду жить дальше|начал жить дальше|b|move on", "35|share my opinion|shared my opinion|shared my opinion|делиться мнением|поделиться мнением|делился мнением|делюсь мнением|поделюсь мнением|поделился мнением|b|opinion", "35|agree with you|agreed with you|agreed with you|соглашаться с тобой|согласиться с тобой|соглашался с тобой|соглашаюсь с тобой|соглашусь с тобой|согласился с тобой|b|agree", "35|discuss it|discussed it|discussed it|обсуждать это|обсудить это|обсуждал это|обсуждаю это|обсужу это|обсудил это|b|discuss", "35|change my mind|changed my mind|changed my mind|передумывать|передумать|передумывал|передумываю|передумаю|передумал|b|opinion", "36|start my own business|started my own business|started my own business|открывать свой бизнес|открыть свой бизнес|открывал свой бизнес|открываю свой бизнес|открою свой бизнес|открыл свой бизнес|o|own business", "36|change my life|changed my life|changed my life|менять свою жизнь|изменить свою жизнь|менял свою жизнь|меняю свою жизнь|изменю свою жизнь|изменил свою жизнь|o|change my life", "36|achieve my goals|achieved my goals|achieved my goals|достигать целей|достичь целей|достигал целей|достигаю целей|достигну целей|достиг целей|b|achieve", "36|give up|gave up|given up|сдаваться|сдаться|сдавался|сдаюсь|сдамся|сдался|b|give up", "37|find a buyer|found a buyer|found a buyer|искать покупателя|найти покупателя|искал покупателя|ищу покупателя|найду покупателя|нашёл покупателя|o|buyer", "37|schedule a viewing|scheduled a viewing|scheduled a viewing|назначать просмотр|назначить просмотр|назначал просмотр|назначаю просмотр|назначу просмотр|назначил просмотр|b|schedule a viewing", "37|close the deal|closed the deal|closed the deal|закрывать сделку|закрыть сделку|закрывал сделку|закрываю сделку|закрою сделку|закрыл сделку|o|close a deal", "37|show the villa|showed the villa|shown the villa|показывать виллу|показать виллу|показывал виллу|показываю виллу|покажу виллу|показал виллу|b|villa", "38|make cold calls|made cold calls|made cold calls|делать холодные звонки|сделать холодные звонки|делал холодные звонки|делаю холодные звонки|сделаю холодные звонки|сделал холодные звонки|h|cold call", "38|send the invoice|sent the invoice|sent the invoice|отправлять счёт|отправить счёт|отправлял счёт|отправляю счёт|отправлю счёт|отправил счёт|b|invoice", "38|reach out to clients|reached out to clients|reached out to clients|связываться с клиентами|связаться с клиентами|связывался с клиентами|связываюсь с клиентами|свяжусь с клиентами|связался с клиентами|b|reach out", "38|launch the product|launched the product|launched the product|запускать продукт|запустить продукт|запускал продукт|запускаю продукт|запущу продукт|запустил продукт|o|launch", "39|restart my laptop|restarted my laptop|restarted my laptop|перезагружать ноутбук|перезагрузить ноутбук|перезагружал ноутбук|перезагружаю ноутбук|перезагружу ноутбук|перезагрузил ноутбук|b|restart", "39|learn coding|learned coding|learned coding|учиться программировать|научиться программировать|учился программировать|учусь программировать|научусь программировать|научился программировать|b|coding", "39|make a backup|made a backup|made a backup|делать резервную копию|сделать резервную копию|делал резервную копию|делаю резервную копию|сделаю резервную копию|сделал резервную копию|b|backup", "39|use AI|used AI|used AI|пользоваться ИИ|воспользоваться ИИ|пользовался ИИ|пользуюсь ИИ|воспользуюсь ИИ|воспользовался ИИ|h|AI", "40|read the news|read the news|read the news|читать новости|почитать новости|читал новости|читаю новости|почитаю новости|почитал новости|h|news", "40|follow the rules|followed the rules|followed the rules|соблюдать правила|соблюсти правила|соблюдал правила|соблюдаю правила|буду соблюдать правила|соблюл правила|h|rule", "40|check the source|checked the source|checked the source|проверять источник|проверить источник|проверял источник|проверяю источник|проверю источник|проверил источник|b|source", "41|cope with stress|coped with stress|coped with stress|справляться со стрессом|справиться со стрессом|справлялся со стрессом|справляюсь со стрессом|справлюсь со стрессом|справился со стрессом|b|cope with", "41|leave my comfort zone|left my comfort zone|left my comfort zone|выходить из зоны комфорта|выйти из зоны комфорта|выходил из зоны комфорта|выхожу из зоны комфорта|выйду из зоны комфорта|вышел из зоны комфорта|b|comfort zone", "41|build a habit|built a habit|built a habit|вырабатывать привычку|выработать привычку|вырабатывал привычку|вырабатываю привычку|выработаю привычку|выработал привычку|b|habit", "41|stop overthinking|stopped overthinking|stopped overthinking|переставать загоняться|перестать загоняться|переставал загоняться|перестаю загоняться|перестану загоняться|перестал загоняться|o|overthink", "42|buy an electric bike|bought an electric bike|bought an electric bike|покупать электробайк|купить электробайк|покупал электробайк|покупаю электробайк|куплю электробайк|купил электробайк|o|electric", "42|try virtual reality|tried virtual reality|tried virtual reality|пробовать виртуальную реальность|попробовать виртуальную реальность|пробовал виртуальную реальность|пробую виртуальную реальность|попробую виртуальную реальность|попробовал виртуальную реальность|o|virtual reality", "42|expect changes|expected changes|expected changes|ждать перемен|дождаться перемен|ждал перемен|жду перемен|дождусь перемен|дождался перемен|h|expect", "43|scroll reels|scrolled reels|scrolled reels|листать рилсы|полистать рилсы|листал рилсы|листаю рилсы|полистаю рилсы|полистал рилсы|h|reels", "43|start a channel|started a channel|started a channel|заводить канал|завести канал|заводил канал|завожу канал|заведу канал|завёл канал|o|channel", "43|go live|went live|gone live|выходить в эфир|выйти в эфир|выходил в эфир|выхожу в эфир|выйду в эфир|вышел в эфир|b|live stream", "43|do a digital detox|did a digital detox|done a digital detox|устраивать цифровой детокс|устроить цифровой детокс|устраивал цифровой детокс|устраиваю цифровой детокс|устрою цифровой детокс|устроил цифровой детокс|o|digital detox", "44|yap all day|yapped all day|yapped all day|болтать весь день|проболтать весь день|болтал весь день|болтаю весь день|проболтаю весь день|проболтал весь день|h|yap", "44|glow up|glowed up|glowed up|преображаться|преобразиться|преображался|преображаюсь|преображусь|преобразился|b|glow up", "44|let him cook|let him cook|let him cook|давать ему доделать|дать ему доделать|давал ему доделать|даю ему доделать|дам ему доделать|дал ему доделать|b|let him cook"];
+const PV_RAW=["0|wake up|«проснуться вверх»|просыпаться|wake up early|woke up early|woken up early|просыпаться рано|проснуться рано|просыпался рано|просыпаюсь рано|проснусь рано|проснулся рано|b|wake up — проснуться (открыть глаза). get up — встать с кровати. Можно проснуться и ещё полежать.", "0|get up|«встать вверх»|вставать с кровати|get up at seven|got up at seven|got up at seven|вставать в семь|встать в семь|вставал в семь|встаю в семь|встану в семь|встал в семь|b|get up — встать с кровати. Не путай с wake up — просто проснуться.", "0|turn on|«повернуть на»|включать|turn on the light|turned on the light|turned on the light|включать свет|включить свет|включал свет|включаю свет|включу свет|включил свет|b|Можно turn on the light и turn the light on. С it — только turn it on.", "0|turn off|«повернуть от»|выключать|turn off the TV|turned off the TV|turned off the TV|выключать телевизор|выключить телевизор|выключал телевизор|выключаю телевизор|выключу телевизор|выключил телевизор|b|Можно turn off the TV и turn the TV off. С it — только turn it off.", "0|put on|«положить на»|надевать|put on a jacket|put on a jacket|put on a jacket|надевать куртку|надеть куртку|надевал куртку|надеваю куртку|надену куртку|надел куртку|b|put on — надеть (действие). wear — быть одетым, носить. С it — put it on.", "0|take off|«взять от»|снимать (одежду)|take off my shoes|took off my shoes|taken off my shoes|снимать обувь|снять обувь|снимал обувь|снимаю обувь|сниму обувь|снял обувь|b|У take off есть второй смысл: самолёт взлетает — The plane takes off.", "0|pick up|«поднять вверх»|забирать, заезжать за кем-то|pick up my friend|picked up my friend|picked up my friend|забирать друга|забрать друга|забирал друга|забираю друга|заберу друга|забрал друга|b|pick up — ещё и «поднять с пола» и «взять трубку»: pick up the phone.", "0|clean up|«почистить вверх»|прибираться|clean up the room|cleaned up the room|cleaned up the room|прибираться в комнате|прибраться в комнате|прибирался в комнате|прибираюсь в комнате|приберусь в комнате|прибрался в комнате|b|up здесь значит «полностью, до конца». clean up — навести порядок целиком.", "0|throw away|«бросить прочь»|выбрасывать|throw away old food|threw away old food|thrown away old food|выбрасывать старую еду|выбросить старую еду|выбрасывал старую еду|выбрасываю старую еду|выброшу старую еду|выбросил старую еду|b|away — «прочь». throw away — выбросить. С it — throw it away.", "0|go out|«пойти наружу»|выходить развлечься, гулять|go out with friends|went out with friends|gone out with friends|выбираться куда-нибудь с друзьями|выбраться куда-нибудь с друзьями|выбирался куда-нибудь с друзьями|выбираюсь куда-нибудь с друзьями|выберусь куда-нибудь с друзьями|выбрался куда-нибудь с друзьями|b|go out — пойти в бар, кафе, на вечеринку. Просто «выйти из комнаты» — тоже go out, но чаще имеют в виду развлечься.", "0|come back|«прийти назад»|возвращаться|come back home early|came back home early|come back home early|возвращаться домой рано|вернуться домой рано|возвращался домой рано|возвращаюсь домой рано|вернусь домой рано|вернулся домой рано|b|come back — вернуться туда, где говорящий. go back — вернуться туда, где тебя сейчас нет.", "0|stay up|«остаться вверху»|не ложиться, засиживаться|stay up late|stayed up late|stayed up late|засиживаться допоздна|засидеться допоздна|засиживался допоздна|засиживаюсь допоздна|засижусь допоздна|засиделся допоздна|b|stay up — не спать, когда пора бы. Не путай с get up — вставать.", "0|eat out|«поесть снаружи»|есть вне дома|eat out|ate out|eaten out|есть не дома|поесть не дома|ел не дома|ем не дома|поем не дома|поел не дома|b|eat out — поесть в кафе или ресторане, а не дома. Без дополнения: просто eat out.", "1|call back|«позвонить назад»|перезванивать|call my friend back|called my friend back|called my friend back|перезванивать другу|перезвонить другу|перезванивал другу|перезваниваю другу|перезвоню другу|перезвонил другу|b|Человек встаёт в середину: call my friend back, call you back. «I'll call you back» — «я перезвоню».", "1|hang out|«висеть снаружи»|тусоваться, проводить время|hang out with friends|hung out with friends|hung out with friends|тусоваться с друзьями|потусоваться с друзьями|тусовался с друзьями|тусуюсь с друзьями|потусуюсь с друзьями|потусовался с друзьями|b|hang out — разговорное «потусить, провести время». С кем — with: hang out with friends.", "1|get along with|«идти вместе с»|ладить с кем-то|get along with my brother|got along with my brother|got along with my brother|ладить с братом|поладить с братом|ладил с братом|лажу с братом|полажу с братом|поладил с братом|h|get along with — ладить. We get along — мы ладим. Не путай с get on — сесть в транспорт.", "1|catch up with|«догнать с»|пообщаться после перерыва, наверстать|catch up with an old friend|caught up with an old friend|caught up with an old friend|встречаться со старым другом и болтать обо всём|встретиться со старым другом и поболтать обо всём|встречался со старым другом|встречаюсь со старым другом|встречусь со старым другом|встретился со старым другом|b|catch up — догнать: рассказать друг другу всё, что случилось, пока не виделись. Let's catch up! — «давай пообщаемся!»", "1|show up|«показаться вверх»|появляться, приходить|show up on time|showed up on time|shown up on time|приходить вовремя|прийти вовремя|приходил вовремя|прихожу вовремя|приду вовремя|пришёл вовремя|b|show up — появиться (часто про опоздание или когда тебя ждали). He didn't show up — он так и не пришёл.", "1|look after|«смотреть после»|присматривать, заботиться|look after the kids|looked after the kids|looked after the kids|присматривать за детьми|присмотреть за детьми|присматривал за детьми|присматриваю за детьми|присмотрю за детьми|присмотрел за детьми|b|look after — заботиться. look for — искать. look up — искать в словаре. Предлог меняет весь смысл.", "1|bring up|«принести вверх»|поднимать тему|bring up this topic|brought up this topic|brought up this topic|поднимать эту тему|поднять эту тему|поднимал эту тему|поднимаю эту тему|подниму эту тему|поднял эту тему|b|Второй смысл: растить, воспитывать — My grandmother brought me up.", "1|cheer up|«подбодрить вверх»|подбадривать|cheer up my friend|cheered up my friend|cheered up my friend|подбадривать друга|подбодрить друга|подбадривал друга|подбадриваю друга|подбодрю друга|подбодрил друга|b|Cheer up! — «Не грусти! Выше нос!» Можно cheer up my friend и cheer my friend up.", "1|let down|«опустить вниз»|подводить|let my friends down|let my friends down|let my friends down|подводить друзей|подвести друзей|подводил друзей|подвожу друзей|подведу друзей|подвёл друзей|b|Человек встаёт в середину: let my friends down, let you down. I won't let you down — я тебя не подведу.", "1|run into|«вбежать в»|случайно встретить|run into an old friend|ran into an old friend|run into an old friend|случайно встречать старого друга|случайно встретить старого друга|случайно встречал старого друга|случайно встречаю старого друга|случайно встречу старого друга|случайно встретил старого друга|o|run into — неожиданно встретить. Чаще всего в прошедшем: I ran into Max yesterday.", "1|make up with|«сделать вверх с»|мириться|make up with my brother|made up with my brother|made up with my brother|мириться с братом|помириться с братом|мирился с братом|мирюсь с братом|помирюсь с братом|помирился с братом|o|make up with — помириться. Просто make up — ещё и «выдумать»: He made it up — он это выдумал.", "1|hear from|«услышать от»|получать вести от кого-то|hear from my parents|heard from my parents|heard from my parents|получать вести от родителей|получить вести от родителей|получал вести от родителей|получаю вести от родителей|получу вести от родителей|получил вести от родителей|b|hear from — получить звонок или сообщение. I haven't heard from him — от него ничего не слышно.", "1|come over|«прийти через»|заходить в гости|come over to my place|came over to my place|come over to my place|заходить ко мне в гости|зайти ко мне в гости|заходил ко мне в гости|захожу в гости|зайду в гости|зашёл в гости|b|Come over! — «Заходи!» Часто: come over to my place — заходи ко мне.", "2|find out|«найти наружу»|узнавать, выяснять|find out the price|found out the price|found out the price|узнавать цену|узнать цену|узнавал цену|узнаю цену|узнаю цену|узнал цену|b|find out — узнать новую информацию. know — уже знать. Не «I knew the price yesterday», а «I found out the price».", "2|figure out|«вычислить наружу»|разобраться, понять|figure out the problem|figured out the problem|figured out the problem|разбираться в проблеме|разобраться в проблеме|разбирался в проблеме|разбираюсь в проблеме|разберусь в проблеме|разобрался в проблеме|b|figure out — понять, как что-то работает. I can't figure it out — не могу разобраться.", "2|look up|«посмотреть вверх»|искать (в словаре, в интернете)|look up the word|looked up the word|looked up the word|искать слово в словаре|найти слово в словаре|искал слово в словаре|ищу слово в словаре|найду слово в словаре|нашёл слово в словаре|b|look up — найти информацию в словаре или в Google. С it — look it up.", "2|look for|«смотреть для»|искать|look for a job|looked for a job|looked for a job|искать работу|поискать работу|искал работу|ищу работу|поищу работу|поискал работу|b|look for — искать (процесс). find — найти (результат). I'm looking for my keys — ищу ключи.", "2|set up|«поставить вверх»|настраивать, устанавливать|set up the app|set up the app|set up the app|настраивать приложение|настроить приложение|настраивал приложение|настраиваю приложение|настрою приложение|настроил приложение|b|set — неправильный глагол: set — set — set. Все три формы одинаковые.", "2|sign up for|«подписаться вверх для»|записываться, регистрироваться|sign up for the course|signed up for the course|signed up for the course|записываться на курс|записаться на курс|записывался на курс|записываюсь на курс|запишусь на курс|записался на курс|b|sign up — зарегистрироваться на сайте или записаться куда-то. На сайтах кнопка Sign up = регистрация, Sign in = вход.", "2|put off|«положить прочь»|откладывать|put off the meeting|put off the meeting|put off the meeting|откладывать встречу|отложить встречу|откладывал встречу|откладываю встречу|отложу встречу|отложил встречу|b|put off — перенести на потом. Stop putting it off! — хватит откладывать!", "2|carry on with|«нести дальше с»|продолжать|carry on with the project|carried on with the project|carried on with the project|продолжать работу над проектом|продолжить работу над проектом|продолжал работу над проектом|продолжаю работу над проектом|продолжу работу над проектом|продолжил работу над проектом|b|carry on — продолжать. Carry on! — «Продолжай!» Без дополнения можно и carry on working.", "2|give up|«отдать вверх»|бросать, отказываться|give up sugar|gave up sugar|given up sugar|отказываться от сахара|отказаться от сахара|отказывался от сахара|отказываюсь от сахара|откажусь от сахара|отказался от сахара|b|give up — бросить привычку или сдаться. Don't give up! — не сдавайся!", "2|take up|«взять вверх»|начинать заниматься чем-то|take up yoga|took up yoga|taken up yoga|начинать заниматься йогой|начать заниматься йогой|начинал заниматься йогой|начинаю заниматься йогой|начну заниматься йогой|начал заниматься йогой|o|take up — начать новое хобби. give up — наоборот, бросить.", "2|work out|«работать наружу»|тренироваться|work out at the gym|worked out at the gym|worked out at the gym|тренироваться в зале|потренироваться в зале|тренировался в зале|тренируюсь в зале|потренируюсь в зале|потренировался в зале|b|work out — тренироваться. Второй смысл: получиться — It worked out! — всё получилось!", "2|go over|«пройти над»|просматривать, повторять|go over my notes|went over my notes|gone over my notes|просматривать свои записи|просмотреть свои записи|просматривал свои записи|просматриваю свои записи|просмотрю свои записи|просмотрел свои записи|b|go over — пройтись по чему-то ещё раз, проверить. Let's go over it again — давай ещё раз пройдёмся.", "2|come up with|«подойти вверх с»|придумывать|come up with an idea|came up with an idea|come up with an idea|придумывать идею|придумать идею|придумывал идею|придумываю идею|придумаю идею|придумал идею|b|come up with — придумать что-то своё: идею, план, название. Три слова, не забудь with.", "3|run out of|«выбежать из»|заканчиваться (у меня кончилось)|run out of money|ran out of money|run out of money|оставаться без денег|остаться без денег|оставался без денег|остаюсь без денег|останусь без денег|остался без денег|b|По-русски «у меня кончились деньги», а по-английски «я выбежал из денег»: I ran out of money. Подлежащее — я.", "3|pay back|«заплатить назад»|возвращать долг|pay my friend back|paid my friend back|paid my friend back|возвращать долг другу|вернуть долг другу|возвращал долг другу|возвращаю долг другу|верну долг другу|вернул долг другу|o|Человек встаёт в середину: pay my friend back, pay you back. I'll pay you back tomorrow — верну завтра.", "3|check in|«отметиться в»|заселяться, регистрироваться|check in at the hotel|checked in at the hotel|checked in at the hotel|заселяться в отель|заселиться в отель|заселялся в отель|заселяюсь в отель|заселюсь в отель|заселился в отель|o|check in — заселиться в отель или пройти регистрацию в аэропорту. Наоборот — check out.", "3|check out|«отметиться наружу»|выселяться|check out of the hotel|checked out of the hotel|checked out of the hotel|выселяться из отеля|выселиться из отеля|выселялся из отеля|выселяюсь из отеля|выселюсь из отеля|выселился из отеля|o|check out — выселиться. На сайтах Checkout — оформление заказа. И ещё: Check it out! — зацени!", "3|set off|«поставить прочь»|отправляться в путь|set off early|set off early|set off early|выезжать рано|выехать рано|выезжал рано|выезжаю рано|выеду рано|выехал рано|b|set off — отправиться в поездку. set — set — set: формы одинаковые.", "3|get on|«получить на»|садиться (в автобус, поезд, самолёт)|get on the bus|got on the bus|got on the bus|садиться в автобус|сесть в автобус|садился в автобус|сажусь в автобус|сяду в автобус|сел в автобус|b|get on — в автобус, поезд, самолёт, на байк. В машину или такси — get in(to). Выйти — get off.", "3|get off|«получить от»|выходить (из автобуса)|get off the bus|got off the bus|got off the bus|выходить из автобуса|выйти из автобуса|выходил из автобуса|выхожу из автобуса|выйду из автобуса|вышел из автобуса|b|get off — выйти из автобуса, поезда, самолёта. Из машины — get out of the car.", "3|try on|«попробовать на»|примерять|try on these shoes|tried on these shoes|tried on these shoes|примерять эти кроссовки|примерить эти кроссовки|примерял эти кроссовки|примеряю эти кроссовки|примерю эти кроссовки|примерил эти кроссовки|o|try on — примерить одежду. Can I try it on? — можно примерить?", "3|log in|«записаться в»|входить в аккаунт|log in to my account|logged in to my account|logged in to my account|входить в свой аккаунт|войти в свой аккаунт|входил в свой аккаунт|вхожу в свой аккаунт|войду в свой аккаунт|вошёл в свой аккаунт|b|log in = sign in — войти. log out — выйти. На сайтах: Log in / Sign up.", "3|sort out|«сортировать наружу»|решать, улаживать|sort out the problem|sorted out the problem|sorted out the problem|решать проблему|решить проблему|решал проблему|решаю проблему|решу проблему|решил проблему|b|sort out — разрулить, уладить. Don't worry, I'll sort it out — не переживай, я всё улажу.", "3|top up|«долить доверху»|пополнять (баланс)|top up my phone|topped up my phone|topped up my phone|пополнять баланс телефона|пополнить баланс телефона|пополнял баланс телефона|пополняю баланс телефона|пополню баланс телефона|пополнил баланс телефона|b|top up — пополнить счёт, карту, баланс. В Таиланде пригодится: I need to top up my SIM.", "3|save up for|«копить вверх для»|копить на что-то|save up for a bike|saved up for a bike|saved up for a bike|копить на байк|накопить на байк|копил на байк|коплю на байк|накоплю на байк|накопил на байк|b|save up for — копить на конкретную вещь. save money — экономить деньги.", "3|cut down on|«срезать вниз на»|сокращать, меньше употреблять|cut down on coffee|cut down on coffee|cut down on coffee|сокращать кофе|сократить кофе|сокращал кофе|сокращаю кофе|сокращу кофе|сократил кофе|b|cut down on — меньше, но не совсем. give up — бросить полностью. cut — cut — cut."];
+const CONN_RAW=[
+ [0,"…also…","also","тоже, также, ещё","Добавляешь ещё одно действие или мысль.","<b>also</b> — перед глаголом (I also need), но после am/is/are (I'm also tired).",
+  [{en:"I like to {A.b}. I also like to {B.b}.",ru:"Я люблю {A.ri}. Ещё я люблю {B.ri}.",need:"h"},{en:"I need to {A.b}. I also need to {B.b}.",ru:"Мне нужно {A.rf}. А ещё мне нужно {B.rf}."}]],
+ [0,"…too","too","тоже (в конце)","«Тоже» в утвердительной фразе. Ставится в самый конец.","too — в конец фразы. В отрицании вместо too — either.",
+  [{en:"I want to {A.b} too.",ru:"Я тоже хочу {A.rf}."},{en:"My brother wants to {A.b} too.",ru:"Мой брат тоже хочет {A.rf}.",w:["brother"]}]],
+ [0,"…as well","as well","тоже, а также (в конце)","То же, что too, чуть аккуратнее. Тоже в конце.","as well = too. Ставится в конец фразы.",
+  [{en:"I need to {A.b} as well.",ru:"Мне тоже нужно {A.rf}."},{en:"I {A.ps}, and I {B.ps} as well.",ru:"Я {A.rpp}, а ещё {B.rpp}."}]],
+ [0,"…either","either","тоже не","«Тоже» в отрицательной фразе.","<b>Не «I don't want too».</b> В отрицании «тоже» = either.",
+  [{en:"I don't want to {A.b} either.",ru:"Я тоже не хочу {A.rf}."},{en:"My friend can't {A.b} either.",ru:"Мой друг тоже не может {A.rf}.",w:["friend"]}]],
+ [0,"Besides,…","Besides","к тому же, кроме того","Добавляешь ещё один довод.","<b>Besides</b> (с s) — «к тому же». <b>Beside</b> (без s) — «рядом с». Разные слова.",
+  [{en:"I don't have time to {A.b}. Besides, I need to {B.b}.",ru:"У меня нет времени {A.rf}. К тому же мне нужно {B.rf}."}]],
+ [0,"On top of that,…","On top of that","вдобавок, ко всему прочему","Добавляешь что-то ещё — часто неприятное или неожиданное.","Говорят, когда «ещё и это!».",
+  [{en:"I had to {A.b}. On top of that, I had to {B.b}.",ru:"Мне пришлось {A.rf}. Вдобавок мне пришлось {B.rf}."}]],
+ [0,"Moreover,…","Moreover","более того","Официальное «более того».","Moreover — для письма и официальной речи. В разговоре чаще besides или on top of that.",
+  [{en:"I want to {A.b}. Moreover, I need to {B.b}.",ru:"Я хочу {A.rf}. Более того, мне нужно {B.rf}."}]],
+ [1,"…, but…","but","но","Самое простое противопоставление.","Перед but обычно ставят запятую.",
+  [{en:"I want to {A.b}, but I need to {B.b}.",ru:"Я хочу {A.rf}, но мне нужно {B.rf}."},{en:"I wanted to {A.b}, but I didn't have time.",ru:"Я хотел {A.rf}, но у меня не было времени."}]],
+ [1,"However,…","However","однако","Противопоставление с новой фразы.","<b>However</b> начинает новое предложение, после него запятая.",
+  [{en:"I wanted to {A.b}. However, I didn't have time.",ru:"Я хотел {A.rf}. Однако у меня не было времени."},{en:"I usually {A.b}. However, today I want to {B.b}.",ru:"Обычно я {A.rpr}. Однако сегодня я хочу {B.rf}.",need:"h"}]],
+ [1,"Although…,…","Although","хотя","Уступка: несмотря на что-то, ты всё-таки сделал.","<b>Не «Although…, but…».</b> По-русски «хотя…, но…» можно, по-английски but лишнее.",
+  [{en:"Although I was tired, I {A.ps}.",ru:"Хотя я устал, я {A.rpp}."},{en:"Although it was late, I decided to {A.b}.",ru:"Хотя было поздно, я решил {A.rf}."}]],
+ [1,"…, though","though","правда, впрочем (в конце)","Разговорное «правда» в конце фразы.","though в конце — «правда, впрочем». Читается [ðəʊ].",
+  [{en:"I {A.ps}. It was hard, though.",ru:"Я {A.rpp}. Правда, было тяжело."}]],
+ [1,"On the other hand,…","On the other hand","с другой стороны","Показываешь второй взгляд на ситуацию.","Полная пара: On the one hand… On the other hand…",
+  [{en:"It's nice to {A.b}. On the other hand, I need to {B.b}.",ru:"Приятно {A.ri}. С другой стороны, мне нужно {B.rf}.",need:"h"}]],
+ [1,"…anyway","anyway","всё равно (в конце)","Сделал, несмотря ни на что.","anyway в конце — «всё равно». В начале (Anyway,…) — «ладно, в общем».",
+  [{en:"I didn't want to {A.b}, but I {A.ps} anyway.",ru:"Я не хотел {A.rf}, но всё равно {A.rpp}."},{en:"It was late, but I {A.ps} anyway.",ru:"Было поздно, но я всё равно {A.rpp}."}]],
+ [1,"…still…","still","всё равно, до сих пор","still — «всё же» и «до сих пор». Ставится перед глаголом.","still — перед глаголом: I still want. После am — I'm still tired.",
+  [{en:"I'm tired, but I still want to {A.b}.",ru:"Я устал, но всё равно хочу {A.rf}."},{en:"I still {A.b} every week.",ru:"Я до сих пор каждую неделю {A.rpr}.",need:"h"}]],
+ [1,"…instead","instead","вместо этого","Сделал другое вместо задуманного.","instead в конце — «вместо этого». instead of + -ing — отдельная конструкция «вместо того чтобы».",
+  [{en:"I didn't {A.b}. I {B.ps} instead.",ru:"Я не {A.rpp}. Вместо этого я {B.rpp}."}]],
+ [2,"…because…","because","потому что","Причина: после because — целое предложение.","После because — подлежащее и глагол: because I need… Не «because need».",
+  [{en:"I can't {A.b} because I need to {B.b}.",ru:"Я не могу {A.rf}, потому что мне нужно {B.rf}."},{en:"I {A.ps} because I had free time.",ru:"Я {A.rpp}, потому что у меня было свободное время."}]],
+ [2,"…because of…","because of","из-за","Причина-предмет: после because of — существительное.","<b>because + предложение, because of + существительное:</b> because it rained = because of the rain.",
+  [{en:"I couldn't {A.b} because of the rain.",ru:"Я не смог {A.rf} из-за дождя."},{en:"I couldn't {A.b} because of work.",ru:"Я не смог {A.rf} из-за работы."}]],
+ [2,"As…,…","As","так как","Причина в начале фразы — мягче, чем because.","As в начале = «так как». Причина уже понятна собеседнику.",
+  [{en:"As I had free time, I {A.ps}.",ru:"Так как у меня было свободное время, я {A.rpp}."},{en:"As it was late, I didn't {A.b}.",ru:"Так как было поздно, я не стал {A.ri}."}]],
+ [2,"The reason is that…","The reason","причина в том, что","Объясняешь причину подробно.","<b>Не «The reason is because».</b> Правильно: The reason is that…",
+  [{en:"The reason I can't {A.b} is that I have to {B.b}.",ru:"Причина, по которой я не могу {A.rf}, в том, что мне надо {B.rf}."}]],
+ [2,"Thanks to…,…","Thanks to","благодаря","Хорошая причина: кто-то или что-то помогло.","Thanks to — за хорошее. За плохое — because of.",
+  [{en:"Thanks to my friend, I {A.ps}.",ru:"Благодаря другу я {A.rpp}.",w:["friend"]}]],
+ [2,"…due to…","due to","из-за (официально)","Официальное «из-за» — в письмах и на сайтах.","due to часто встречается на сайтах: Delayed due to the weather.",
+  [{en:"I couldn't {A.b} due to the weather.",ru:"Я не смог {A.rf} из-за погоды."}]],
+ [3,"…, so…","so","поэтому, так что","Самое частое «поэтому» в разговоре. Стоит в середине.","so — в середине, перед ним запятая.",
+  [{en:"I was tired, so I didn't {A.b}.",ru:"Я устал, так что не стал {A.ri}."},{en:"I had free time, so I {A.ps}.",ru:"У меня было свободное время, поэтому я {A.rpp}."}]],
+ [3,"That's why…","That's why","вот почему, поэтому","Сначала причина, потом That's why + результат.","That's why начинает новую фразу.",
+  [{en:"I need to {A.b}. That's why I can't {B.b} today.",ru:"Мне нужно {A.rf}. Вот почему я сегодня не могу {B.rf}."}]],
+ [3,"Therefore,…","Therefore","следовательно, поэтому","Официальное «поэтому».","Therefore — для письма. В разговоре проще so или that's why.",
+  [{en:"I missed the bus. Therefore, I couldn't {A.b}.",ru:"Я опоздал на автобус. Поэтому я не смог {A.rf}."}]],
+ [3,"As a result,…","As a result","в результате","Что получилось в итоге.","После As a result — запятая.",
+  [{en:"I {A.ps} every day. As a result, I was tired.",ru:"Я каждый день {A.rp}. В результате я устал.",need:"h"}]],
+ [3,"…so that…","so that","чтобы","Цель: сделал, чтобы смочь что-то ещё.","so that + I can/could — «чтобы смочь». Не путай с so — «поэтому».",
+  [{en:"I {A.ps} so that I could {B.b}.",ru:"Я {A.rpp}, чтобы потом {B.rf}."}]],
+ [3,"…, otherwise…","otherwise","иначе, а то","Что будет, если не сделать.","otherwise — «а то, иначе».",
+  [{en:"I need to {A.b}, otherwise I won't be able to {B.b}.",ru:"Мне нужно {A.rf}, иначе я не смогу {B.rf}."}]],
+ [4,"First of all,…","First of all","прежде всего","Начинаешь перечислять по порядку.","First of all → then → after that → finally.",
+  [{en:"First of all, I need to {A.b}.",ru:"Прежде всего мне нужно {A.rf}."}]],
+ [4,"…, and then…","then","а потом","Порядок действий: одно, потом другое.","then — «потом». Не путай с than — «чем».",
+  [{en:"I {A.ps}, and then I {B.ps}.",ru:"Я {A.rpp}, а потом {B.rpp}."},{en:"First I need to {A.b}, and then I'll {B.b}.",ru:"Сначала мне нужно {A.rf}, а потом я {B.rfu}."}]],
+ [4,"After that,…","After that","после этого","Следующий шаг — с новой фразы.","<b>After that</b> — «после этого». After + действие: after I wash the dishes.",
+  [{en:"I {A.ps}. After that, I {B.ps}.",ru:"Я {A.rpp}. После этого я {B.rpp}."}]],
+ [4,"Before…,…","Before","перед тем как","Что сделать сначала.","<b>Не «Before I will…».</b> Про будущее после before — настоящее время.",
+  [{en:"Before I {A.b}, I need to {B.b}.",ru:"Перед тем как {A.rf}, мне нужно {B.rf}."}]],
+ [4,"While…,…","While","пока","Что длилось, когда случилось другое.","While + was …ing — фон, на котором что-то случилось.",
+  [{en:"While I was {A.ing}, my friend called me.",ru:"Пока я {A.rp}, мне позвонил друг.",w:["friend"]}]],
+ [4,"Finally,…","Finally","наконец-то","Долгожданный результат или последний пункт.","Finally — и «наконец-то!», и последний пункт списка.",
+  [{en:"Finally, I {A.ps}!",ru:"Наконец-то я {A.rpp}!"}]],
+ [4,"Meanwhile,…","Meanwhile","тем временем","Пока одно происходило, происходило и другое.","Meanwhile начинает фразу, после него запятая.",
+  [{en:"I {A.ps}. Meanwhile, my brother {B.ps}.",ru:"Я {A.rpp}. Тем временем мой брат {B.rpp}.",w:["brother"]}]],
+ [4,"Eventually,…","Eventually","в конце концов","Результат после долгих попыток.","<b>eventually ≠ «эвентуально, возможно».</b> Это «в конце концов». Ложный друг!",
+  [{en:"I tried many times, and eventually I {A.ps}.",ru:"Я пробовал много раз, и в конце концов {A.rpp}."}]],
+ [5,"For example,…","For example","например","Приводишь пример.","В разговоре можно like: things like…",
+  [{en:"I have a lot to do. For example, I need to {A.b}.",ru:"У меня много дел. Например, мне нужно {A.rf}."}]],
+ [5,"…such as…","such as","такие как, например","Пример прямо внутри фразы.","such as — сразу перед примером. For example — чаще с новой фразы.",
+  [{en:"I like simple things, such as {A.ing}.",ru:"Я люблю простые вещи, например {A.ri}.",need:"h"}]],
+ [5,"I mean,…","I mean","в смысле, то есть","Уточняешь или поправляешь себя.","Очень частое в живой речи.",
+  [{en:"I'm busy. I mean, I need to {A.b}.",ru:"Я занят. В смысле, мне нужно {A.rf}."}]],
+ [5,"Actually,…","Actually","вообще-то, на самом деле","Уточняешь или мягко возражаешь.","<b>actually ≠ «актуально».</b> Это «на самом деле». Ложный друг!",
+  [{en:"Actually, I don't want to {A.b}.",ru:"Вообще-то я не хочу {A.rf}."}]],
+ [5,"…, especially…","especially","особенно","Выделяешь главное.","especially [ɪˈspeʃəli]. Не путай со specially — «специально».",
+  [{en:"I like to {A.b}, especially on weekends.",ru:"Я люблю {A.ri}, особенно по выходным.",need:"h"}]],
+ [5,"…at least…","at least","хотя бы, по крайней мере","Хоть что-то хорошее всё же есть.","at least — «хотя бы».",
+  [{en:"I didn't {A.b}, but at least I {B.ps}.",ru:"Я не {A.rpp}, но хотя бы {B.rpp}."}]],
+ [6,"In my opinion,…","In my opinion","по-моему","Говоришь своё мнение.","<b>Не «In my opinion, I think».</b> Это одно и то же — выбери одно.",
+  [{en:"In my opinion, it's important to {A.b}.",ru:"По-моему, важно {A.ri}."}]],
+ [6,"To be honest,…","To be honest","честно говоря","Перед неудобной правдой.","В чатах коротко: tbh.",
+  [{en:"To be honest, I don't want to {A.b}.",ru:"Честно говоря, я не хочу {A.rf}."}]],
+ [6,"In general,…","In general","в целом, вообще","Говоришь обобщённо, не про конкретный случай.","После In general — запятая.",
+  [{en:"In general, I like to {A.b}.",ru:"В целом я люблю {A.ri}.",need:"h"}]],
+ [6,"Basically,…","Basically","короче, по сути","Разговорное «если по сути».","Носители говорят его постоянно.",
+  [{en:"Basically, I need to {A.b}.",ru:"Короче, мне нужно {A.rf}."}]],
+ [6,"In the end,…","In the end","в итоге","Чем всё закончилось.","<b>In the end</b> — «в итоге». <b>At the end</b> — «в конце (чего-то)»: at the end of the day.",
+  [{en:"In the end, I decided to {A.b}.",ru:"В итоге я решил {A.rf}."}]],
+ [6,"All in all,…","All in all","в общем, в целом","Подводишь итог всему сказанному.","All in all — итог в конце рассказа.",
+  [{en:"All in all, it was a good idea to {A.b}.",ru:"В общем, было хорошей идеей {A.rf}."}]],
+ [7,"By the way,…","By the way","кстати","Вспомнил что-то и переключаешь тему.","В чатах: btw.",
+  [{en:"By the way, did you {A.b}?",ru:"Кстати, ты {A.rpp}?"}]],
+ [7,"You know,…","You know","знаешь","Даёт время подумать и делает речь живой.","Не в каждой фразе — иначе звучит как слово-паразит.",
+  [{en:"You know, I want to {A.b}.",ru:"Знаешь, я хочу {A.rf}."}]],
+ [7,"Well,…","Well","ну","Начало ответа: подумать или мягко не согласиться.","Well в начале ответа — «ну…».",
+  [{en:"Well, I need to {A.b} first.",ru:"Ну, сначала мне нужно {A.rf}."}]],
+ [7,"I kind of…","kind of","вроде как, как бы","Смягчаешь: не на 100%.","Произносят быстро: «кайнда».",
+  [{en:"I kind of want to {A.b}.",ru:"Мне вроде как хочется {A.rf}."}]],
+ [7,"I guess…","I guess","наверное, думаю","Неуверенное «наверное».","I guess — не «я угадываю», а «наверное».",
+  [{en:"I guess I should {A.b}.",ru:"Наверное, мне стоит {A.rf}."}]],
+ [7,"Anyway,…","Anyway","ладно, в общем","Возвращаешься к делу или заканчиваешь разговор.","Anyway в начале — смена темы. В конце фразы — «всё равно».",
+  [{en:"Anyway, I have to {A.b} now.",ru:"Ладно, мне сейчас надо {A.rf}."}]]
+];
+
+/* ================= v17: действия из тем, фразовые глаголы, B2, связки ================= */
+const KIND=c=>c.kind||"cons";
+const DBL=["get","forget","grab","let","put","split","stop","swim","run","sit","plan","chat","set","cut","win","begin","shop","top","log","jog","drop","hit","dig","quit","yap","travel","cancel"];
+function ingOf(b){const [v,...r]=b.split(" ");let g;
+  if(v==="be")g="being";else if(/ie$/.test(v))g=v.slice(0,-2)+"ying";else if(DBL.includes(v))g=v+v.slice(-1)+"ing";else if(/[^aeiouy]e$/.test(v))g=v.slice(0,-1)+"ing";else g=v+"ing";
+  return [g,...r].join(" ")}
+ACTS.forEach(a=>{a.topic=0});
+/* по 4 действия на каждую тему: тренажёр, связки и времена берут их из последних выученных тем */
+TOPIC_ACTS_RAW.forEach(r=>{const [t,b,ps,pp,ri,rf,rp,rpr,rfu,rpp,k,wk]=r.split("|");
+  ACTS.push({b,ing:ingOf(b),pp,ps,ri,rf,rp,rpr,rfu,rpp,k,f:"",w:[wk.toLowerCase()],topic:+t})});
+
+/* последние 2–3 темы, где ты реально учил слова (не просто отметил «знаю») */
+function recentTopics(){
+  const last={};TOPIC_WORDS_ALL.forEach(w=>{const s=S.words[w.id];if(s&&s.status!=="new"&&!s.known&&s.at)last[w.topic]=Math.max(last[w.topic]||0,s.at)});
+  let r=Object.keys(last).map(Number).sort((a,b)=>last[b]-last[a]).slice(0,3);
+  if(!r.length)r=[S.curTopic,S.curTopic-1,S.curTopic-2].filter(i=>i>=0);
+  return r}
+const fromRecent=(x,R)=>["A","B"].some(k=>x.cb&&x.cb[k]&&R.includes(x.cb[k].topic));
+/* фразы с действиями из последних тем идут в 3 раза чаще */
+function recentWeight(pool){const R=recentTopics(),rec=pool.filter(x=>fromRecent(x,R));return rec.length>=3?[...rec,...rec,...rec,...pool]:pool}
+function phrasesFor(c,n){
+  const known=genPhrases(c,true),pool=known.length>=n?recentWeight(known):genPhrases(c,false);
+  const out=[],seen=new Set();for(const x of shuffle(pool)){if(seen.has(x.en))continue;seen.add(x.en);out.push(x);if(out.length>=n)break}
+  return out}
+/* перед уроком конструкции фразы для тренировки собираются заново — из твоих слов и последних тем */
+function refreshCons(c){
+  if(c.lvl!==2&&!c.dyn)return;const p=phrasesFor(c,8);if(p.length<4)return;
+  c.fills=p.slice(0,6).map(x=>[x.en,x.ru]);while(c.fills.length<6)c.fills.push(c.fills[0]);
+  c.builds=[p[6]||p[1],p[7]||p[2]].map(x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple}))}
+
+/* ---------- фразовые глаголы: 4 группы в тропе конструкций ---------- */
+const PV_GROUPS=["Фразовые глаголы · день и быт","Фразовые глаголы · люди","Фразовые глаголы · дела и учёба","Фразовые глаголы · деньги и поездки"];
+const PVF=[["I usually {b}.","Я обычно {rpr}.",a=>a.k!=="o"],["Yesterday I {ps}.","Вчера я {rpp}.",a=>a.k!=="h"],["I'm going to {b} tomorrow.","Завтра я собираюсь {rf}.",a=>a.k!=="h"],
+ ["I need to {b}.","Мне нужно {rf}.",()=>true],["I've already {pp}.","Я уже {rpp}.",a=>a.k!=="h"],["Don't forget to {b}!","Не забудь {rf}!",a=>!/\bmy\b/.test(a.b)],
+ ["Did you {b}?","Ты {rpp}?",a=>!/\bmy\b/.test(a.b)&&a.k!=="h"],["I want to {b}.","Я хочу {rf}.",()=>true],["I'm trying to {b}.","Я стараюсь {ri}.",()=>true]];
+const pvFill=(s,f)=>s.replace(/\{(\w+)\}/g,(m,k)=>f[k]);
+const PVS=[];
+PV_RAW.forEach((r,i)=>{const [g,base,lit,mean,b,ps,pp,ri,rf,rp,rpr,rfu,rpp,k,note]=r.split("|");
+  const id="p"+i,a={b,ps,pp,ri,rf,rp,rpr,rfu,rpp,k,ing:ingOf(b),f:"",w:["pv:"+id],topic:-1};
+  let obj=null;if(b===base)obj="";else if(b.startsWith(base+" "))obj=b.slice(base.length+1);
+  const cut=s=>obj===""?s:obj&&s.endsWith(" "+obj)?s.slice(0,-obj.length-1):null;
+  const v=obj===null?null:{b:base,ps:cut(ps),pp:cut(pp)};const split=!!(v&&v.ps&&v.pp);
+  const unint=["run out of","run into"].includes(base);
+  const tpl=PVF.map(([en,ru,ok],fi)=>ok(a)&&(!unint||[0,1,4,6].includes(fi))?{en:pvFill(en,{b,ps,pp}),ru:pvFill(ru,a),pvf:fi}:null).filter(Boolean);
+  const c=C(id,0,base,mean,`«${mean}». Дословно ${lit} — но смысл не складывается из слов, его запоминают целиком.`,
+    [[base,`дословно ${lit}, а вместе — «${mean}».`],["3 формы",split?`${base} → ${v.ps} → ${v.pp}`:`${b} → ${ps} → ${pp}`],["пример",`${b} — ${rf}`]],
+    note,tpl,["",[],0,[]]);
+  c.g=PV_GROUPS[+g];c.lvl=2;c.pv=true;c.say=base;c.act=a;c.obj=split?obj:null;c.vf=v;
+  a.pvc=c;ACTS.push(a);PVS.push(c)});
+/* «что подходит»: тот же кадр и тот же объект, но другой фразовый глагол — так проверяется именно смысл глагола */
+function pvChoice(c,x){
+  const fr=PVF[x.t.pvf],parts=s=>s.split(" ");
+  const close=o=>parts(o.say)[0]===parts(c.say)[0]||parts(o.say).slice(-1)[0]===parts(c.say).slice(-1)[0];
+  const cand=PVS.filter(o=>o!==c&&o.say!==c.say);
+  const order=[...shuffle(cand.filter(close)),...shuffle(cand.filter(o=>!close(o)))];
+  const opts=[{en:x.en,o:c}];
+  for(const o of order){if(opts.length>=3)break;let en;
+    if(c.obj!==null&&o.vf&&o.vf.ps&&o.vf.pp){const sp=c.obj?" "+c.obj:"";en=pvFill(fr[0],{b:o.vf.b+sp,ps:o.vf.ps+sp,pp:o.vf.pp+sp})}
+    else{const t=o.tpl.find(t=>t.pvf===x.t.pvf);en=t&&t.en}
+    if(en&&!opts.some(z=>z.en===en)&&!PVS.some(p=>p!==c&&p.tpl.some(t=>t.en===en)))opts.push({en,o})}
+  if(opts.length<3)return null;const sh=shuffle(opts);
+  return {type:"choice",hint:"Как это сказать?",prompt:x.ru,ru:true,options:sh.map(z=>z.en),answer:sh.findIndex(z=>z.o===c),consId:c.id,sayAfter:x.en,
+    notes:sh.map(z=>z.o===c?`Верно: ${c.say} — «${c.ru}».`:`${z.o.say} — это «${z.o.ru}». Смысл другой.`)};
+}
+
+/* ---------- B2: ещё сложнее ---------- */
+const B2_GROUPS=["B2 · прошлое и «если бы»","B2 · уверенная речь"];
+const B2=[
+ C2("c86",0,"If I had known, I would have…","Если бы я знал, я бы…","Третий тип условия: про прошлое, которое уже не изменить.",[["had known","Past Perfect: had + 3-я форма — «если бы знал (тогда)»."],["would have","«бы» про прошлое: would have + 3-я форма."]],"<b>Не «If I would have known».</b> would — только во второй части.",
+   [{en:"If I had known, I would have {A.pp}.",ru:"Если бы я знал, я бы {A.rpp}.",need:"pp"},{en:"If I'd had more time, I would have {A.pp}.",ru:"Если бы у меня было больше времени, я бы {A.rpp}.",need:"pp"}]),
+ C2("c87",0,"I could have…, but…","Я мог бы…, но…","Возможность в прошлом, которой ты не воспользовался.",[["could have","«мог бы» — про прошлое."],["+ 3-я форма","could have gone, could have called."]],"<b>«could of» — ошибка на слух.</b> could’ve = could have.",
+   [{en:"I could have {A.pp}, but I didn't.",ru:"Я мог бы {A.rf}, но не стал.",need:"pp"},{en:"I could have {A.pp} yesterday.",ru:"Я мог вчера {A.rf}.",need:"pp"}]),
+ C2("c88",0,"I wish I had…","Жаль, что я не…","Сожаление о прошлом: жаль, что не сделал тогда.",[["wish","«жаль, хотелось бы»."],["I had + 3-я форма","про прошлое: I wish I had gone."]],"<b>I wish I could</b> — жаль, что не могу (сейчас). <b>I wish I had done</b> — жаль, что не сделал (тогда).",
+   [{en:"I wish I had {A.pp} yesterday.",ru:"Жаль, что я вчера не {A.rpp}.",need:"pp"},{en:"I wish I had {A.pp} earlier.",ru:"Жаль, что я не {A.rpp} раньше.",need:"pp"}]),
+ C2("c89",0,"It's high time I…","Мне давно пора…","Давно пора что-то сделать, а ты всё тянешь.",[["It's high time","«давно пора»."],["+ прошедшее","речь про сейчас, но глагол во второй форме: It's high time I went."]],"<b>Не «It's high time I go».</b> После high time I — вторая форма: went, called.",
+   [{en:"It's high time I {A.ps}.",ru:"Мне давно пора {A.rf}.",need:"one"}]),
+ C2("c90",0,"By…, I'll have…","К… я уже…","Что будет уже сделано к сроку в будущем.",[["By Friday","«к пятнице» — к сроку."],["I'll have + 3-я форма","Future Perfect: к тому моменту будет готово."]],"<b>by</b> здесь — «к (сроку)», а не «около».",
+   [{en:"By Friday, I'll have {A.pp}.",ru:"К пятнице я уже {A.rfu}.",need:"pp"},{en:"By the evening, I'll have {A.pp}.",ru:"К вечеру я уже {A.rfu}.",need:"pp"}]),
+ C2("c91",0,"When I was a kid, I would…","В детстве я (бывало)…","would про прошлое: что ты регулярно делал раньше, как воспоминание.",[["would","здесь не «бы», а «бывало, обычно»."],["used to","похоже, но would — только про действия."]],"<b>would</b> — только про повторяющиеся действия. Про состояния — used to: I used to live in Moscow.",
+   [{en:"When I was a kid, I would {A.b} every summer.",ru:"В детстве я каждое лето {A.rp}.",need:"h"}]),
+ C2("c92",0,"I hardly ever…","Я почти никогда не…","Очень редко, почти никогда.",[["hardly ever","«почти никогда»."],["без not","hardly уже отрицание: I hardly ever go."]],"<b>Не «I don't hardly ever».</b> Двойного отрицания нет.",
+   [{en:"I hardly ever {A.b}.",ru:"Я почти никогда не {A.rpr}.",need:"h"}]),
+ C2("c93",0,"I can't get used to…ing","Никак не привыкну…","Что-то до сих пор непривычно.",[["get used to","«привыкать»."],["+ -ing","to здесь предлог: get used to waking up."]],"<b>Не «get used to wake up».</b> После used to (привыкать) — -ing.",
+   [{en:"I can't get used to {A.ing}.",ru:"Никак не привыкну {A.ri}.",need:"h"}]),
+ C2("c94",0,"I'd rather you didn't…","Я бы предпочёл, чтобы ты не…","Вежливо просишь кого-то не делать.",[["I'd rather","«я бы предпочёл»."],["you + прошедшее","речь про сейчас, но форма прошедшая: you didn't."]],"<b>Не «I'd rather you don't».</b> После I'd rather you — прошедшее.",
+   [{en:"I'd rather you didn't {A.b} today.",ru:"Я бы предпочёл, чтобы ты сегодня не {A.rp}."}]),
+ C2("c95",1,"No matter what,…","Что бы ни случилось,…","Ты точно сделаешь это при любых условиях.",[["no matter what","«что бы ни»."],["happens","про будущее — настоящее время: No matter what happens."]],"<b>Не «No matter what will happen».</b> Нужно happens.",
+   [{en:"No matter what happens, I'll {A.b}.",ru:"Что бы ни случилось, я {A.rfu}."},{en:"No matter how hard it is, I'll {A.b}.",ru:"Как бы ни было тяжело, я {A.rfu}."}]),
+ C2("c96",1,"Not only…, but also…","Не только…, но и…","Усиливаешь: и то, и другое.",[["not only","«не только»."],["but also","«но и»."]],"Если начать фразу с Not only, нужна инверсия: Not only did I… Пока ставь not only после I.",
+   [{en:"I not only {A.ps}, but also {B.ps}.",ru:"Я не только {A.rpp}, но и {B.rpp}."}]),
+ C2("c97",1,"The thing is,…","Дело в том, что…","Объясняешь настоящую причину или проблему.",[["the thing is","«дело в том»."],["пауза","после The thing is — запятая и пауза."]],"Очень разговорное: так начинают объяснение, почему не получается.",
+   [{en:"The thing is, I need to {A.b}.",ru:"Дело в том, что мне нужно {A.rf}."},{en:"The thing is, I don't have time to {A.b}.",ru:"Дело в том, что у меня нет времени {A.rf}."}]),
+ C2("c98",1,"…as long as…","…при условии, что…","Условие: всё будет хорошо, пока это выполняется.",[["as long as","«при условии что, пока»."],["+ настоящее","про будущее — настоящее время: as long as I practice."]],"<b>Не «as long as I will».</b> После as long as — настоящее время.",
+   [{en:"I'll be fine as long as I {A.b} every day.",ru:"У меня всё будет нормально, если я буду каждый день {A.ri}.",need:"h"}]),
+ C2("c99",1,"It's not like I…","Не то чтобы я…","Мягко отрицаешь чужое предположение.",[["It's not like","«не то чтобы»."]],"Часто с оправданием: It's not like I don't want to!",
+   [{en:"It's not like I {A.b} every day.",ru:"Не то чтобы я каждый день {A.rpr}.",need:"h"},{en:"It's not like I don't want to {A.b}.",ru:"Не то чтобы я не хотел {A.rf}."}]),
+ C2("c100",1,"What if we…?","А что если нам…?","Предлагаешь идею или представляешь вариант.",[["What if","«а что если»."],["we + глагол","What if we go…?"]],"What if we… — предложение. What if it rains? — тревога «а вдруг».",
+   [{en:"What if we {A.b} tomorrow?",ru:"А что если нам завтра {A.rf}?",need:"one"}]),
+ C2("c101",1,"It's up to you whether…","Тебе решать, …ли…","Отдаёшь решение собеседнику.",[["It's up to you","«тебе решать»."],["whether","«ли»: whether we go or not."]],"Коротко: It's up to you — «как хочешь, решай сам».",
+   [{en:"It's up to you whether we {A.b} or not.",ru:"Тебе решать, будем мы {A.ri} или нет."}]),
+ C2("c102",1,"…made me…","…заставил меня…","Кто-то заставил тебя сделать.",[["made","прошлое от make — «заставил»."],["me + глагол","без to: made me wait."]],"<b>Не «made me to wait».</b> После make + кого — глагол без to.",
+   [{en:"My mother made me {A.b}.",ru:"Мама заставила меня {A.rf}.",w:["mother"]},{en:"My boss made me {A.b}.",ru:"Начальник заставил меня {A.rf}.",w:["boss"]}]),
+ C2("c103",1,"Let me…","Давай я…","Предлагаешь сделать сам или просишь разрешения.",[["let","«позволить»."],["me + глагол","без to: let me help."]],"<b>Let me</b> — давай я. <b>Let's</b> — давай мы (вместе).",
+   [{en:"Let me {A.b}.",ru:"Давай я {A.rfu}.",need:"one"}]),
+ C2("c104",1,"Whether you like it or not,…","Хочешь не хочешь,…","Придётся в любом случае, нравится это или нет.",[["whether… or not","«…или нет»."],["like it","«нравится это»."]],"Звучит жёстко. Мягче: I'm afraid we have to…",
+   [{en:"Whether you like it or not, you need to {A.b}.",ru:"Хочешь не хочешь, а тебе нужно {A.rf}."}])
+];
+B2.forEach(c=>{c.g=B2_GROUPS[c.g]});
+/* порядок в тропе: база → B1 → фразовые глаголы → B2 */
+CGROUPS.push(...PV_GROUPS,...B2_GROUPS);
+PVS.forEach(c=>CONS.push(c));B2.forEach(c=>CONS.push(c));
+
+/* ---------- СВЯЗКИ: отдельная тропа ---------- */
+const NGROUPS=["Добавить мысль","Противопоставить","Причина","Следствие","Порядок и время","Пример и уточнение","Вывод и мнение","Живая речь"];
+const CONN=CONN_RAW.map((r,i)=>{const [g,en,say,ru,simple,pit,tpl]=r;
+  const pos=/^[A-Z]/.test(en)?(/,…$/.test(en)?"в начале фразы, после — запятая":"в начале фразы"):/^…,/.test(en)?"в середине, перед ним запятая":/…$/.test(en)?"в середине фразы":"в конце фразы";
+  const c=C2("n"+i,0,en,ru,simple,[[say,`«${ru}» — ${pos}.`]],pit,tpl);c.g=NGROUPS[g];c.kind="conn";c.say=say;return c});
+CONN.forEach(c=>CONS.push(c));
+
+/* примеры, фразы и вопрос для новых: так же, как для LEVEL2 */
+const NEWLIST=[...PVS,...B2,...CONN];
+NEWLIST.forEach(c=>{
+  const all=genPhrases(c,false).filter(x=>!x.cb||(!x.cb.A||x.cb.A.topic>=0)&&(!x.cb.B||x.cb.B.topic>=0)),n=all.length,pick=i=>all[Math.min(n-1,Math.max(0,i))];
+  /* в примерах на карточке — простые действия из первой темы, если они есть */
+  const base=all.filter(x=>(!x.cb.A||x.cb.A.topic===0)&&(!x.cb.B||x.cb.B.topic===0)),bn=base.length,pb=i=>(bn?base:all)[Math.min((bn||n)-1,Math.max(0,i))];
+  c.ex=[pb(0),pb(Math.floor((bn||n)/2)),pb((bn||n)-1)].map(x=>[x.en,x.ru]).filter((e,i,a)=>a.findIndex(z=>z[0]===e[0])===i);
+  c.fills=[0,1,2,3,4,5].map(i=>pick(Math.floor(i*n/6))).map(x=>[x.en,x.ru]);
+  c.builds=[pick(1),pick(n-2)].map(x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple}));
+  c.pitPlain=c.pit.replace(/<[^>]+>/g,"");c.dyn=true;
+});
+NEWLIST.forEach(c=>{
+  const all=genPhrases(c,false);let dq=null;
+  for(let tries=0;tries<6&&!dq;tries++){const x=all[Math.floor(Math.random()*all.length)];try{dq=drillChoice(c,x)}catch(e){}if(dq)dq.x=x}
+  if(dq)c.q={situation:`Как сказать: «${dq.x.ru}»`,options:dq.options,answer:dq.answer,notes:dq.notes};
+  else{const x=all[0],o=shuffle(CONS.filter(z=>z!==c&&KIND(z)===KIND(c)&&z.g!==c.g&&z.ex&&z.ex[0])).slice(0,2),opts=shuffle([{en:x.en,c},...o.map(z=>({en:z.ex[0][0],c:z}))]);
+    c.q={situation:`Как сказать: «${x.ru}»`,options:opts.map(z=>z.en),answer:opts.findIndex(z=>z.c===c),notes:opts.map(z=>z.c===c?`Верно: ${c.en} — «${c.ru}».`:`${z.c.en} — это «${z.c.ru}», другой смысл.`)}}
+});
+LEVEL2.forEach(c=>{c.dyn=true});
+
+/* ---------- времена на твоих словах ---------- */
+const TIMEY=/weekend|every|evening|morning|early|late|at seven|tomorrow|today/;
+const TP={
+ ps:[a=>a.k!=="o",a=>({ru:`Я обычно ${a.rpr}.`,o:[`I usually ${a.b}.`,`I'm usually ${a.ing}.`,`I usually ${a.ps}.`],n:["«Обычно» — привычка: Present Simple, глагол как в словаре.","am + -ing — это «прямо сейчас», а не «обычно».","Это прошедшая форма, а речь про «обычно»."]})],
+ pc:[a=>!TIMEY.test(a.b),a=>({ru:`Сейчас я ${a.rpr}.`,o:[`I'm ${a.ing} right now.`,`I ${a.b} right now.`,`I'm ${a.b} right now.`],n:["Прямо сейчас, в процессе — am + -ing.","Present Simple — для привычек, а не для «прямо сейчас».","После am нужен глагол с -ing."]})],
+ past:[a=>a.k!=="h",a=>({ru:`Вчера я ${a.rpp}.`,o:[`Yesterday I ${a.ps}.`,a.pp?`Yesterday I have ${a.pp}.`:`Yesterday I'm ${a.ing}.`,`Yesterday I ${a.b}.`],n:["Вчера — законченное прошлое: вторая форма (Past Simple).",a.pp?"have + 3-я форма не ставят с yesterday.":"am + -ing — это «сейчас», а речь про вчера.","Это настоящее время, а нужно прошлое."]})],
+ fut:[a=>a.k!=="h",a=>({ru:`Завтра я ${a.rfu}.`,o:[`I'll ${a.b} tomorrow.`,`I'll ${a.ing} tomorrow.`,`I ${a.ps} tomorrow.`],n:["Решение или обещание на будущее — will + глагол как в словаре.","После will — глагол без -ing.","Это прошедшая форма, а речь про завтра."]})],
+ pp:[a=>!!a.pp&&a.k!=="h",a=>({ru:`Я уже ${a.rpp}.`,o:[`I've already ${a.pp}.`,`I'm already ${a.ing}.`,`I already ${a.b}.`],n:["«Уже сделал», результат сейчас — have + 3-я форма.","am + -ing — «уже делаю», процесс, а не результат.","Без have это «я уже (обычно) делаю»."]})],
+ pcn:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`Я ${a.rpr} уже два часа.`,o:[`I've been ${a.ing} for two hours.`,`I'm ${a.ing} for two hours.`,`I ${a.b} for two hours.`],n:["Начал раньше и делаешь до сих пор — have been + -ing.","Типичная ошибка: по-русски «делаю уже два часа», а по-английски нужно have been.","Present Simple не говорит, что действие длится до сих пор."]})]
+};
+function practiceActs(){
+  const full=a=>a.ps&&a.rpr&&a.rfu&&a.rpp&&a.ing&&a.topic>=0&&a.w.every(isKnownKey);
+  const R=recentTopics(),rec=ACTS.filter(a=>full(a)&&R.includes(a.topic));
+  if(rec.length>=4)return rec;const known=[...rec,...ACTS.filter(a=>full(a)&&!rec.includes(a))];if(known.length>=4)return known;
+  /* слов ещё не отмечено: берём действия текущей темы и первой */
+  return ACTS.filter(a=>a.ps&&a.rpr&&a.rfu&&a.rpp&&(a.topic===0||a.topic===S.curTopic||R.includes(a.topic)))}
+function tensePractice(keys,n){
+  const acts=practiceActs(),out=[];let guard=0;
+  while(out.length<n&&guard++<200){const key=keys[out.length%keys.length],[ok,mk]=TP[key],a=acts[Math.floor(Math.random()*acts.length)];
+    if(!a||!ok(a))continue;const q=mk(a);if(new Set(q.o).size<3)continue;
+    const id="g:"+key+":"+a.b;if(out.some(t=>t.id===id))continue;
+    const it={id,tense:key,type:"choice",hint:"Как сказать? · на твоих словах",prompt:q.ru,ru:true,options:q.o,answer:0,notes:q.n,sayAfter:q.o[0]};
+    TENSE_ITEMS[id]=it;out.push(it)}
+  return out.map(tag)}
+
 
 
 
@@ -1440,7 +1719,7 @@ function renderTask(t,mode,pct,label,canBack,cb){
   if(t.type==="ccard"){
     const c=t.cons;
     view.innerHTML=`${top}<div class="card">
-      <div class="eyebrow">Новая конструкция · ${CONS.indexOf(c)+1} из ${CONS.length}</div>
+      <div class="eyebrow">${KIND(c)==="conn"?"Новая связка":"Новая конструкция"} · ${KL(KIND(c)).indexOf(c)+1} из ${KL(KIND(c)).length}</div>
       <div style="font-family:var(--f-display);font-size:26px;font-weight:700">${esc(c.en)}</div>
       <div class="ru">${esc(c.ru)}</div>
       ${spkBtn(c.say,"Озвучить конструкцию")}
@@ -1621,9 +1900,9 @@ function startBlock(key){
       return}
     const round=st+1,mine=TI.filter(t=>t.tense===d.key&&!d.test.includes(t.id));
     const trainTasks=round===1
-      ?d.steps.flatMap(x=>[{type:"theory",html:x.theory},...x.tasks.map(id=>tag(TENSE_ITEMS[id]))])
+      ?[...d.steps.flatMap(x=>[{type:"theory",html:x.theory},...x.tasks.map(id=>tag(TENSE_ITEMS[id]))]),...tpBlock([d.key],5)]
       :(()=>{const miss=S.mistakes.filter(m=>m.kind==="tense").map(m=>TENSE_ITEMS[m.id]).filter(t=>t&&t.tense===d.key);
-         return [{type:"theory",html:d.sheet},...[...new Set([...miss,...shuffle(mine)])].slice(0,10).map(tag)]})();
+         return [{type:"theory",html:d.sheet},...[...new Set([...miss,...shuffle(mine)])].slice(0,10).map(tag),...tpBlock([d.key],6)]})();
     runBlock({title:"Времена",phases:[
       {mode:"train",intro:{eyebrow:`${d.name} · ${d.ru} · тренировка ${round}`,title:round===1?"Новое время":"Работа над ошибками",text:round===1?`${d.steps.length} коротких шагов: объяснение, потом сразу задания на него.`:"Шпаргалка и задания, где ты ошибался."},tasks:trainTasks},
       {mode:"test",name:`Тест ${round}`,intro:{eyebrow:"Тест",title:`Тест ${round}: ${d.name}`,text:`Без подсказок. Нужно ${th}% или больше.`},tasks:()=>shuffle(d.test).map(id=>tag(TENSE_ITEMS[id]))}],
@@ -1635,8 +1914,8 @@ function startBlock(key){
     const consNow=CONS.filter(c=>cStat(c.id).status!=="new");
     const linkTasks=S.curTopic===0?LINK:[...shuffle(seen.length?seen:t.words).slice(0,6).map(w=>({type:"say",ru:w.exRu,en:w.ex,wordId:w.id})),
       ...shuffle(consNow).slice(0,3).flatMap(c=>{const ph=shuffle(genPhrases(c,true));return ph.length?[{type:"build",hint:"Собери фразу",ru:ph[0].ru,chunks:chunkify(ph[0].en,c.say),en:ph[0].en,consId:c.id,why:c.simple}]:[]})];
-    runBlock({title:"Связка",phases:[{mode:"train",intro:{eyebrow:"Связка",title:"Говорим целыми фразами",text:"Слова темы и конструкции вместе. Говори вслух, потом сверяйся."},tasks:shuffle(linkTasks)}],
-      onFinish:ph=>{finishBlock("link");resultScreen("Связка",ph)}});
+    runBlock({title:"Говорим фразами",phases:[{mode:"train",intro:{eyebrow:"Говорим фразами",title:"Говорим целыми фразами",text:"Слова темы и конструкции вместе. Говори вслух, потом сверяйся."},tasks:shuffle(linkTasks)}],
+      onFinish:ph=>{finishBlock("link");resultScreen("Говорим фразами",ph)}});
   }
 }
 
@@ -1649,7 +1928,7 @@ function drill(){
   view.innerHTML=`${topBar(0,"Тренажёр")}<div class="stack"><div><div class="eyebrow">Тренажёр конструкций · ${CONS.length}</div><h1 style="margin-top:6px">Выбери одну и прогони 20 раз</h1>
     <p class="muted" style="margin-top:6px">Каждый раз новые фразы, вперемешку, только из слов, которые ты знаешь.</p></div>
     <button class="btn ghost" id="kw">Отметить слова, которые я знаю</button>
-    ${CGROUPS.map(g=>`<h2 style="margin-top:8px">${esc(g)}</h2><div class="list">${CONS.filter(c=>c.g===g).map(row).join("")}</div>`).join("")}
+    ${[...CGROUPS,...NGROUPS.map(g=>g)].map(g=>`<h2 style="margin-top:8px">${NGROUPS.includes(g)?"Связки · ":""}${esc(g)}</h2><div class="list">${CONS.filter(c=>c.g===g).map(row).join("")}</div>`).join("")}
     <p class="muted" style="font-size:13px">«Знаю» — 2 быстрых вопроса. Оба верно — конструкция отметится как изученная и не попадёт в уроки. «Вернуть» снимает отметку.</p></div>`;
   bindTop();
   const find=id=>CONS.find(c=>c.id===id);
@@ -1663,7 +1942,8 @@ function drill(){
 }
 /* Вариант «что подходит»: та же заготовка, вставленная в другие конструкции с таким же местом */
 function drillChoice(c,x){
-  const others=shuffle(CONS.filter(o=>o!==c&&o.g!==c.g)).map(o=>{const t=o.tpl.find(t=>["A","B","P","D","N"].every(k=>!!x.cb[k]===t.en.includes("{"+k)&&(!x.cb.A||actOk(x.cb.A,t.need))));
+  if(c.pv)return pvChoice(c,x);
+  const others=shuffle(CONS.filter(o=>o!==c&&o.g!==c.g&&!o.pv&&KIND(o)===KIND(c))).map(o=>{const t=o.tpl.find(t=>["A","B","P","D","N"].every(k=>!!x.cb[k]===t.en.includes("{"+k)&&(!x.cb.A||actOk(x.cb.A,t.need))));
     if(!t)return null;const en=t.en.replace(/\{(\w)(?:\.(\w+))?\}/g,(m,k,f)=>{const v=x.cb[k];return k==="A"||k==="B"?v[f||"b"]:v.en});return en===x.en?null:{en,o}}).filter(Boolean);
   const pickO=[];others.forEach(z=>{if(pickO.length<2&&!pickO.some(p=>p.en===z.en))pickO.push(z)});
   if(pickO.length<2)return null;
@@ -1678,7 +1958,7 @@ function runDrill(c,useAll){
       <p class="muted" style="max-width:34ch">Для ${esc(c.en)} из твоих слов собирается ${known.length} ${plural(known.length,"фраза","фразы","фраз")}. Отметь слова, которые уже знаешь, и фраз станет больше. Всего для этой конструкции есть ${all}.</p></div>
       <div class="foot"><button class="btn primary" id="mk">Отметить слова, которые я знаю</button><button class="btn ghost" id="all">Прогнать на всех словах</button></div>`;
     bindTop();$("#mk").onclick=()=>knownScreen(()=>runDrill(c));$("#all").onclick=()=>runDrill(c,true);return}
-  const pool=useAll?genPhrases(c,false):known;
+  const pool=recentWeight(useAll?genPhrases(c,false):known);
   const picks=[];while(picks.length<20){const sh=shuffle(pool);if(picks.length&&sh[0]===picks[picks.length-1])sh.push(sh.shift());picks.push(...sh)}
   const types=shuffle([...Array(20)].map((_,i)=>["say","build","choice"][i%3]));
   const tasks=picks.slice(0,20).map((x,i)=>{const ty=types[i];
@@ -2125,76 +2405,88 @@ function go(tab){
 }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="dict")dictAt=null;go(b.dataset.tab)});
 
-/* ================= ГЛАВНАЯ: три тропы вместо плана дня ================= */
-const curC=()=>CONS.find(c=>c.id===S.curCons)||CONS.find(c=>cStat(c.id).status!=="learned")||CONS[0];
-const nextCons=c=>{const i=CONS.indexOf(c);for(let k=1;k<=CONS.length;k++){const n=CONS[(i+k)%CONS.length];if(cStat(n.id).status!=="learned")return n}return c};
+/* ================= ГЛАВНАЯ: четыре тропы вместо плана дня ================= */
+const KCFG={cons:{key:"curCons",groups:()=>CGROUPS,name:"Тропа конструкций",one:"конструкция",few:"конструкции",many:"конструкций",
+   intro:"Открыты все. Нажми на любую: разбор, урок, прогон ×20 или «уже знаю». Кубок в конце группы — тест по всей группе. Сначала база (A2), потом B1, фразовые глаголы и B2."},
+  conn:{key:"curConn",groups:()=>NGROUPS,name:"Тропа связок",one:"связка",few:"связки",many:"связок",
+   intro:"Связки соединяют мысли: however, because, so, by the way. Фразы собираются из слов последних тем. Нажми на любую — разбор, урок, ×20 или «уже знаю»."}};
+const KL=k=>CONS.filter(c=>KIND(c)===k);
+const curC=(k="cons")=>{const L=KL(k);return L.find(c=>c.id===S[KCFG[k].key])||L.find(c=>cStat(c.id).status!=="learned")||L[0]};
+const nextCons=c=>{const L=KL(KIND(c)),i=L.indexOf(c);for(let j=1;j<=L.length;j++){const n=L[(i+j)%L.length];if(cStat(n.id).status!=="learned")return n}return c};
+const setCur=c=>{S[KCFG[KIND(c)].key]=c.id};
 function home(){
   const ct=curT(),seen=ct.words.filter(w=>wStat(w.id).status!=="new").length;
-  const cc=curC(),cDone=CONS.filter(c=>cStat(c.id).status==="learned").length;
+  const cc=curC("cons"),CL=KL("cons"),cDone=CL.filter(c=>cStat(c.id).status==="learned").length;
+  const nc=curC("conn"),NL=KL("conn"),nDone=NL.filter(c=>cStat(c.id).status==="learned").length;
   const td=curTense(),tClosed=TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length;
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v16</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v17</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
    ${track("words",`Тропа слов · тема ${S.curTopic+1} из ${TOPICS.length}`,esc(ct.en),`${esc(ct.ru)} · ${seen}/${ct.words.length} слов`,seen/ct.words.length*100,"words",`Учить слова: ${esc(ct.en)}`)}
-   ${track("cons",`Тропа конструкций · ${cDone} из ${CONS.length}`,esc(cc.en),`${esc(cc.ru)} · ${esc(cc.g)}`,cDone/CONS.length*100,"cons",`Учить: ${esc(cc.en)}`)}
+   ${track("cons",`Тропа конструкций · ${cDone} из ${CL.length}`,esc(cc.en),`${esc(cc.ru)} · ${esc(cc.g)}`,cDone/CL.length*100,"cons",`Учить: ${esc(cc.en)}`)}
+   ${track("conn",`Тропа связок · ${nDone} из ${NL.length}`,esc(nc.en),`${esc(nc.ru)} · ${esc(nc.g)}`,nDone/NL.length*100,"conn",`Учить: ${esc(nc.en)}`)}
    ${track("tense",`Времена · ${TENSE_DEFS.indexOf(td)+1} из 6`,esc(td.name),`${esc(td.ru)} · ${["шаги и тест 1","тренировка 2 и тест 2","накопительный тест","закрыто"][S.tense[td.key].stage]}`,tClosed/6*100,"tense",`Учить: ${esc(td.name)}`)}
   </div>
   <div class="extras">
    <button class="xbtn wide lwt" id="lwb"><b>Little Words · маленькие слова</b><span>их, его, под, за, уже, потому что — ${LW.filter(w=>wStat(w.id).status!=="new").length} из ${LW.length} выучено</span></button>
    <button class="xbtn" id="lite"><b>Лайт-режим</b><span>Нет сил — просто повтори</span></button>
    <button class="xbtn" id="errs"><b>Мои ошибки</b><span>${openErrors().length?openErrors().length+" с разбором":"Пока нет"}</span></button>
-   <button class="xbtn" id="link"><b>Связка</b><span>Говорить целыми фразами</span></button>
+   <button class="xbtn" id="link"><b>Говорим фразами</b><span>Слова темы + конструкции вслух</span></button>
    <button class="xbtn" id="gpt2"><b>ChatGPT</b><span>Промпт для разговора</span></button>
   </div>`;
-  view.querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>({words:pathScreen,cons:consPathScreen,tense:tensePathScreen})[b.dataset.path]());
-  view.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==="cons")consLearn(curC());else startBlock(g)});
+  view.querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>({words:pathScreen,cons:()=>consPathScreen("cons"),conn:()=>consPathScreen("conn"),tense:tensePathScreen})[b.dataset.path]());
+  view.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==="cons"||g==="conn")consLearn(curC(g));else startBlock(g)});
   $("#gpt2").onclick=gptScreen;$("#lite").onclick=lite;$("#lwb").onclick=lwScreen;$("#errs").onclick=errorsScreen;$("#link").onclick=()=>startBlock("link");
   const ob=$("#onb");if(ob)ob.onclick=()=>knownScreen();const ck=$("#chk");if(ck)ck.onclick=()=>startBlock("check");
 }
 
-/* ================= ТРОПА КОНСТРУКЦИЙ ================= */
-function consPathScreen(){
-  showTabs(false);const cur=curC(),OFF=[0,56,84,56,0,-56,-84,-56];let k=0;
-  const done=CONS.filter(c=>cStat(c.id).status==="learned").length;
-  view.innerHTML=`${topBar(done/CONS.length*100,`${done} / ${CONS.length}`)}
-   <div class="eyebrow">Тропа конструкций</div><h1 style="margin:6px 0 4px">${CONS.length} конструкций в ${CGROUPS.length} группах</h1>
-   <p class="muted" style="margin-bottom:8px">Открыты все. Нажми на любую: разбор, урок, прогон ×20 или «уже знаю». Кубок в конце группы — тест по всей группе. Первые 8 групп — база (A2), дальше — уровень B1–B2.</p>
-   <button class="btn ghost" id="ckn" style="margin-bottom:6px">Отметить конструкции, которые я уже знаю</button>
-   ${CGROUPS.map((g,gi)=>{const list=CONS.filter(c=>c.g===g),d=list.filter(c=>cStat(c.id).status==="learned").length,isCur=cur.g===g;
+/* ================= ТРОПА КОНСТРУКЦИЙ / СВЯЗОК ================= */
+function consPathScreen(kind){
+  kind=kind||"cons";const K=KCFG[kind],L=KL(kind),G=K.groups();
+  showTabs(false);const cur=curC(kind),OFF=[0,56,84,56,0,-56,-84,-56];let k=0;
+  const done=L.filter(c=>cStat(c.id).status==="learned").length;
+  view.innerHTML=`${topBar(done/L.length*100,`${done} / ${L.length}`)}
+   <div class="eyebrow">${K.name}</div><h1 style="margin:6px 0 4px">${L.length} ${plural(L.length,K.one,K.few,K.many)} в ${G.length} группах</h1>
+   <p class="muted" style="margin-bottom:8px">${K.intro}</p>
+   <button class="btn ghost" id="ckn" style="margin-bottom:6px">Отметить ${K.many}, которые я уже знаю</button>
+   ${G.map((g,gi)=>{const list=L.filter(c=>c.g===g),d=list.filter(c=>cStat(c.id).status==="learned").length,isCur=cur.g===g;
      return `<div class="stage ${d===list.length?"sdone":isCur?"scur":""}"><div><b>${esc(g)}</b><span>${d} из ${list.length}</span></div><span class="chip">${d===list.length?"пройдено":isCur?"сейчас":"открыто"}</span></div>
      <div class="path">${list.map(c=>{const st=c===cur?"cur":cStat(c.id).status==="learned"?"done":"open",x=OFF[k++%OFF.length];
-       return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-c="${c.id}" aria-label="${esc(c.en)}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${CONS.indexOf(c)+1}</span>`}</button><div class="plabel"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span></div></div>`}).join("")}
+       return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-c="${c.id}" aria-label="${esc(c.en)}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${L.indexOf(c)+1}</span>`}</button><div class="plabel"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span></div></div>`}).join("")}
       <div class="pstep" style="transform:translateX(${OFF[k++%OFF.length]}px)"><button class="pnode trophy ${d===list.length?"done":"open"}" data-g="${gi}" aria-label="Тест группы">${ICON_CUP}</button><div class="plabel"><b>Тест группы</b><span>${esc(g)}</span></div></div></div>`}).join("")}`;
   bindTop();
   view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>consScreen(CONS.find(c=>c.id===b.dataset.c)));
-  view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>consGroupTest(CGROUPS[+b.dataset.g]));
-  $("#ckn").onclick=consKnownScreen;
+  view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>consGroupTest(G[+b.dataset.g]));
+  $("#ckn").onclick=()=>consKnownScreen(kind);
   const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50);
 }
-function consKnownScreen(){
+function consKnownScreen(kind){
+  kind=kind||"cons";const K=KCFG[kind],L=KL(kind),G=K.groups();
   showTabs(false);
-  const draw=()=>{const on=c=>cStat(c.id).status==="learned",n=CONS.filter(on).length;
-    view.innerHTML=`<div class="rtop"><button class="x" id="kb" aria-label="Готово">${BACK}</button><div class="rprog"><i style="width:${n/CONS.length*100}%"></i></div><div class="rlabel">${n} из ${CONS.length}</div></div>
-    <div class="stack"><div><div class="eyebrow">Тропа конструкций</div><h1 style="margin-top:6px">Что я уже знаю</h1><p class="muted" style="margin-top:6px">Нажми на знакомые — они отметятся пройденными, и тропа начнётся с первой незнакомой. Сомневаешься — лучше пройди короткую проверку на экране конструкции.</p></div>
-    ${CGROUPS.map((g,gi)=>{const list=CONS.filter(c=>c.g===g),all=list.every(on);return `<div class="panel stack"><div class="row" style="justify-content:space-between"><h3>${esc(g)}</h3><button class="btn small ghost" data-all="${gi}">${all?"Снять все":"Знаю все"}</button></div>
+  const draw=()=>{const on=c=>cStat(c.id).status==="learned",n=L.filter(on).length;
+    view.innerHTML=`<div class="rtop"><button class="x" id="kb" aria-label="Готово">${BACK}</button><div class="rprog"><i style="width:${n/L.length*100}%"></i></div><div class="rlabel">${n} из ${L.length}</div></div>
+    <div class="stack"><div><div class="eyebrow">${K.name}</div><h1 style="margin-top:6px">Что я уже знаю</h1><p class="muted" style="margin-top:6px">Нажми на знакомые — они отметятся пройденными, и тропа начнётся с первой незнакомой. Сомневаешься — лучше пройди короткую проверку на экране.</p></div>
+    ${G.map((g,gi)=>{const list=L.filter(c=>c.g===g),all=list.every(on);return `<div class="panel stack"><div class="row" style="justify-content:space-between"><h3>${esc(g)}</h3><button class="btn small ghost" data-all="${gi}">${all?"Снять все":"Знаю все"}</button></div>
       <div class="kchips">${list.map(c=>`<button class="kchip ${on(c)?"on":""}" data-c="${c.id}"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span></button>`).join("")}</div></div>`}).join("")}
     <button class="btn primary" id="kd">Готово</button></div>`;
     const set=(c,v)=>{const s=cStat(c.id);if(v){s.status="learned";s.known=true;if(!s.at)s.at=Date.now()}else{s.status="new";s.known=false}};
-    const fin=()=>{const cur=CONS.find(c=>c.id===S.curCons);if(!cur||cStat(cur.id).status==="learned"){const nx=CONS.find(c=>cStat(c.id).status!=="learned");if(nx)S.curCons=nx.id}save();consPathScreen()};
+    const fin=()=>{const cur=L.find(c=>c.id===S[K.key]);if(!cur||cStat(cur.id).status==="learned"){const nx=L.find(c=>cStat(c.id).status!=="learned");if(nx)S[K.key]=nx.id}save();consPathScreen(kind)};
     $("#kb").onclick=fin;$("#kd").onclick=fin;
     view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const c=CONS.find(x=>x.id===b.dataset.c);set(c,!on(c));save();b.classList.toggle("on",on(c));
-      const k=CONS.filter(on).length;$(".rlabel").textContent=`${k} из ${CONS.length}`;$(".rprog i").style.width=k/CONS.length*100+"%"});
-    view.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{const list=CONS.filter(c=>c.g===CGROUPS[+b.dataset.all]),all=list.every(on);list.forEach(c=>set(c,!all));save();const y=scrollY;draw();scrollTo(0,y)});
+      const m=L.filter(on).length;$(".rlabel").textContent=`${m} из ${L.length}`;$(".rprog i").style.width=m/L.length*100+"%"});
+    view.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{const list=L.filter(c=>c.g===G[+b.dataset.all]),all=list.every(on);list.forEach(c=>set(c,!all));save();const y=scrollY;draw();scrollTo(0,y)});
   };
   draw();window.scrollTo(0,0);
 }
 function consScreen(c){
+  const kind=KIND(c),L=KL(kind);
   showTabs(false);const st=cStat(c.id).status,learned=st==="learned",n=genPhrases(c,true).length;
-  view.innerHTML=`<div class="rtop"><button class="x" id="cb" aria-label="Назад">${BACK}</button><div style="flex:1"></div><div class="rlabel">${esc(c.g)} · ${CONS.indexOf(c)+1} из ${CONS.length}</div></div>
+  const R=recentTopics(),nr=genPhrases(c,true).filter(x=>fromRecent(x,R)).length;
+  view.innerHTML=`<div class="rtop"><button class="x" id="cb" aria-label="Назад">${BACK}</button><div style="flex:1"></div><div class="rlabel">${esc(c.g)} · ${L.indexOf(c)+1} из ${L.length}</div></div>
    <div class="stack"><div class="card">
      <div class="row" style="justify-content:space-between;align-items:flex-start"><div style="font-family:var(--f-display);font-size:24px;font-weight:700">${esc(c.en)}</div>${statusChip(st)}</div>
      <div class="ru">${esc(c.ru)}</div>${spkBtn(c.say,"Озвучить")}
@@ -2204,35 +2496,42 @@ function consScreen(c){
      <div class="sec"><div class="eyebrow">Примеры</div>${c.ex.map(e=>`<div><div style="font-size:16px">${tt(e[0])}</div><div class="muted" style="font-size:14px">${esc(e[1])}</div></div>`).join("")}</div>
    </div>
    <button class="btn primary" id="learn">${learned?"Пройти урок ещё раз":"Учить: урок и тест"}</button>
-   <button class="btn" id="drill20">Прогнать ×20 · ${n} ${plural(n,"фраза","фразы","фраз")} из твоих слов</button>
+   <button class="btn" id="drill20">Прогнать ×20 · ${n} ${plural(n,"фраза","фразы","фраз")} из твоих слов${nr?` · ${nr} из последних тем`:""}</button>
    ${learned?`<button class="btn ghost" id="un">Вернуть в изучение</button>`:`<button class="btn ghost" id="know">Я уже это знаю</button>`}</div>`;
-  $("#cb").onclick=consPathScreen;
+  $("#cb").onclick=()=>consPathScreen(kind);
   $("#learn").onclick=()=>consLearn(c);$("#drill20").onclick=()=>runDrill(c);
   const u=$("#un");if(u)u.onclick=()=>{cStat(c.id).status="learning";save();toast("Вернул в изучение");consScreen(c)};
   const kn=$("#know");if(kn)kn.onclick=()=>runBlock({title:"Проверка",phases:[{mode:"train",tasks:consCheck(c)}],onFinish:()=>{
-    const ok=cStat(c.id).status==="learned";if(ok&&curC()===c){S.curCons=nextCons(c).id;save()}
-    toast(ok?"Отмечено как изученное":"Была ошибка — конструкция остаётся в изучении");consScreen(c)}});
+    const ok=cStat(c.id).status==="learned";if(ok&&curC(kind)===c){setCur(nextCons(c));save()}
+    toast(ok?"Отмечено как изученное":"Была ошибка — остаётся в изучении");consScreen(c)}});
   window.scrollTo(0,0);
 }
-/* Урок одной конструкции: разбор → тренировка → тест. Сдал — конструкция пройдена, следующая становится текущей */
+/* Урок одной конструкции/связки: разбор → тренировка → тест. Сдал — пройдена, следующая становится текущей */
 function consLearn(c){
-  const th=S.settings.threshold;
+  const th=S.settings.threshold,L=KL(KIND(c));refreshCons(c);
   runBlock({title:c.en,phases:[
-    {mode:"train",intro:{eyebrow:`${c.g} · ${CONS.indexOf(c)+1} из ${CONS.length}`,title:c.en,text:"Разбор, тренировка и короткий тест. Сдашь — конструкция отметится как пройденная."},tasks:consLesson(c)},
+    {mode:"train",intro:{eyebrow:`${c.g} · ${L.indexOf(c)+1} из ${L.length}`,title:c.en,text:"Разбор, тренировка и короткий тест. Фразы — из твоих слов и последних тем. Сдашь — отметится как пройденная."},tasks:consLesson(c)},
     {mode:"test",name:"Тест: "+c.en,intro:{eyebrow:"Тест",title:c.en,text:`Без подсказок. Нужно ${th}%.`},
-     tasks:()=>{const ph=shuffle(genPhrases(c,false)).slice(0,3).map(x=>drillChoice(c,x)).filter(Boolean);return shuffle([consQ(c),consBuild(c,c.builds[0]),consBuild(c,c.builds[1]),...ph])}}],
+     tasks:()=>{const ph=phrasesFor(c,6).map(x=>drillChoice(c,x)).filter(Boolean).slice(0,3);return shuffle([consQ(c),consBuild(c,c.builds[0]),consBuild(c,c.builds[1]),...ph])}}],
     onFinish:ph=>{const pass=ph[1].result.pct>=th;let extra;
-      if(pass){const s=cStat(c.id);s.status="learned";if(!s.at)s.at=Date.now();const nx=nextCons(c);S.curCons=nx.id;save();
+      if(pass){const s=cStat(c.id);s.status="learned";if(!s.at)s.at=Date.now();const nx=nextCons(c);setCur(nx);save();
         extra=`<p class="muted" style="max-width:34ch">${esc(c.en)} пройдена. Следующая на тропе: <b style="color:var(--fg)">${esc(nx.en)}</b> — ${esc(nx.ru)}.</p>`}
       else extra=`<p class="muted" style="max-width:34ch">Нужно ${th}%. Прогони её ×20 в тренажёре и пересдай.</p>`;
-      resultScreen("Конструкции",ph,extra)}});
+      resultScreen(KIND(c)==="conn"?"Связки":"Конструкции",ph,extra)}});
 }
 function consGroupTest(g){
   const list=CONS.filter(c=>c.g===g);
-  runBlock({title:"Тест группы",phases:[{mode:"test",name:"Тест группы: "+g,intro:{eyebrow:"Кубок группы",title:g,text:`${list.length} конструкций вперемешку, без подсказок.`},
-    tasks:()=>shuffle([...list.map(consQ),...list.map(c=>consBuild(c,c.builds[1]))])}],onFinish:ph=>resultScreen("Тест группы",ph)});
+  runBlock({title:"Тест группы",phases:[{mode:"test",name:"Тест группы: "+g,intro:{eyebrow:"Кубок группы",title:g,text:`${list.length} штук вперемешку, без подсказок.`},
+    tasks:()=>shuffle([...list.map(consQ),...list.map(c=>{refreshCons(c);return consBuild(c,c.builds[1])})])}],onFinish:ph=>resultScreen("Тест группы",ph)});
 }
+
 /* Времена: та же тропа, по порядку */
+const TP_INTRO=`<h2>Теперь — на твоих словах</h2><p>Те же правила, но фразы из последних тем, которые ты учил. Выбери, как сказать по-английски.</p>`;
+const tpBlock=(keys,n)=>{const t=tensePractice(keys,n);return t.length?[{type:"theory",html:TP_INTRO},...t]:[]};
+function tensePracticeRun(){
+  const keys=TENSE_DEFS.filter(x=>S.tense[x.key].stage>=1||x===curTense()).map(x=>x.key);
+  runBlock({title:"Времена на моих словах",phases:[{mode:"train",intro:{eyebrow:"Практика",title:"Времена на моих словах",text:`${keys.length===1?"Пока одно время":"Пройденные времена вперемешку"}: фразы из последних тем, которые ты учил.`},tasks:()=>tensePractice(keys,12)}],
+    onFinish:ph=>resultScreen("Времена",ph)})}
 function tensePathScreen(){
   showTabs(false);const cur=curTense();
   view.innerHTML=`${topBar(TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length/6*100,"Времена")}
@@ -2240,8 +2539,8 @@ function tensePathScreen(){
    <p class="muted" style="margin-bottom:8px">Каждое: шаги теории → тест 1 → тренировка 2 → тест 2 → накопительный тест. Шпаргалка любого — в «Грамматике».</p>
    <div class="path">${TENSE_DEFS.map((d,i)=>{const st=S.tense[d.key].stage>=3?"done":d===cur?"cur":"open",x=[0,56,84,56,0,-56][i];
      return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-k="${d.key}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(d.name)}</b><span>${esc(d.ru)}${d===cur?" · "+["шаги и тест 1","тренировка 2","накопительный тест","закрыто"][S.tense[d.key].stage]:""}</span></div></div>`}).join("")}</div>
-   <div class="foot"><button class="btn primary" id="go">Учить: ${esc(cur.name)}</button></div>`;
-  bindTop();$("#go").onclick=()=>startBlock("tense");
+   <div class="foot"><button class="btn primary" id="go">Учить: ${esc(cur.name)}</button><button class="btn ghost" id="tpr">Практика ×12 на моих словах</button></div>`;
+  bindTop();$("#go").onclick=()=>startBlock("tense");$("#tpr").onclick=tensePracticeRun;
   view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const d=TENSE_DEFS.find(x=>x.key===b.dataset.k);
     if(d===cur){startBlock("tense");return}
     view.innerHTML=`${topBar(100,d.name)}<div class="theory">${d.sheet}</div><div class="foot"><button class="btn primary" id="bk">К тропе времён</button></div>`;
@@ -2266,7 +2565,7 @@ function dict(){
   <div class="folders">${open.map(t=>{const d=t.words.filter(w=>wStat(w.id).status!=="new").length;return folder(t.id,t.en,t.ru,`${d}/${t.words.length}`)}).join("")}</div>
 
   <div class="eyebrow" style="margin:22px 0 8px">Ещё</div>
-  <div class="folders">${folder("basics","Basics","Базовые слова",`${BANK.filter(w=>wStat(w.id).status!=="new").length}/${BANK.length}`)}${folder("cons","Constructions","Конструкции",CONS.length)}${folder("custom","My words","Мои слова",S.custom.length)}</div>`;
+  <div class="folders">${folder("basics","Basics","Базовые слова",`${BANK.filter(w=>wStat(w.id).status!=="new").length}/${BANK.length}`)}${folder("cons","Constructions","Конструкции и фразовые глаголы",KL("cons").length)}${folder("conn","Connectors","Связки",KL("conn").length)}${folder("custom","My words","Мои слова",S.custom.length)}</div>`;
   view.insertAdjacentHTML("beforeend","</div>");
   view.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{dictAt=b.dataset.f;dictFolder(dictAt)});
   const inp=$("#dq");inp.oninput=()=>{dictQ=inp.value;dictSearch()};dictSearch();
@@ -2283,19 +2582,19 @@ function dictSearch(){
   TOPICS.forEach(t=>t.words.forEach(w=>add(w.en,w.ru,`${t.en} · ${t.ru}`,()=>{dictAt=t.id;wordDetail(w,t.id)},w.id)));
   BANK.forEach(w=>add(w.en,w.ru,"Basics · Базовые слова",()=>{dictAt="basics";wordDetail(w,"basics")},w.id));
   LW.forEach(w=>{const g=LW_GROUPS.find(x=>x[0]===w.g);add(w.en,w.ru,"Little Words · "+g[1],()=>lwList(w.g),w.id)});
-  CONS.forEach(c=>add(c.en,c.ru,"Конструкции · "+c.g,()=>consScreen(c),c.id));
+  CONS.forEach(c=>{const n=hits.length;add(c.en,c.ru,(KIND(c)==="conn"?"Связки · ":c.pv?"":"Конструкции · ")+c.g,()=>consScreen(c),c.id);if(hits.length>n)hits[n].c=true});
   S.custom.forEach((w,i)=>add(w.en,w.ru,"My words · Мои слова",()=>{dictAt="custom";wordDetail({id:"u"+i,en:w.en,ru:w.ru,tr:"",ex:"",exRu:""},"custom")},"u"+i));
   hits.sort((a,b)=>a.score-b.score);
   const top=hits.slice(0,40);
-  res.innerHTML=top.length?`<div class="eyebrow" style="margin:4px 0 6px">Найдено: ${hits.length}${hits.length>40?" · показаны первые 40":""}</div><div class="list">${top.map((h,i)=>`<button class="li" data-h="${i}" style="text-align:left"><div style="min-width:0"><div class="en">${esc(h.en)} <span class="muted" style="font-weight:400">— ${esc(h.ru)}</span></div><div class="ru"><span class="chip">📁 ${esc(h.folder)}</span> ${statusChip((h.id.startsWith("c")&&!h.id.startsWith("c_")&&CONS.some(c=>c.id===h.id)?cStat(h.id):wStat(h.id)).status)}</div></div><span class="muted">›</span></button>`).join("")}</div>`
+  res.innerHTML=top.length?`<div class="eyebrow" style="margin:4px 0 6px">Найдено: ${hits.length}${hits.length>40?" · показаны первые 40":""}</div><div class="list">${top.map((h,i)=>`<button class="li" data-h="${i}" style="text-align:left"><div style="min-width:0"><div class="en">${esc(h.en)} <span class="muted" style="font-weight:400">— ${esc(h.ru)}</span></div><div class="ru"><span class="chip">📁 ${esc(h.folder)}</span> ${statusChip((h.c?cStat(h.id):wStat(h.id)).status)}</div></div><span class="muted">›</span></button>`).join("")}</div>`
     :`<p class="muted" style="margin:6px 2px">Ничего не нашлось. Можно добавить своё слово в папку «My words».</p>`;
   res.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>top[+b.dataset.h].open());
 }
 function dictFolder(id){
   const top=title=>`<div class="rtop" style="margin-bottom:14px"><button class="x" id="fback" aria-label="К папкам">${BACK}</button><div style="flex:1;min-width:0"><div class="eyebrow">Словарь</div><h1 style="font-size:19px">${esc(title)}</h1></div></div>`;
   const bind=()=>{$("#fback").onclick=()=>{dictAt=null;dict()}};
-  if(id==="cons"){
-    view.innerHTML=`${top("Constructions")}<div class="list">${CONS.map(c=>`${c===CONS.find(x=>x.g===c.g)?`<h2 style="margin:16px 0 4px">${esc(c.g)}</h2>`:""}<div class="li"><div><div class="en">${esc(c.en)} ${statusChip(cStat(c.id).status)}</div><div class="ru">${esc(c.ru)}</div></div><div class="acts"><button class="icon-btn" data-say="${esc(c.say)}" aria-label="Озвучить">${SPK}</button><button class="btn small ghost" data-dr="${c.id}">Прогнать</button></div></div>`).join("")}</div>`;
+  if(id==="cons"||id==="conn"){const L=KL(id);
+    view.innerHTML=`${top(id==="conn"?"Connectors · связки":"Constructions")}<div class="list">${L.map(c=>`${c===L.find(x=>x.g===c.g)?`<h2 style="margin:16px 0 4px">${esc(c.g)}</h2>`:""}<div class="li"><div><div class="en">${esc(c.en)} ${statusChip(cStat(c.id).status)}</div><div class="ru">${esc(c.ru)}</div></div><div class="acts"><button class="icon-btn" data-say="${esc(c.say)}" aria-label="Озвучить">${SPK}</button><button class="btn small ghost" data-dr="${c.id}">Прогнать</button></div></div>`).join("")}</div>`;
     bind();view.querySelectorAll("[data-dr]").forEach(b=>b.onclick=()=>runDrill(CONS.find(c=>c.id===b.dataset.dr)));return}
   if(id==="basics"){
     view.innerHTML=`${top("Basics")}<button class="btn ghost" id="kw" style="margin-bottom:10px">Отметить, что я уже знаю</button>
