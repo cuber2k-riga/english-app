@@ -624,6 +624,277 @@ const PCN_ITEMS=mkItems("pcn",[
  ["pnx10","choice","Выбери форму","While she was sleeping, I ___ the dishes.",["washed","wash","washing"],0,["Действие на фоне её сна — Past Simple: washed.","wash — настоящее.","Без was нельзя."]]
 ]);
 const stepsOf=(items,groups)=>groups.map(([th,ids])=>({theory:th,tasks:ids}));
+/* ===== времена 7–12 ===== */
+const PPC_ITEMS=mkItems("ppc",[
+ ["qc1","choice","Выбери форму","I ___ English for two months.",["have been learning","am learning","learn"],0,["Началось раньше и идёт до сих пор + for — have been learning.","am learning — просто «сейчас», без «уже два месяца».","learn — привычка, без длительности до сейчас."]],
+ ["qc2","choice","Выбери форму","She ___ at the gym since 7 a.m.",["has been working out","have been working out","is working out"],0,["she → has been + -ing.","have — для I / you / we / they.","С since нужен Perfect Continuous, не просто Continuous."]],
+ ["qc3","choice","Выбери форму","They ___ for the bus for 20 minutes.",["have been waiting","has been waiting","were waiting"],0,["they → have been waiting.","has — для he / she / it.","were — прошлое, а они ждут до сих пор."]],
+ ["qc4","choice","Переведи","Я живу в Таиланде уже год.",["I have been living in Thailand for a year.","I am living in Thailand for a year.","I live in Thailand for a year."],0,["Длится до сейчас + for — have been living.","Классическая ошибка: am living с for не используют.","Present Simple с for тоже не подходит."],1],
+ ["qc5","choice","Выбери слово","I have been working here ___ March.",["since","for","from"],0,["since + начальная точка (March).","for + период (two years).","from без to здесь не говорят."]],
+ ["qc6","choice","Выбери слово","We have been friends ___ five years.",["for","since","during"],0,["for + период (five years).","since + точка во времени (2021, Monday).","during — «во время чего-то», не о длительности до сейчас."]],
+ ["qc7","choice","Сделай отрицание","I have been sleeping well.",["I haven't been sleeping well.","I didn't been sleeping well.","I haven't sleeping well."],0,["haven't been + -ing.","didn't здесь не используют.","Пропущено been."]],
+ ["qc8","choice","Сделай вопрос","You have been waiting long.",["Have you been waiting long?","Did you been waiting long?","Has you been waiting long?"],0,["Have — в начало.","did с been не используют.","you → have."]],
+ ["qc9","build","Собери вопрос","Как долго ты учишь английский?",["How long","have you been","learning","English"],["are you"],"Как долго — How long have you been + -ing."],
+ ["qc10","build","Собери фразу","Он играет в игру с утра.",["He","has been","playing","the game","since morning"],["is"],"Длится с утра до сих пор: has been playing."],
+ ["qc11","say","","Я жду тебя уже 30 минут!","I've been waiting for you for 30 minutes!","Ждал и всё ещё жду: have been waiting + for."],
+ ["qc12","choice","Выбери, что подходит","I ___ three emails today. (готово, результат)",["have written","have been writing"],0,["Результат и количество — Present Perfect: have written.","Perfect Continuous — про процесс, а не «сколько сделал»."]],
+ ["qcx1","choice","Выбери форму","He ___ in Bangkok since 2024.",["has been living","have been living","is living"],0,["he → has been living.","have — для I / you / we / they.","С since нужен has been, не is."]],
+ ["qcx2","choice","Выбери форму","I ___ on this project all day.",["have been working","am working","worked"],0,["Весь день и до сих пор — have been working.","am working не показывает «весь день до сейчас».","worked — закончилось в прошлом."]],
+ ["qcx3","choice","Выбери слово","She has been studying ___ two hours.",["for","since","ago"],0,["for + период.","since — для точки во времени.","ago — для Past Simple: two hours ago."]],
+ ["qcx4","choice","Выбери слово","They have been talking ___ lunch.",["since","for","ago"],0,["since + момент начала (lunch).","for — для периода (an hour).","ago с этим временем не используют."]],
+ ["qcx5","choice","Переведи","Мы работаем вместе три года.",["We have been working together for three years.","We are working together for three years.","We work together since three years."],0,["Длится до сих пор + for — have been working.","am/are + for — ошибка.","since + период — ошибка, и время не то."],1],
+ ["qcx6","choice","Сделай вопрос","She has been crying.",["Has she been crying?","Have she been crying?","Did she been crying?"],0,["Has — в начало.","she → has.","did с been не используют."]],
+ ["qcx7","choice","Выбери начало","How long ___ you been using this phone?",["have","did","are"],0,["How long + have you been.","did с been не используют.","are + been — неправильно."]],
+ ["qcx8","choice","Сделай отрицание","We have been going to the gym.",["We haven't been going to the gym.","We don't been going to the gym.","We haven't went to the gym."],0,["haven't been + -ing.","don't с been не используют.","went — вторая форма, а тут нужно been going."]],
+ ["qcx9","build","Собери фразу","Я учу английский с мая.",["I","have been","learning English","since May"],["am"],"С мая и до сих пор: have been learning."],
+ ["qcx10","build","Собери вопрос","Как долго ты ждёшь?",["How long","have you","been","waiting"],["are you"],"How long have you been + -ing."]
+]);
+
+const TDEF_ppc=
+ {key:"ppc",name:"Present Perfect Continuous",ru:"Настоящее совершённое длительное",
+  steps:stepsOf(PPC_ITEMS,[
+   [thStep("Present Perfect Continuous",1,4,"Началось и всё ещё идёт",`<p class="lead">Действие <mark>началось в прошлом</mark> и <mark>продолжается сейчас</mark>. По-русски мы говорим в настоящем: «я живу тут два года», а по-английски нужно это время.</p>
+     ${exl([["I have been living here for two years.","Я живу тут (уже) два года."],["She has been working since morning.","Она работает с утра."]])}
+     <div class="rule">Ошибка: I am living here for two years. Правильно: I have been living here for two years.</div>`),[]],
+   [thStep("Present Perfect Continuous",2,4,"have / has been + -ing",`${split2("I · you · we · they",A("have been")+" working","I've been working","he · she · it",A("has been")+" working","She's been working")}
+     <div class="rule">Не забывай been: have been learning, а не have learning.</div>`),["qc1","qc2","qc3","qc4"]],
+   [thStep("Present Perfect Continuous",3,4,"for, since и How long",`${split2("for + период",A("for")+" two years","for an hour · for a week","since + точка",A("since")+" 2024","since Monday · since 7 a.m.")}
+     ${exl([["How long have you been learning English?","Как долго ты учишь английский?"],["I haven't been sleeping well.","Я плохо сплю (в последнее время)."]])}
+     <div class="rule">Вопрос: Have/Has в начало. Отрицание: haven't / hasn't been + -ing.</div>`),["qc5","qc6","qc7","qc8","qc9"]],
+   [thStep("Present Perfect Continuous",4,4,"Процесс или результат",`<p class="lead"><mark>have been + -ing</mark> — про процесс и сколько он длится. <mark>have + 3-я форма</mark> (Present Perfect) — про результат и сколько сделано.</p>
+     ${exl([["I've been writing emails all morning.","Я всё утро пишу письма (процесс)."],["I've written three emails.","Я написал три письма (результат)."]])}
+     <div class="rule">Сколько времени — Continuous. Сколько штук, готово — Present Perfect.</div>`),["qc10","qc11","qc12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Present Perfect Continuous</h1><p class="lead">Началось в прошлом и идёт до сих пор.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I have been working · she has been working</div></div>
+   <div class="panel stack"><div class="eyebrow">Слова</div><div class="fbig" style="font-size:19px">for two years · since May · How long…?</div></div>
+   <div class="rule">Не am living for two years, а have been living for two years.</div>`,
+  test:PPC_ITEMS.filter(i=>i.id.startsWith("qcx")).map(i=>i.id),
+  rule:"Present Perfect Continuous: have/has been + -ing (началось в прошлом и идёт до сих пор); I have been living here for two years"};
+
+const PAP_ITEMS=mkItems("pap",[
+ ["pf1","choice","Выбери форму","When I arrived, the bus ___ already left.",["had","has","was"],0,["Автобус ушёл раньше, чем я пришёл — had left.","has — настоящее, а тут всё в прошлом.","was left — это пассив, не то."]],
+ ["pf2","choice","Выбери форму","She was tired because she ___ all day.",["had worked","has worked","works"],0,["Работала раньше, чем устала — had worked.","has worked — связь с настоящим, а рассказ в прошлом.","works — настоящее."]],
+ ["pf3","choice","Выбери форму","I ___ my homework before the lesson started.",["had finished","had finish","have finished"],0,["had + 3-я форма: finished.","После had нужна 3-я форма, не начальная.","have finished — настоящее, а урок уже в прошлом."]],
+ ["pf4","choice","Переведи","Когда я позвонил, он уже уснул.",["When I called, he had already fallen asleep.","When I called, he already fell asleep.","When I called, he has already fallen asleep."],0,["Уснул раньше звонка — had fallen.","Past Simple не показывает, что это было раньше.","has — настоящее, не подходит."],1],
+ ["pf5","choice","Сделай отрицание","I had eaten before the gym.",["I hadn't eaten before the gym.","I didn't had eaten before the gym.","I hadn't ate before the gym."],0,["hadn't + 3-я форма: eaten.","didn't с had не используют.","ate — 2-я форма, нужна 3-я: eaten."]],
+ ["pf6","choice","Сделай вопрос","You had seen this movie before.",["Had you seen this movie before?","Did you had seen this movie before?","Have you seen this movie before?"],0,["Had — в начало.","did с had не используют.","have — настоящее, а речь о прошлом."]],
+ ["pf7","choice","Выбери форму","I couldn't call you. I ___ my phone at home.",["had left","have left","leave"],0,["Оставил раньше, чем не смог позвонить — had left.","have left — настоящее.","leave — настоящее."]],
+ ["pf8","build","Собери фразу","Я никогда раньше не был в Таиланде.",["I","had never been","to Thailand","before that trip"],["have never was"],"До той поездки — раньше другого прошлого: had never been."],
+ ["pf9","choice","Выбери, что подходит","I woke up, ___ a shower and went to work. (по порядку)",["took","had taken"],0,["Действия идут одно за другим — просто Past Simple.","Past Perfect не нужен, если рассказываешь по порядку."]],
+ ["pf10","build","Собери вопрос","Ты уже поел, когда она пришла?",["Had you","already eaten","when","she came"],["Did you"],"Раньше другого прошлого: Had you + 3-я форма."],
+ ["pf11","say","","Когда я пришёл, урок уже начался.","When I arrived, the lesson had already started.","Урок начался раньше: had + started."],
+ ["pf12","choice","Переведи","Она не видела его раньше.",["She hadn't seen him before.","She hadn't saw him before.","She didn't had seen him before."],0,["hadn't + 3-я форма: seen.","saw — 2-я форма, нужна 3-я.","didn't с had не используют."],1],
+ ["pfx1","choice","Выбери форму","When we got to the cinema, the movie ___ started.",["had already","has already","already had"],0,["had already + 3-я форма — началось раньше.","has — настоящее.","Порядок: had already started."]],
+ ["pfx2","choice","Выбери форму","He ___ the work before his boss came.",["had done","had did","has done"],0,["had + 3-я форма: done.","did — 2-я форма.","has done — настоящее."]],
+ ["pfx3","choice","Сделай отрицание","They had met before.",["They hadn't met before.","They didn't met before.","They hadn't meet before."],0,["hadn't + met.","didn't + met — ошибка.","После hadn't нужна 3-я форма: met."]],
+ ["pfx4","choice","Сделай вопрос","She had finished.",["Had she finished?","Did she had finished?","Has she finished?"],0,["Had — в начало.","did с had не используют.","has — настоящее."]],
+ ["pfx5","choice","Переведи","Я понял, что забыл ключи.",["I realized that I had forgotten my keys.","I realized that I have forgotten my keys.","I realized that I forget my keys."],0,["Забыл раньше, чем понял — had forgotten.","have — настоящее, рассказ в прошлом.","forget — настоящее."],1],
+ ["pfx6","choice","Выбери форму","After she ___ dinner, she watched TV.",["had cooked","has cooked","cooks"],0,["Сначала приготовила — had cooked.","has — настоящее.","cooks — настоящее."]],
+ ["pfx7","choice","Выбери форму","I was hungry because I ___ breakfast.",["hadn't had","haven't had","didn't had"],0,["Не позавтракал раньше, чем проголодался — hadn't had.","haven't — настоящее.","didn't + had — ошибка."]],
+ ["pfx8","choice","Выбери, что подходит","Yesterday I ___ home, ate and went to bed. (по порядку)",["came","had come"],0,["Действия по порядку — Past Simple.","Past Perfect тут лишний."]],
+ ["pfx9","build","Собери фразу","Когда я пришёл, они уже ушли.",["When I came,","they","had already","left"],["have"],"Ушли раньше, чем я пришёл: had left."],
+ ["pfx10","build","Собери вопрос","Ты учил английский до этого?",["Had you","studied","English","before that"],["Did you"],"Раньше другого прошлого: Had you + 3-я форма."]
+]);
+
+const TDEF_pap=
+ {key:"pap",name:"Past Perfect",ru:"Прошедшее совершённое",
+  steps:stepsOf(PAP_ITEMS,[
+   [thStep("Past Perfect",1,4,"Раньше другого прошлого",`<p class="lead">Когда в прошлом два действия, то, что случилось <mark>ещё раньше</mark>, ставим в Past Perfect.</p>
+     ${exl([["When I arrived, the bus had already left.","Когда я пришёл, автобус уже ушёл."],["I was tired because I had worked all day.","Я устал, потому что работал весь день."]])}
+     <div class="rule">Сначала ушёл автобус (had left), потом пришёл я (arrived).</div>`),[]],
+   [thStep("Past Perfect",2,4,"had + 3-я форма",`${split2("Для всех",A("had")+" worked","I had worked · she had worked","Неправильные",A("had")+" gone / seen / left","3-я колонка: go – went – gone")}
+     <div class="rule">had одинаковое для всех лиц. Сокращение: I'd left, she'd seen.</div>`),["pf1","pf2","pf3","pf4","pf7"]],
+   [thStep("Past Perfect",3,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("hadn't")+" eaten","hadn't = had not","Вопрос",A("Had")+" you eaten?","Had she seen it?")}
+     <div class="rule">Без did: не didn't had, а hadn't.</div>`),["pf5","pf6","pf10","pf12"]],
+   [thStep("Past Perfect",4,4,"Когда не нужен",`<p class="lead">Если рассказываешь <mark>по порядку</mark>, хватит <mark>Past Simple</mark>. Past Perfect нужен, когда «прыгаешь назад» к тому, что было раньше.</p>
+     ${exl([["I woke up, took a shower and went to work.","Проснулся, принял душ, пошёл на работу (по порядку)."],["I had never been to Thailand before that trip.","Я никогда не был в Таиланде до той поездки."]])}
+     <div class="rule">По порядку — Past Simple. Шаг назад — had + 3-я форма.</div>`),["pf8","pf9","pf11"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Past Perfect</h1><p class="lead">Действие раньше другого действия в прошлом.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I had left · I hadn't left · Had you left?</div></div>
+   <div class="rule">When I arrived, the bus had already left. По порядку — просто Past Simple.</div>`,
+  test:PAP_ITEMS.filter(i=>i.id.startsWith("pfx")).map(i=>i.id),
+  rule:"Past Perfect: had + 3-я форма (раньше другого действия в прошлом); When I arrived, the bus had already left"};
+
+const PAPC_ITEMS=mkItems("papc",[
+ ["pg1","choice","Выбери форму","I ___ for an hour when he came.",["had been waiting","was waiting","have been waiting"],0,["Ждал час до момента в прошлом — had been waiting.","was waiting — просто процесс в момент, без «уже час».","have been — это настоящее, а тут прошлое."]],
+ ["pg2","choice","Выбери форму","She was tired because she ___ all day.",["had been working","had working","was work"],0,["had been + working — работала весь день до этого.","Пропущено been.","После was нужен -ing, и здесь нужен Past Perfect Continuous."]],
+ ["pg3","choice","Выбери форму","They ___ English for two years before they moved to the US.",["had been studying","had been study","has been studying"],0,["Учили два года до переезда — had been studying.","После been нужен -ing.","has — настоящее, а речь о прошлом."]],
+ ["pg4","choice","Сделай отрицание","I had been sleeping.",["I hadn't been sleeping.","I didn't been sleeping.","I hadn't sleeping."],0,["hadn't = had not, been остаётся.","did с этой формой не используют.","Пропущено been."]],
+ ["pg5","choice","Сделай вопрос","You had been waiting long.",["Had you been waiting long?","Did you been waiting long?","Have you been waiting long?"],0,["Had — в начало.","did здесь не нужен.","Have — настоящее, а ситуация в прошлом."]],
+ ["pg6","choice","Переведи","Его глаза были красные — он плакал.",["His eyes were red — he had been crying.","His eyes were red — he has been crying.","His eyes were red — he had cried."],0,["Плакал какое-то время до момента в прошлом — had been crying.","has been — настоящее, а сцена в прошлом.","had cried — просто факт, а нам важен процесс, который оставил след."],1],
+ ["pg7","build","Собери фразу","Мы ждали автобус 30 минут.",["We","had been waiting","for the bus","for 30 minutes"],["were waited"],"Ждали какое-то время до момента в прошлом: had been + waiting."],
+ ["pg8","choice","Выбери, что подходит","When I got home, my brother ___ a game. He was in the middle of it.",["was playing","had been playing"],0,["Он был в процессе прямо в тот момент — Past Continuous.","had been — подчёркивает, сколько длилось до момента; здесь важно «в процессе»."]],
+ ["pg9","choice","Выбери, что подходит","When I got to the gym, the class ___. I missed it.",["had finished","had been finishing"],0,["Результат: урок уже закончился — Past Perfect.","Закончить — не долгий процесс, -ing здесь не нужен."]],
+ ["pg10","choice","Переведи","Как долго ты жил в Таиланде, когда встретил её?",["How long had you been living in Thailand when you met her?","How long were you living in Thailand when you met her?","How long have you been living in Thailand when you met her?"],0,["Как долго до момента в прошлом — had you been living.","was/were + -ing не отвечает на «как долго до того».","have — настоящее, не сочетается с met."],1],
+ ["pg11","build","Собери вопрос","Ты долго бегал до того, как пошёл дождь?",["Had you","been running","long","before it started to rain"],["Did you"],"Вопрос: Had + you + been + running."],
+ ["pg12","say","","Я был уставший, потому что учил английский весь вечер.","I was tired because I had been studying English all evening.","Процесс до момента в прошлом: had been + studying."],
+ ["pgx1","choice","Выбери форму","He ___ for two hours when the phone died.",["had been talking","was talked","has been talking"],0,["Два часа до момента в прошлом — had been talking.","was talked — неправильная форма.","has been — настоящее."]],
+ ["pgx2","choice","Выбери форму","The ground was wet. It ___.",["had been raining","had been rain","has rained"],0,["Дождь шёл до того момента — had been raining.","После been нужен -ing.","has — настоящее, а сцена в прошлом."]],
+ ["pgx3","choice","Сделай отрицание","She had been working there long.",["She hadn't been working there long.","She didn't been working there long.","She hasn't been working there long."],0,["hadn't + been + working.","did с этой формой не используют.","hasn't — настоящее время."]],
+ ["pgx4","choice","Сделай вопрос","They had been living there for a year.",["Had they been living there for a year?","Did they been living there for a year?","Were they been living there for a year?"],0,["Had — в начало.","did здесь не нужен.","were с been не сочетается."]],
+ ["pgx5","choice","Выбери начало","How long ___ you been waiting when she arrived?",["had","have","did"],0,["Прошлое + «как долго до» — had.","have — настоящее, не сочетается с arrived.","did с been не используют."]],
+ ["pgx6","choice","Переведи","Я работал весь день, поэтому хотел спать.",["I had been working all day, so I was sleepy.","I have been working all day, so I was sleepy.","I had been work all day, so I was sleepy."],0,["Процесс до момента в прошлом — had been working.","have been — настоящее, а дальше was.","После been нужен -ing."],1],
+ ["pgx7","choice","Выбери, что подходит","At 9 p.m. I ___ TV, so I didn't hear the phone.",["was watching","had been watching"],0,["Процесс прямо в момент — Past Continuous.","had been — для «сколько длилось до»; здесь важно, что было в процессе."]],
+ ["pgx8","choice","Выбери форму","We ___ for 20 minutes before the teacher came.",["had been talking","had been talked","have talked"],0,["20 минут до момента в прошлом — had been talking.","После been нужен -ing.","have — настоящее."]],
+ ["pgx9","build","Собери фразу","Она не спала всю ночь.",["She","hadn't been","sleeping","all night"],["didn't been"],"Отрицание: hadn't been + -ing."],
+ ["pgx10","build","Собери фразу","Я ждал час, когда он пришёл.",["I had been waiting","for an hour","when","he came"],["have been waiting"],"Долгое ожидание до момента в прошлом — had been waiting."]
+]);
+
+const TDEF_papc=
+ {key:"papc",name:"Past Perfect Continuous",ru:"Прошедшее совершённое длительное",
+  steps:stepsOf(PAPC_ITEMS,[
+   [thStep("Past Perfect Continuous",1,4,"Долго до момента в прошлом",`<p class="lead">Действие <mark>длилось какое-то время</mark> до момента в прошлом. Часто отвечает на вопрос «как долго?» или объясняет, почему что-то было так.</p>
+     ${exl([["I had been waiting for an hour when he came.","Я ждал уже час, когда он пришёл."],["She was tired because she had been working all day.","Она устала, потому что работала весь день."]])}
+     <div class="rule">Маркеры: for an hour, all day, since morning, how long, before, when.</div>`),[]],
+   [thStep("Past Perfect Continuous",2,4,"had been + -ing",`<p class="lead">Одна форма для всех лиц: <mark>had been</mark> + глагол с -ing.</p>
+     ${split2("Для всех",A("had been")+" working","I / she / they had been working","Коротко","I'd been "+A("waiting"),"I'd = I had")}
+     <div class="rule">had не меняется: I had, he had, they had.</div>`),["pg1","pg2","pg3","pg7"]],
+   [thStep("Past Perfect Continuous",3,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("hadn't been")+" sleeping","hadn't = had not","Вопрос",A("Had")+" you been waiting?","How long had you been waiting?")}
+     <div class="rule">Нельзя: didn't been. Только hadn't been / Had … been?</div>`),["pg4","pg5","pg10","pg11"]],
+   [thStep("Past Perfect Continuous",4,4,"Сравни с соседями",`<p class="lead"><mark>Past Continuous</mark> — в процессе прямо в момент. <mark>Past Perfect</mark> — уже сделано к моменту. <mark>Past Perfect Continuous</mark> — длилось до момента.</p>
+     ${exl([["At 8 I was working.","В 8 я работал (в процессе)."],["By 8 I had finished.","К 8 я уже закончил (результат)."],["At 8 I had been working for 3 hours.","В 8 я работал уже 3 часа (как долго)."]])}
+     <div class="rule">Видишь след процесса (устал, мокро, красные глаза) — had been …ing.</div>`),["pg6","pg8","pg9","pg12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Past Perfect Continuous</h1><p class="lead">Действие длилось какое-то время до момента в прошлом.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I had been working · hadn't been · Had you been…?</div></div>
+   <div class="rule">I had been waiting for an hour when he came. Процесс в момент — was …ing, результат — had done.</div>`,
+  test:PAPC_ITEMS.filter(i=>i.id.startsWith("pgx")).map(i=>i.id),
+  rule:"Past Perfect Continuous: had been + -ing (длилось до момента в прошлом); I had been waiting for an hour when he came"};
+
+const FC_ITEMS=mkItems("fc",[
+ ["fcn1","choice","Выбери форму","At 8 tomorrow I ___.",["will be working","will working","am working"],0,["Процесс в момент в будущем — will be working.","Пропущено be.","am working — настоящее или план, а не процесс в 8 завтра."]],
+ ["fcn2","choice","Выбери форму","This time next week we ___ on the beach in Phuket.",["will be lying","will lie","will be lie"],0,["В этот момент через неделю — процесс: will be lying.","will lie — просто факт, без процесса.","После be нужен -ing."]],
+ ["fcn3","choice","Выбери форму","Don't call her at 6 — she ___ at the gym.",["will be training","will be train","is train"],0,["В 6 будет в процессе — will be training.","После be нужен -ing.","Неправильная форма."]],
+ ["fcn4","choice","Сделай отрицание","I will be working tonight.",["I won't be working tonight.","I won't working tonight.","I don't be working tonight."],0,["won't = will not, be остаётся.","Пропущено be.","don't с will be не используют."]],
+ ["fcn5","choice","Сделай вопрос","You will be using the car tonight.",["Will you be using the car tonight?","Do you be using the car tonight?","Will you using the car tonight?"],0,["Will — в начало, дальше be + -ing.","do здесь не нужен.","Пропущено be."]],
+ ["fcn6","choice","Переведи","Завтра в 10 я буду на уроке английского.",["At 10 tomorrow I'll be having an English lesson.","At 10 tomorrow I'll have an English lesson.","At 10 tomorrow I'm having an English lesson."],0,["Процесс в 10 завтра — I'll be having.","Просто факт, не процесс в момент.","Это план, а мы говорим про процесс в 10."],1],
+ ["fcn7","build","Собери фразу","В полночь я буду спать.",["At midnight","I","will be","sleeping"],["will sleep"],"Процесс в момент в будущем: will be + sleeping."],
+ ["fcn8","choice","Выбери, что подходит","— I'm hungry. — OK, I ___ you a sandwich.",["will make","will be making"],0,["Решение прямо сейчас — will + глагол.","will be …ing — процесс в момент, а не мгновенное решение."]],
+ ["fcn9","choice","Вежливый вопрос","Ты будешь пользоваться ноутбуком вечером? (вежливо спросить о планах)",["Will you be using the laptop tonight?","Will you use the laptop tonight?","Are you use the laptop tonight?"],0,["Вежливо узнаём планы — Will you be using…?","Звучит как просьба или прямой вопрос, менее мягко.","Неправильная форма."],1],
+ ["fcn10","build","Собери вопрос","Ты будешь работать завтра в 9?",["Will you","be working","at 9","tomorrow"],["Do you"],"Вопрос: Will + you + be + working."],
+ ["fcn11","say","","Завтра в это время я буду лететь в Москву.","This time tomorrow I'll be flying to Moscow.","Процесс в момент в будущем: will be + flying."],
+ ["fcn12","choice","Выбери, что подходит","I promise I ___ you tomorrow.",["will call","will be calling"],0,["Обещание — will + глагол.","will be …ing не используют для обещаний."]],
+ ["fcnx1","choice","Выбери форму","At 7 p.m. she ___ dinner.",["will be cooking","will cooking","will be cook"],0,["Процесс в 7 — will be cooking.","Пропущено be.","После be нужен -ing."]],
+ ["fcnx2","choice","Выбери форму","Tomorrow at noon they ___ to Bangkok.",["will be driving","will driving","are drive"],0,["Процесс в момент в будущем — will be driving.","Пропущено be.","Неправильная форма."]],
+ ["fcnx3","choice","Сделай отрицание","He will be playing football.",["He won't be playing football.","He won't playing football.","He doesn't be playing football."],0,["won't + be + playing.","Пропущено be.","doesn't с will be не используют."]],
+ ["fcnx4","choice","Сделай вопрос","She will be coming to the party.",["Will she be coming to the party?","Does she be coming to the party?","Will she coming to the party?"],0,["Will — в начало, потом be + -ing.","does здесь не нужен.","Пропущено be."]],
+ ["fcnx5","choice","Выбери, что подходит","It's cold. I ___ the window.",["will close","will be closing"],0,["Решение прямо сейчас — will + глагол.","Это не процесс в момент в будущем."]],
+ ["fcnx6","choice","Переведи","В 5 мы будем смотреть фильм.",["At 5 we'll be watching a movie.","At 5 we'll watching a movie.","At 5 we watch a movie."],0,["Процесс в 5 — we'll be watching.","Пропущено be.","Настоящее простое здесь не подходит."],1],
+ ["fcnx7","choice","Выбери начало","___ you be working this weekend?",["Will","Do","Are"],0,["Will + you + be + working.","do с be …ing не используют.","are + be — так нельзя."]],
+ ["fcnx8","choice","Выбери форму","Don't text me at 3. I ___ my English test.",["will be taking","will take","take"],0,["В 3 буду в процессе — will be taking.","Просто факт, не процесс в 3.","Настоящее простое не подходит."]],
+ ["fcnx9","build","Собери фразу","Я не буду работать завтра.",["I","won't be","working","tomorrow"],["don't be"],"Отрицание: won't be + -ing."],
+ ["fcnx10","build","Собери вопрос","Ты будешь пользоваться телефоном?",["Will you","be using","your phone"],["Are you be"],"Вежливый вопрос о планах: Will you be using…?"]
+]);
+
+const TDEF_fc=
+ {key:"fc",name:"Future Continuous",ru:"Будущее длительное",
+  steps:stepsOf(FC_ITEMS,[
+   [thStep("Future Continuous",1,4,"Процесс в будущем",`<p class="lead">Что <mark>будет происходить</mark> в определённый момент в будущем. Ещё — вежливый вопрос о чужих планах.</p>
+     ${exl([["At 8 tomorrow I'll be working.","Завтра в 8 я буду работать (в процессе)."],["Will you be using the car tonight?","Ты будешь пользоваться машиной вечером?"]])}
+     <div class="rule">Маркеры: at 8 tomorrow, this time next week, at midnight, all day tomorrow.</div>`),[]],
+   [thStep("Future Continuous",2,4,"will be + -ing",`<p class="lead">Одна форма для всех: <mark>will be</mark> + глагол с -ing.</p>
+     ${split2("Полная",A("will be")+" working","I / she / they will be working","Коротко","I'll be "+A("working"),"I'll = I will")}
+     <div class="rule">be не меняется: нельзя «will is» или «will are».</div>`),["fcn1","fcn2","fcn3","fcn7"]],
+   [thStep("Future Continuous",3,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("won't be")+" working","won't = will not","Вопрос",A("Will")+" you be working?","Will you be using the car?")}
+     <div class="rule">Will you be …ing? — мягче, чем Will you …? Ты просто узнаёшь планы, а не просишь.</div>`),["fcn4","fcn5","fcn9","fcn10"]],
+   [thStep("Future Continuous",4,4,"will be …ing или will",`<p class="lead"><mark>will be …ing</mark> — процесс в момент в будущем. <mark>will + глагол</mark> — решение, обещание, просто факт.</p>
+     ${exl([["At 10 I'll be sleeping.","В 10 я буду спать (процесс)."],["OK, I'll call you.","Ладно, я позвоню (решение)."]])}
+     <div class="rule">Есть точный момент и процесс — will be …ing. Решил сейчас или обещаешь — will.</div>`),["fcn6","fcn8","fcn11","fcn12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Future Continuous</h1><p class="lead">Процесс в момент в будущем.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I'll be working · won't be · Will you be…?</div></div>
+   <div class="rule">At 8 tomorrow I'll be working. Решение или обещание — просто will: I'll call you.</div>`,
+  test:FC_ITEMS.filter(i=>i.id.startsWith("fcnx")).map(i=>i.id),
+  rule:"Future Continuous: will be + -ing (процесс в момент в будущем); At 8 tomorrow I'll be working"};
+
+const FP_ITEMS=mkItems("fp",[
+ ["fpf1","choice","Выбери форму","By Friday I ___ the report.",["will have finished","will finish","have finished"],0,["К сроку (by Friday) уже сделано — will have + finished.","will finish — просто «закончу», без «уже к пятнице».","have finished — настоящее, а речь о будущем."]],
+ ["fpf2","choice","Выбери форму","By 6 p.m. she ___ home.",["will have gone","will have go","will has gone"],0,["will have + 3-я форма: gone.","После have нужна 3-я форма, не go.","После will всегда have, не has."]],
+ ["fpf3","choice","Выбери форму","By next month we ___ 20 English lessons.",["will have had","will have have","will had"],0,["have → 3-я форма had: will have had.","Вторая have должна быть в 3-й форме — had.","Пропущено have: нужно will have had."]],
+ ["fpf4","choice","Выбери, что подходит","By the end of the year I ___ $2,000.",["will have saved","will be saving"],0,["Результат к сроку — will have saved.","will be saving — процесс в будущем, а не итог к сроку."]],
+ ["fpf5","choice","Сделай отрицание","I will have finished by 5.",["I won't have finished by 5.","I won't finished by 5.","I will have not finish by 5."],0,["won't = will not, дальше have + finished.","Пропущено have.","Отрицание ставят после will: won't have, и нужна 3-я форма."]],
+ ["fpf6","choice","Сделай вопрос","You will have fixed the phone by Monday.",["Will you have fixed the phone by Monday?","Have you will fixed the phone by Monday?","Will you fixed the phone by Monday?"],0,["Will — в начало, дальше you have fixed.","В начало выносим will, а не have.","Пропущено have."]],
+ ["fpf7","build","Собери вопрос","Ты закончишь к восьми?",["Will you","have finished","by 8"],["will finish"],"Вопрос: Will you have + 3-я форма."],
+ ["fpf8","choice","Переведи","К субботе они уже переедут.",["By Saturday they will have moved.","By Saturday they will moved.","By Saturday they have moved."],0,["К сроку уже сделано — will have moved.","Пропущено have.","have moved — настоящее, а речь о будущем."],1],
+ ["fpf9","choice","Выбери форму","By the time you ___, I'll have cooked dinner.",["come","will come","came"],0,["После by the time о будущем — настоящее время: come.","will после by the time не ставят.","came — прошлое, а речь о будущем."]],
+ ["fpf10","build","Собери фразу","Когда ты проснёшься, я уже уйду.",["By the time","you wake up","I'll have","left"],["will wake up"],"После by the time — настоящее: you wake up, а не will wake up."],
+ ["fpf11","say","","К пятнице я закончу проект.","By Friday I'll have finished the project.","К сроку: will have + finished."],
+ ["fpf12","choice","Выбери предлог","I'll have done it ___ Monday.",["by","until","in"],0,["by = «к (сроку)», не позже понедельника.","until = «до» в смысле «всё время до», здесь не подходит.","in Monday не говорят — с днями on, а «к сроку» — by."]],
+ ["fpfx1","choice","Выбери форму","By 10 p.m. I ___ all my homework.",["will have done","will do","have done"],0,["К сроку уже сделано — will have done.","will do — просто «сделаю», без «уже к 10».","have done — настоящее."]],
+ ["fpfx2","choice","Выбери форму","By June he ___ 50 workouts at the gym.",["will have done","will have did","will done"],0,["will have + 3-я форма: done.","did — 2-я форма, нужна 3-я.","Пропущено have."]],
+ ["fpfx3","choice","Сделай отрицание","They will have arrived by noon.",["They won't have arrived by noon.","They won't arrived by noon.","They will have not arrive by noon."],0,["won't have + 3-я форма.","Пропущено have.","Нужно won't have arrived."]],
+ ["fpfx4","choice","Сделай вопрос","She will have read the book by Sunday.",["Will she have read the book by Sunday?","Has she will read the book by Sunday?","Will she read the book by Sunday have?"],0,["Will — в начало, дальше she have read.","В начало выносим will.","Порядок слов: Will + she + have + read."]],
+ ["fpfx5","choice","Выбери форму","By the time we ___ to the airport, the plane will have left.",["get","will get","got"],0,["После by the time о будущем — настоящее: get.","will после by the time не ставят.","got — прошлое."]],
+ ["fpfx6","choice","Переведи","К вечеру я уже позвоню маме.",["By the evening I'll have called my mom.","By the evening I'll called my mom.","By the evening I have called my mom."],0,["К сроку — will have called.","Пропущено have.","have called — настоящее."],1],
+ ["fpfx7","build","Собери фразу","К понедельнику мы не закончим.",["We","won't have","finished","by Monday"],["don't have"],"Отрицание: won't have + 3-я форма."],
+ ["fpfx8","build","Собери фразу","К тому времени, как ты придёшь, я приготовлю ужин.",["By the time","you come","I'll have","cooked dinner"],["you will come"],"После by the time — настоящее: you come."],
+ ["fpfx9","choice","Выбери предлог","Will you have fixed it ___ tomorrow?",["by","until","at"],0,["by = «к (сроку)».","until — «до» в смысле длительности, здесь не подходит.","at tomorrow не говорят."]],
+ ["fpfx10","choice","Переведи","Ты уже выучишь эти слова к уроку?",["Will you have learned these words by the lesson?","Will you learned these words by the lesson?","Have you will learn these words by the lesson?"],0,["Will you have + learned — вопрос в Future Perfect.","Пропущено have.","will — в начало вопроса."],1]
+]);
+
+const TDEF_fp=
+ {key:"fp",name:"Future Perfect",ru:"Будущее совершённое",
+  steps:stepsOf(FP_ITEMS,[
+   [thStep("Future Perfect",1,4,"Сделано к сроку в будущем",`<p class="lead">Действие <mark>уже будет сделано</mark> к какому-то моменту в будущем. Важен результат к сроку.</p>
+     ${exl([["By Friday I'll have finished.","К пятнице я (уже) закончу."],["By the time you come, I'll have cooked dinner.","К твоему приходу я (уже) приготовлю ужин."]])}
+     <div class="rule">by = «к (сроку)»: by Friday, by 6 p.m., by the end of the year.</div>`),[]],
+   [thStep("Future Perfect",2,4,"will have + 3-я форма",`<p class="lead">Форма одна для всех: <mark>will have</mark> + 3-я форма глагола.</p>
+     ${split2("Правильные","I "+A("will have")+" finished","finish → finished","Неправильные","She "+A("will have")+" gone","go → gone, do → done")}
+     <div class="rule">После will всегда have (не has). Коротко: I'll have, she'll have.</div>`),["fpf1","fpf2","fpf3","fpf4"]],
+   [thStep("Future Perfect",3,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("won't have")+" finished","won't = will not","Вопрос",A("Will")+" you have finished?","Will she have left?")}
+     <div class="rule">В вопросе вперёд выходит только will: Will you have…?</div>`),["fpf5","fpf6","fpf7","fpf8"]],
+   [thStep("Future Perfect",4,4,"by the time + настоящее",`<p class="lead">После <mark>by the time</mark> и <mark>when</mark> о будущем ставим настоящее время, а will — только во второй части.</p>
+     ${exl([["By the time you come, I'll have left.","Когда ты придёшь, я уже уйду."],["By the time we get there, the movie will have started.","Когда мы доберёмся, фильм уже начнётся."]])}
+     <div class="rule">By the time you come — не will come.</div>`),["fpf9","fpf10","fpf11","fpf12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Future Perfect</h1><p class="lead">Уже будет сделано к сроку в будущем.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I'll have finished · I won't have finished · Will you have finished?</div></div>
+   <div class="rule">by = «к сроку». После by the time — настоящее: By the time you come, I'll have cooked dinner.</div>`,
+  test:FP_ITEMS.filter(i=>i.id.startsWith("fpfx")).map(i=>i.id),
+  rule:"Future Perfect: will have + 3-я форма (сделано к сроку в будущем); By Friday I'll have finished"};
+
+const FPC_ITEMS=mkItems("fpc",[
+ ["fpg1","choice","Выбери форму","By June I ___ in Thailand for a year.",["will have been living","will have living","will be lived"],0,["Сколько будет длиться к сроку — will have been + living.","Пропущено been.","Такой формы нет: нужно will have been living."]],
+ ["fpg2","choice","Выбери форму","By 5 p.m. she ___ for eight hours.",["will have been working","will have been work","will has been working"],0,["will have been + -ing: working.","После been нужен -ing.","После will всегда have, не has."]],
+ ["fpg3","choice","Выбери форму","Next month we ___ English for two years.",["will have been learning","will been learning","will have learning"],0,["Полная форма: will have been learning.","Пропущено have.","Пропущено been."]],
+ ["fpg4","choice","Выбери, что подходит","By 10 p.m. I ___ at the gym for three hours.",["will have been training","will train"],0,["Длительность к моменту (for three hours) — will have been training.","will train — просто «буду тренироваться», без «уже три часа к 10»."]],
+ ["fpg5","choice","Выбери, что подходит","By Friday I ___ the book. (результат — книга прочитана)",["will have read","will have been reading"],0,["Важен результат к сроку — Future Perfect.","Perfect Continuous — про то, сколько длится процесс, а не про итог."]],
+ ["fpg6","choice","Выбери, что подходит","By Friday I ___ this book for a month. (сколько времени)",["will have been reading","will have read"],0,["Важно, сколько длится (for a month) — will have been reading.","will have read — про результат «прочитаю», с for a month звучит странно."]],
+ ["fpg7","build","Собери фразу","К декабрю я буду работать на брата уже два года.",["By December","I'll have been","working","for my brother","for two years"],["I'll have worked been"],"Длительность к сроку: will have been + working + for…"],
+ ["fpg8","choice","Переведи","К восьми мы будем ждать уже час.",["By 8 we'll have been waiting for an hour.","By 8 we'll have waited for an hour.","By 8 we'll be waiting for an hour."],0,["Сколько длится к моменту — will have been waiting.","will have waited — про результат, а здесь важна длительность процесса.","will be waiting — просто процесс в момент, без «уже час»."],1],
+ ["fpg9","choice","Сделай отрицание","He will have been working for long.",["He won't have been working for long.","He won't been working for long.","He will have not been work for long."],0,["won't have been + -ing.","Пропущено have.","Нужно won't have been working."]],
+ ["fpg10","build","Собери вопрос","Сколько ты уже будешь здесь жить к лету?",["How long","will you","have been","living here","by summer"],["will you be lived"],"Вопрос: How long will you have been + -ing?"],
+ ["fpg11","say","","К июню я буду жить в Таиланде уже год.","By June I'll have been living in Thailand for a year.","Длительность к сроку: will have been + living + for a year."],
+ ["fpg12","choice","Переведи","В следующем месяце я буду учить английский уже год.",["Next month I'll have been learning English for a year.","Next month I've been learning English for a year.","Next month I'm learning English for a year."],0,["Правильная, хоть и редкая в речи форма — will have been learning.","have been — настоящее, а речь о будущем моменте.","Present Continuous не передаёт «уже год к сроку»."],1],
+ ["fpgx1","choice","Выбери форму","By 9 p.m. they ___ for three hours.",["will have been playing","will have played been","will be played"],0,["will have been + -ing.","Неверный порядок слов.","Такой формы здесь нет."]],
+ ["fpgx2","choice","Выбери форму","By May she ___ at this company for five years.",["will have been working","will have been worked","will has been working"],0,["После been — -ing: working.","После been нужен -ing, не 3-я форма.","После will — have, не has."]],
+ ["fpgx3","choice","Выбери, что подходит","By tonight I ___ ten emails. (результат)",["will have sent","will have been sending"],0,["Сколько штук сделано — результат: Future Perfect.","С количеством (ten emails) Continuous не используют."]],
+ ["fpgx4","choice","Выбери, что подходит","By tonight I ___ emails for six hours. (сколько времени)",["will have been writing","will have written"],0,["for six hours — длительность: will have been writing.","will have written — про результат, а не про длительность."]],
+ ["fpgx5","choice","Сделай отрицание","We will have been living here for long.",["We won't have been living here for long.","We won't been living here for long.","We don't have been living here for long."],0,["won't have been + -ing.","Пропущено have.","Отрицание в будущем — won't, не don't."]],
+ ["fpgx6","choice","Сделай вопрос","You will have been studying for two hours.",["Will you have been studying for two hours?","Have you will been studying for two hours?","Will you been studying for two hours?"],0,["Will — в начало, дальше you have been studying.","Вперёд выходит will, а не have.","Пропущено have."]],
+ ["fpgx7","choice","Переведи","К пятнице я буду искать работу уже месяц.",["By Friday I'll have been looking for a job for a month.","By Friday I'll have looked for a job for a month.","By Friday I'll be looking for a job for a month."],0,["Длительность к сроку — will have been looking.","will have looked — про результат, а тут важно «уже месяц».","will be looking — процесс без «уже месяц»."],1],
+ ["fpgx8","build","Собери фразу","К обеду я буду водить машину уже пять часов.",["By lunch","I'll have been","driving","for five hours"],["I'll have driven"],"Длительность к моменту: will have been + driving."],
+ ["fpgx9","build","Собери вопрос","Как долго ты уже будешь ждать?",["How long","will you","have been","waiting"],["will you have waited"],"Вопрос о длительности: How long will you have been + -ing?"],
+ ["fpgx10","choice","Выбери форму","In March my friend ___ in Bangkok for six months.",["will have been staying","will have been stay","will been staying"],0,["will have been + staying.","После been нужен -ing.","Пропущено have."]]
+]);
+
+const TDEF_fpc=
+ {key:"fpc",name:"Future Perfect Continuous",ru:"Будущее совершённое длительное",
+  steps:stepsOf(FPC_ITEMS,[
+   [thStep("Future Perfect Continuous",1,4,"Сколько уже будет длиться",`<p class="lead">Показывает, <mark>сколько времени</mark> что-то будет продолжаться к моменту в будущем. Почти всегда с for…</p>
+     ${exl([["By June I'll have been living in Thailand for a year.","К июню я буду жить в Таиланде уже год."],["By 5 I'll have been working for eight hours.","К пяти я буду работать уже восемь часов."]])}
+     <div class="rule">Честно: в живой речи это время редкое. Его важно узнавать, но говорить чаще можно проще.</div>`),[]],
+   [thStep("Future Perfect Continuous",2,4,"will have been + -ing",`<p class="lead">Форма одна для всех: <mark>will have been</mark> + глагол с -ing.</p>
+     ${split2("Форма","I "+A("will have been")+" working","I'll have been working","Пример","She "+A("'ll have been")+" learning","for two years")}
+     <div class="rule">Три слова подряд: will + have + been, потом -ing.</div>`),["fpg1","fpg2","fpg3","fpg4"]],
+   [thStep("Future Perfect Continuous",3,4,"Результат или длительность",`<p class="lead"><mark>Future Perfect</mark> — что будет сделано к сроку. <mark>Perfect Continuous</mark> — сколько времени будет длиться.</p>
+     ${split2("Результат","I'll "+A("have read")+" the book","к пятнице — прочитаю","Длительность","I'll "+A("have been reading"),"for a month — читаю уже месяц")}
+     <div class="rule">Есть количество (ten emails) — Perfect. Есть for + время — Perfect Continuous.</div>`),["fpg5","fpg6","fpg7","fpg8"]],
+   [thStep("Future Perfect Continuous",4,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("won't have been")+" working","won't = will not","Вопрос","How long "+A("will")+" you have been waiting?","Will you have been…?")}
+     <div class="rule">Вопрос чаще всего начинается с How long.</div>`),["fpg9","fpg10","fpg11","fpg12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Future Perfect Continuous</h1><p class="lead">Сколько что-то уже будет длиться к моменту в будущем. В речи — редко.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I'll have been working · I won't have been working · How long will you have been working?</div></div>
+   <div class="rule">Результат — will have done. Длительность (for…) — will have been doing.</div>`,
+  test:FPC_ITEMS.filter(i=>i.id.startsWith("fpgx")).map(i=>i.id),
+  rule:"Future Perfect Continuous: will have been + -ing (сколько будет длиться к сроку); By June I'll have been living here for a year"};
+
 const TENSE_DEFS=[
  {key:"ps",name:"Present Simple",ru:"Настоящее простое",steps:PS_STEPS,sheet:PS_SHEET,test:PS_TEST_IDS,
   rule:"Present Simple: he/she/it + -s (he lives); отрицание don't/doesn't + глагол без -s; вопрос Do/Does + глагол без -s"},
@@ -714,7 +985,8 @@ const TENSE_DEFS=[
   test:PCN_ITEMS.filter(i=>i.id.startsWith("pnx")).map(i=>i.id),
   rule:"Past Continuous: was/were + -ing (процесс в момент в прошлом); I was sleeping when you called"}
 ];
-[...PC_ITEMS,...PAST_ITEMS,...FUT_ITEMS,...PP_ITEMS,...PCN_ITEMS].forEach(t=>{TI.push(t);TENSE_ITEMS[t.id]=t});
+TENSE_DEFS.push(TDEF_ppc,TDEF_pap,TDEF_papc,TDEF_fc,TDEF_fp,TDEF_fpc);
+[...PC_ITEMS,...PAST_ITEMS,...FUT_ITEMS,...PP_ITEMS,...PCN_ITEMS,...PPC_ITEMS,...PAP_ITEMS,...PAPC_ITEMS,...FC_ITEMS,...FP_ITEMS,...FPC_ITEMS].forEach(t=>{TI.push(t);TENSE_ITEMS[t.id]=t});
 TI.forEach(t=>{if(!t.rule)t.rule="ps"});
 TI.forEach(t=>{t.tense=t.rule==="ps"?"ps":t.rule});
 
@@ -1464,7 +1736,13 @@ const TP={
  past:[a=>a.k!=="h",a=>({ru:`Вчера я ${a.rpp}.`,o:[`Yesterday I ${a.ps}.`,a.pp?`Yesterday I have ${a.pp}.`:`Yesterday I'm ${a.ing}.`,`Yesterday I ${a.b}.`],n:["Вчера — законченное прошлое: вторая форма (Past Simple).",a.pp?"have + 3-я форма не ставят с yesterday.":"am + -ing — это «сейчас», а речь про вчера.","Это настоящее время, а нужно прошлое."]})],
  fut:[a=>a.k!=="h",a=>({ru:`Завтра я ${a.rfu}.`,o:[`I'll ${a.b} tomorrow.`,`I'll ${a.ing} tomorrow.`,`I ${a.ps} tomorrow.`],n:["Решение или обещание на будущее — will + глагол как в словаре.","После will — глагол без -ing.","Это прошедшая форма, а речь про завтра."]})],
  pp:[a=>!!a.pp&&a.k!=="h",a=>({ru:`Я уже ${a.rpp}.`,o:[`I've already ${a.pp}.`,`I'm already ${a.ing}.`,`I already ${a.b}.`],n:["«Уже сделал», результат сейчас — have + 3-я форма.","am + -ing — «уже делаю», процесс, а не результат.","Без have это «я уже (обычно) делаю»."]})],
- pcn:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`Я ${a.rpr} уже два часа.`,o:[`I've been ${a.ing} for two hours.`,`I'm ${a.ing} for two hours.`,`I ${a.b} for two hours.`],n:["Начал раньше и делаешь до сих пор — have been + -ing.","Типичная ошибка: по-русски «делаю уже два часа», а по-английски нужно have been.","Present Simple не говорит, что действие длится до сих пор."]})]
+ pcn:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`Вчера в 8 вечера я ${a.rp}.`,o:[`At 8 p.m. yesterday I was ${a.ing}.`,`At 8 p.m. yesterday I'm ${a.ing}.`,`At 8 p.m. yesterday I was ${a.b}.`],n:["Процесс в момент в прошлом — was + -ing.","am — настоящее, а речь про вчера.","После was нужен глагол с -ing."]})],
+ ppc:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`Я ${a.rpr} уже два часа.`,o:[`I've been ${a.ing} for two hours.`,`I'm ${a.ing} for two hours.`,`I ${a.b} for two hours.`],n:["Начал раньше и делаешь до сих пор — have been + -ing.","Типичная ошибка: по-русски «делаю уже два часа», а по-английски нужно have been.","Present Simple не говорит, что действие длится до сих пор."]})],
+ pap:[a=>!!a.pp&&a.k!=="h",a=>({ru:`Когда друг пришёл, я уже ${a.rpp}.`,o:[`When my friend came, I had already ${a.pp}.`,`When my friend came, I have already ${a.pp}.`,`When my friend came, I already ${a.b}.`],n:["Раньше другого прошлого действия — had + 3-я форма.","have — настоящее время, а всё было в прошлом.","Без had и в настоящем — не подходит."]})],
+ papc:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`Я ${a.rp} уже два часа, когда ты позвонил.`,o:[`I had been ${a.ing} for two hours when you called.`,`I have been ${a.ing} for two hours when you called.`,`I am ${a.ing} for two hours when you called.`],n:["Длилось какое-то время до момента в прошлом — had been + -ing.","have been — до сейчас, а тут до звонка в прошлом.","Настоящее время, а речь про прошлое."]})],
+ fc:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`Завтра в 8 я буду ${a.ri}.`,o:[`At 8 tomorrow I'll be ${a.ing}.`,`At 8 tomorrow I'll ${a.ing}.`,`At 8 tomorrow I'm be ${a.ing}.`],n:["Процесс в момент в будущем — will be + -ing.","Пропущено be: will be + -ing.","После I'm не ставят be."]})],
+ fp:[a=>!!a.pp&&a.k!=="h",a=>({ru:`К пятнице я уже ${a.rfu}.`,o:[`By Friday I'll have ${a.pp}.`,`By Friday I'll ${a.ps}.`,`By Friday I have ${a.pp}.`],n:["Будет сделано к сроку — will have + 3-я форма.","После will — не вторая форма.","have без will — это настоящее, а речь про пятницу."]})],
+ fpc:[a=>a.k!=="o"&&!TIMEY.test(a.b),a=>({ru:`К июню я буду ${a.ri} уже год.`,o:[`By June I'll have been ${a.ing} for a year.`,`By June I'll be ${a.ing} for a year.`,`By June I've been ${a.ing} for a year.`],n:["Сколько будет длиться к моменту в будущем — will have been + -ing.","will be + -ing — процесс в момент, без «уже год к июню».","Это до сейчас, а речь про июнь."]})]
 };
 function practiceActs(){
   const full=a=>a.ps&&a.rpr&&a.rfu&&a.rpp&&a.ing&&a.topic>=0&&a.w.every(isKnownKey);
@@ -1928,10 +2206,10 @@ function startBlock(key){
     const done=TENSE_DEFS.filter(x=>S.tense[x.key].stage>=2||x===d);
     if(st>=2||closedAll){
       const pool=TI.filter(t=>t.type!=="say"&&done.some(x=>x.key===t.tense));
-      runBlock({title:"Времена",phases:[{mode:"test",name:"Накопительный тест",intro:{eyebrow:closedAll?"Все 6 времён закрыты":d.name+" · последний шаг",title:"Накопительный тест",text:`Все пройденные времена вперемешку: ${done.map(x=>x.name).join(", ")}. Нужно ${th}%.`},tasks:()=>shuffle(pool).slice(0,12).map(tag)}],
+      runBlock({title:"Времена",phases:[{mode:"test",name:"Накопительный тест",intro:{eyebrow:closedAll?`Все ${TENSE_DEFS.length} времён закрыты`:d.name+" · последний шаг",title:"Накопительный тест",text:`Все пройденные времена вперемешку: ${done.map(x=>x.name).join(", ")}. Нужно ${th}%.`},tasks:()=>shuffle(pool).slice(0,12).map(tag)}],
         onFinish:ph=>{finishBlock("tense");const pass=ph[0].result.pct>=th;let msg;
           if(closedAll)msg="Все времена закрыты. Накопительный тест — отличная регулярная проверка.";
-          else if(pass){ts.stage=3;const nx=curTense();msg=nx!==d&&S.tense[nx.key].stage<3?`${d.name} закрыто. Следующее время: ${nx.name} (${nx.ru}).`:"Все 6 времён закрыты!"}
+          else if(pass){ts.stage=3;const nx=curTense();msg=nx!==d&&S.tense[nx.key].stage<3?`${d.name} закрыто. Следующее время: ${nx.name} (${nx.ru}).`:`Все ${TENSE_DEFS.length} времён закрыты!`}
           else msg="Не страшно: повтори шпаргалки в «Грамматике» и пересдай.";
           save();resultScreen("Времена",ph,`<p class="muted" style="max-width:34ch">${msg}</p>`)}});
       return}
@@ -2462,7 +2740,7 @@ const KL=k=>CONS.filter(c=>KIND(c)===k);
 const curC=(k="cons")=>{const L=KL(k);return L.find(c=>c.id===S[KCFG[k].key])||L.find(c=>cStat(c.id).status!=="learned")||L[0]};
 const nextCons=c=>{const L=KL(KIND(c)),i=L.indexOf(c);for(let j=1;j<=L.length;j++){const n=L[(i+j)%L.length];if(cStat(n.id).status!=="learned")return n}return c};
 const setCur=c=>{S[KCFG[KIND(c)].key]=c.id};
-const LEVELS=[["zero","С нуля","Знаю буквы и пару слов"],["a2","Базовый","Понимаю простые фразы, говорю с трудом"],["b1","Средний","Могу объясниться, хочу говорить свободно"]];
+const LEVELS=[["zero","Начинающий","Начну с первой темы"],["mid","Средний","Начну с этапа 3 — серьёзные темы"],["adv","Продвинутый","Начну с этапа 4 — продвинутые темы"]];
 function welcome(step,data){
   showTabs(false);data=data||{};
   if(!step){let tg="";try{tg=(Telegram.WebApp.initDataUnsafe.user||{}).first_name||""}catch(e){}
@@ -2475,10 +2753,10 @@ function welcome(step,data){
     <p class="muted">От этого зависит, что отметить как уже знакомое. Потом всё можно поменять.</p>
     ${LEVELS.map(([k,t,d])=>`<button class="onb" data-lv="${k}"><b>${t}</b><span>${d}</span></button>`).join("")}</div>`;
   view.querySelectorAll("[data-lv]").forEach(b=>b.onclick=()=>{const lv=b.dataset.lv;S.profile={name:data.name,level:lv,at:Date.now()};
-    const kw=w=>{const s=wStat(w.id);if(s.status==="new"){s.status="learned";s.known=true}};
-    if(lv!=="zero"){TOPICS[0].words.forEach(kw);LW.filter(w=>w.g==="pron").forEach(kw)}
-    if(lv==="b1"){[1,2,3].forEach(i=>{TOPICS[i].words.forEach(kw);if(!S.topicsDone.includes(TOPICS[i].id))S.topicsDone.push(TOPICS[i].id)});
-      CONS.filter(c=>c.lvl===1).forEach(c=>{const s=cStat(c.id);s.status="learned";s.known=true});S.curTopic=4;TENSE_DEFS.slice(0,1).forEach(d=>S.tense[d.key].stage=3)}
+    /* уровень = с какой остановки тропы слов начать; всё до неё отмечается знакомым */
+    const start={zero:0,mid:STAGES[2].from,adv:STAGES[3].from}[lv]||0;
+    for(let i=0;i<start;i++){TOPICS[i].words.forEach(w=>{const s=wStat(w.id);if(s.status==="new"){s.status="learned";s.known=true}});if(!S.topicsDone.includes(TOPICS[i].id))S.topicsDone.push(TOPICS[i].id)}
+    S.curTopic=start;
     save();toast("Готово! Начнём");go("home")});
 }
 function home(){
@@ -2490,14 +2768,14 @@ function home(){
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">${S.profile&&S.profile.name?"Привет, "+esc(S.profile.name):"Английский"}</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v21</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">${S.profile&&S.profile.name?"Привет, "+esc(S.profile.name):"Английский"}</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v22</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
    ${track("words",`Тропа слов · тема ${S.curTopic+1} из ${TOPICS.length}`,esc(ct.en),`${esc(ct.ru)} · ${seen}/${ct.words.length} слов`,seen/ct.words.length*100,"words",`Учить слова: ${esc(ct.en)}`)}
    ${track("cons",`Тропа конструкций · ${cDone} из ${CL.length}`,esc(cc.en),`${esc(cc.ru)} · ${esc(cc.g)}`,cDone/CL.length*100,"cons",`Учить: ${esc(cc.en)}`)}
    ${track("conn",`Тропа связок · ${nDone} из ${NL.length}`,esc(nc.en),`${esc(nc.ru)} · ${esc(nc.g)}`,nDone/NL.length*100,"conn",`Учить: ${esc(nc.en)}`)}
-   ${track("tense",`Времена · ${TENSE_DEFS.indexOf(td)+1} из 6`,esc(td.name),`${esc(td.ru)} · ${["шаги и тест 1","тренировка 2 и тест 2","накопительный тест","закрыто"][S.tense[td.key].stage]}`,tClosed/6*100,"tense",`Учить: ${esc(td.name)}`)}
+   ${track("tense",`Времена · ${TENSE_DEFS.indexOf(td)+1} из ${TENSE_DEFS.length}`,esc(td.name),`${esc(td.ru)} · ${["шаги и тест 1","тренировка 2 и тест 2","накопительный тест","закрыто"][S.tense[td.key].stage]}`,tClosed/TENSE_DEFS.length*100,"tense",`Учить: ${esc(td.name)}`)}
   </div>
   <div class="extras">
    <button class="xbtn wide lwt" id="lwb"><b>Little Words · маленькие слова</b><span>их, его, под, за, уже, потому что — ${LW.filter(w=>wStat(w.id).status!=="new").length} из ${LW.length} выучено</span></button>
@@ -2601,10 +2879,10 @@ function tensePracticeRun(){
     onFinish:ph=>resultScreen("Времена",ph)})}
 function tensePathScreen(){
   showTabs(false);const cur=curTense();
-  view.innerHTML=`${topBar(TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length/6*100,"Времена")}
-   <div class="eyebrow">Тропа времён</div><h1 style="margin:6px 0 4px">6 времён по порядку</h1>
+  view.innerHTML=`${topBar(TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length/TENSE_DEFS.length*100,"Времена")}
+   <div class="eyebrow">Тропа времён</div><h1 style="margin:6px 0 4px">${TENSE_DEFS.length} времён по порядку</h1>
    <p class="muted" style="margin-bottom:8px">Каждое: шаги теории → тест 1 → тренировка 2 → тест 2 → накопительный тест. Шпаргалка любого — в «Грамматике».</p>
-   <div class="path">${TENSE_DEFS.map((d,i)=>{const st=S.tense[d.key].stage>=3?"done":d===cur?"cur":"open",x=[0,56,84,56,0,-56][i];
+   <div class="path">${TENSE_DEFS.map((d,i)=>{const st=S.tense[d.key].stage>=3?"done":d===cur?"cur":"open",x=[0,56,84,56,0,-56,-84,-56][i%8];
      return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-k="${d.key}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(d.name)}</b><span>${esc(d.ru)}${d===cur?" · "+["шаги и тест 1","тренировка 2","накопительный тест","закрыто"][S.tense[d.key].stage]:""}</span><button class="qk ${st==="done"?"on":""}" data-qk="${d.key}">${st==="done"?"✓ знаю":"знаю"}</button></div></div>`}).join("")}</div>
    <div class="foot"><button class="btn primary" id="go">Учить: ${esc(cur.name)}</button><button class="btn ghost" id="tpr">Практика ×12 на моих словах</button></div>`;
   bindTop();$("#go").onclick=()=>startBlock("tense");$("#tpr").onclick=tensePracticeRun;
