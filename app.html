@@ -764,13 +764,15 @@ function cloudLoad(){if(!CLOUD)return;
     const keys=[...Array(m.n)].map((_,i)=>"s_"+i);
     CLOUD.getItems(keys,(err2,vals)=>{if(err2||!vals)return;try{const loaded=JSON.parse(keys.map(k=>vals[k]||"").join(""));
       if(!loaded||!loaded.words)return;S=loaded;if(!S.day||S.day.date!==today)S.day={date:today,done:{}};
-      S.assoc=S.assoc||{};S.custom=S.custom||[];S.errors=S.errors||[];S.topicsDone=S.topicsDone||[];
+      migrate();
       try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
       if(!document.querySelector(".rtop"))go("home");toast("Прогресс загружен из Telegram")}catch(e){}})})}catch(e){}}
 try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} /* без облака и без отметки времени: сначала смотрим, что лежит в Telegram */
 const wStat=id=>S.words[id]||(S.words[id]={status:"new",ok:0,bad:0});
-if(typeof S.curTopic!=="number")S.curTopic=0;
-TENSE_DEFS.forEach(d=>{if(!S.tense[d.key])S.tense[d.key]={stage:0,answers:[]}});
+function migrate(){S.assoc=S.assoc||{};S.custom=S.custom||[];S.errors=S.errors||[];S.topicsDone=S.topicsDone||[];S.mistakes=S.mistakes||[];S.words=S.words||{};S.cons=S.cons||{};
+  S.settings=S.settings||{threshold:80};S.tense=S.tense||{};if(typeof S.curTopic!=="number")S.curTopic=0;
+  TENSE_DEFS.forEach(d=>{const t=S.tense[d.key];if(!t)S.tense[d.key]={stage:0,answers:[]};else{t.answers=t.answers||[];t.stage=Math.min(3,t.stage||0)}})}
+migrate();
 /* этапы времени: 0 — шаги и тест 1, 1 — тренировка 2 и тест 2, 2 — накопительный тест, 3 — закрыто */
 const curTense=()=>TENSE_DEFS.find(d=>S.tense[d.key].stage<3)||TENSE_DEFS[TENSE_DEFS.length-1];
 const tenseOn=d=>S.tense[d.key].stage>0||S.tense[d.key].answers.length>0;
@@ -1183,10 +1185,12 @@ LEVEL2.forEach(c=>{
   c.fills=[0,1,2,3,4,5].map(i=>pick(Math.floor(i*n/6))).map(x=>[x.en,x.ru]);
   c.builds=[pick(1),pick(n-2)].map(x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple}));
   c.pitPlain=c.pit.replace(/<[^>]+>/g,"");
-  /* вопрос «что подходит» собираем автоматически: та же фраза в конструкциях из других групп */
-  const x=pick(Math.floor(n/3)),dq=drillChoice(c,x);
+});
+/* вопрос «что подходит» собираем автоматически, когда у всех конструкций уже есть примеры */
+LEVEL2.forEach(c=>{
+  const all=genPhrases(c,false),x=all[Math.floor(all.length/3)];let dq=null;try{dq=drillChoice(c,x)}catch(e){}
   if(dq)c.q={situation:`Как сказать: «${x.ru}»`,options:dq.options,answer:dq.answer,notes:dq.notes};
-  else{const o=shuffle(CONS.filter(z=>z!==c&&z.g!==c.g)).slice(0,2),opts=shuffle([{en:x.en,c},...o.map(z=>({en:z.ex[0][0],c:z}))]);
+  else{const o=shuffle(CONS.filter(z=>z!==c&&z.g!==c.g&&z.ex&&z.ex[0])).slice(0,2),opts=shuffle([{en:x.en,c},...o.map(z=>({en:z.ex[0][0],c:z}))]);
     c.q={situation:`Как сказать: «${x.ru}»`,options:opts.map(z=>z.en),answer:opts.findIndex(z=>z.c===c),notes:opts.map(z=>z.c===c?`Верно: ${c.en} — «${c.ru}».`:`${z.c.en} — это «${z.c.ru}», другой смысл.`)}}
 });
 CONS.forEach(c=>{if(!c.lvl)c.lvl=1});
@@ -2111,10 +2115,13 @@ function stageTest(st){
 }
 
 /* ================= TABS ================= */
+function crashScreen(err){try{showTabs(true);view.innerHTML=`<div class="stack" style="padding-top:30px"><h1>Что-то сломалось</h1><p class="muted">Сделай скриншот и пришли его в чат с Claude — я починю. Прогресс не потерян.</p>
+  <div class="panel" style="font-size:12px;overflow-wrap:anywhere;color:var(--bad)">${esc(String(err&&err.stack||err).slice(0,600))}</div><button class="btn primary" onclick="location.reload()">Перезапустить</button></div>`}catch(e){}}
+window.addEventListener("error",e=>crashScreen(e.error||e.message));
 function go(tab){
   stopSpeech();showTabs(true);runnerLite=false;
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
-  ({home,dict,grammar,stats,settings})[tab]();window.scrollTo(0,0);
+  try{({home,dict,grammar,stats,settings})[tab]()}catch(e){crashScreen(e)}window.scrollTo(0,0);
 }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="dict")dictAt=null;go(b.dataset.tab)});
 
@@ -2128,7 +2135,7 @@ function home(){
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v15</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v16</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
