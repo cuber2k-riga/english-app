@@ -1703,7 +1703,7 @@ function renderTask(t,mode,pct,label,canBack,cb){
           <div class="fc-ru">${esc(w.ru)}</div>
           <div class="fc-tr">${esc(w.tr)}</div>
           ${spkBtn(w.en)}
-          <div class="ex"><div style="font-size:17px">${tt(w.ex)}</div><div class="muted">${esc(w.exRu)}</div>${spkBtn(w.ex,"Фраза")}</div>
+          ${w.ex?`<div class="ex"><div style="font-size:17px">${tt(w.ex)}</div><div class="muted">${esc(w.exRu)}</div>${spkBtn(w.ex,"Фраза")}</div>`:""}
           <div id="assoc"></div>`
         :`<div class="fc-front"><div class="big-en">${esc(w.en)}</div>${spkBtn(w.en)}<div class="muted" style="font-size:14px">Вспомни перевод и нажми на карточку</div></div>`}
       </div>
@@ -2422,7 +2422,7 @@ function home(){
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v17</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v18</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
@@ -2570,12 +2570,43 @@ function dict(){
   view.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{dictAt=b.dataset.f;dictFolder(dictAt)});
   const inp=$("#dq");inp.oninput=()=>{dictQ=inp.value;dictSearch()};dictSearch();
 }
+/* ================= БОЛЬШОЙ СЛОВАРЬ: ~46 000 слов (OpenRussian, CC BY-SA), грузится при первом поиске ================= */
+const BIG_URL="https://cuber2k-riga.github.io/english-app/bigdict.tsv?v=17";
+let BIG=null,bigLoading=null;
+const stressRu=x=>x.replace(/'/g,"\u0301");
+const POS={n:"сущ.",v:"глаг.",a:"прил.",o:""};
+function loadBig(){
+  if(BIG||bigLoading)return bigLoading;
+  bigLoading=fetch(BIG_URL).then(r=>{if(!r.ok)throw new Error(r.status);return r.text()}).then(t=>{
+    BIG=t.split("\n").map((l,i)=>{const [ru,en,p,ip]=l.split("\t");return {ru,bare:norm(ru.replace(/'/g,"")),en:en||"",low:","+(en||"").toLowerCase().split(", ").map(x=>x.replace(/^to /,"")).join(",")+",",p:p||"",ip:ip||"",i}});
+  }).catch(e=>{bigLoading=null;throw e});
+  return bigLoading}
+function bigSearch(q){
+  if(!BIG)return [];const lat=/^[a-z' -]+$/.test(q),ex=[],pre=[],inn=[];
+  for(const w of BIG){
+    if(lat){if(w.low.includes(","+q+","))ex.push(w);else if(w.low.includes(","+q))pre.push(w);else if(q.length>3&&w.low.includes(q))inn.push(w)}
+    else{if(w.bare===q)ex.push(w);else if(w.bare.startsWith(q))pre.push(w);else if(q.length>3&&w.bare.includes(q))inn.push(w)}
+    if(ex.length>30)break}
+  return [...ex,...pre,...inn].slice(0,30)}
+const firstEn=w=>{const m=w.en.split(", ").map(x=>x.replace(/^to /,""));return m[1]&&(m[0]+m[1]).length<=22?m[0]+", "+m[1]:m[0]};
+function addCustom(en,ru,tr){if(S.custom.some(x=>x.en.toLowerCase()===en.toLowerCase())){toast("Уже есть в «Мои слова»");return false}S.custom.push({en,ru,tr:tr||""});save();toast("Добавлено в «Мои слова»");return true}
+function bigRender(q){
+  const box=$("#dbig");if(!box)return;
+  if(!BIG){box.innerHTML=`<p class="muted" style="margin:10px 2px">Загружаю большой словарь…</p>`;
+    loadBig().then(()=>{if(norm(dictQ)===q)bigRender(q)}).catch(()=>{box.innerHTML=`<p class="muted" style="margin:10px 2px">Большой словарь не загрузился. Проверь интернет и попробуй ещё раз.</p>`});return}
+  const res=bigSearch(q);
+  box.innerHTML=`<div class="eyebrow" style="margin:16px 0 6px">Большой словарь · ${BIG.length.toLocaleString("ru")} слов${res.length?"":" · ничего"}</div>
+   ${res.length?`<div class="list">${res.map((w,i)=>`<div class="li"><div style="min-width:0"><div class="en">${esc(w.en)}</div><div class="ru">${esc(stressRu(w.ru))}${POS[w.p[0]]?` · <span class="muted">${POS[w.p[0]]}${w.p.includes(":")?" "+w.p.split(":")[1]:""}</span>`:""}${w.ip?` · <span style="color:var(--accent)">${esc(w.ip)}</span>`:""}</div></div>
+     <div class="acts"><button class="icon-btn" data-say="${esc(w.en.split(", ")[0])}" aria-label="Озвучить">${SPK}</button><button class="btn small ghost" data-bg="${i}">+ Мои</button></div></div>`).join("")}</div>`:""}`;
+  box.querySelectorAll("[data-bg]").forEach(b=>b.onclick=()=>{const w=res[+b.dataset.bg];if(addCustom(firstEn(w),w.ru.replace(/'/g,""),w.ip)){b.textContent="✓";b.disabled=true}});
+}
 /* Поиск по всему словарю: темы, базовые слова, Little Words, конструкции, мои слова */
 let dictQ="";
 const norm=x=>String(x).toLowerCase().replace(/ё/g,"е").replace(/[’']/g,"'").trim();
 function dictSearch(){
   const q=norm(dictQ),res=$("#dres"),fold=$("#dfold");if(!res)return;
   if(q.length<2){res.innerHTML="";fold.hidden=false;return}
+  loadBig();
   fold.hidden=true;
   const hits=[];
   const add=(en,ru,folder,open,id)=>{const e=norm(en),r=norm(ru);if(e.includes(q)||r.includes(q))hits.push({en,ru,folder,open,id,score:(e===q||r===q||r.split(/[ ,;()]+/).includes(q))?0:(e.startsWith(q)||r.startsWith(q))?1:2})};
@@ -2583,11 +2614,12 @@ function dictSearch(){
   BANK.forEach(w=>add(w.en,w.ru,"Basics · Базовые слова",()=>{dictAt="basics";wordDetail(w,"basics")},w.id));
   LW.forEach(w=>{const g=LW_GROUPS.find(x=>x[0]===w.g);add(w.en,w.ru,"Little Words · "+g[1],()=>lwList(w.g),w.id)});
   CONS.forEach(c=>{const n=hits.length;add(c.en,c.ru,(KIND(c)==="conn"?"Связки · ":c.pv?"":"Конструкции · ")+c.g,()=>consScreen(c),c.id);if(hits.length>n)hits[n].c=true});
-  S.custom.forEach((w,i)=>add(w.en,w.ru,"My words · Мои слова",()=>{dictAt="custom";wordDetail({id:"u"+i,en:w.en,ru:w.ru,tr:"",ex:"",exRu:""},"custom")},"u"+i));
+  S.custom.forEach((w,i)=>add(w.en,w.ru,"My words · Мои слова",()=>{dictAt="custom";wordDetail({id:"u"+i,en:w.en,ru:w.ru,tr:w.tr||"",ex:"",exRu:""},"custom")},"u"+i));
   hits.sort((a,b)=>a.score-b.score);
   const top=hits.slice(0,40);
   res.innerHTML=top.length?`<div class="eyebrow" style="margin:4px 0 6px">Найдено: ${hits.length}${hits.length>40?" · показаны первые 40":""}</div><div class="list">${top.map((h,i)=>`<button class="li" data-h="${i}" style="text-align:left"><div style="min-width:0"><div class="en">${esc(h.en)} <span class="muted" style="font-weight:400">— ${esc(h.ru)}</span></div><div class="ru"><span class="chip">📁 ${esc(h.folder)}</span> ${statusChip((h.c?cStat(h.id):wStat(h.id)).status)}</div></div><span class="muted">›</span></button>`).join("")}</div>`
-    :`<p class="muted" style="margin:6px 2px">Ничего не нашлось. Можно добавить своё слово в папку «My words».</p>`;
+    :`<p class="muted" style="margin:6px 2px">${BIG?"В уроках такого слова нет — смотри большой словарь ниже.":"В уроках такого слова нет."}</p>`;
+  res.insertAdjacentHTML("beforeend",`<div id="dbig"></div>`);bigRender(q);
   res.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>top[+b.dataset.h].open());
 }
 function dictFolder(id){
@@ -2604,16 +2636,30 @@ function dictFolder(id){
   if(id==="custom"){
     view.innerHTML=`${top("My words")}
     <div class="panel stack"><h3>Добавить своё слово</h3><input type="text" id="aen" placeholder="Слово по-английски" autocomplete="off"><input type="text" id="aru" placeholder="Перевод" autocomplete="off"><button class="btn primary" id="add">Добавить</button></div>
+    <p class="muted" style="margin-top:10px;font-size:13px">Нашёл слово в поиске — жми «+ Мои», и оно попадёт сюда.</p>
+    ${S.custom.length?`<button class="btn" id="lcw" style="margin-top:8px">Учить мои слова · ${S.custom.filter((w,i)=>wStat("u"+i).status!=="learned").length} новых</button>`:""}
     ${S.custom.length?`<div class="list" style="margin-top:12px">${S.custom.map((w,i)=>`<button class="li" data-cw="${i}" style="text-align:left"><div><div class="en">${esc(w.en)}</div><div class="ru">${esc(w.ru)}${S.assoc["u"+i]?" · есть ассоциация":""}</div></div><span class="muted">›</span></button>`).join("")}</div>`:`<p class="muted" style="margin-top:14px">Пока пусто. Встретил новое слово — добавь сюда.</p>`}`;
     bind();
     $("#add").onclick=()=>{const en=$("#aen").value.trim(),ru=$("#aru").value.trim();if(!en||!ru){toast("Заполни оба поля");return}S.custom.push({en,ru});save();toast("Слово добавлено");dictFolder("custom")};
-    view.querySelectorAll("[data-cw]").forEach(b=>b.onclick=()=>{const i=+b.dataset.cw;const w=S.custom[i];wordDetail({id:"u"+i,en:w.en,ru:w.ru,tr:"",ex:"",exRu:""},"custom")});
+    const lc=$("#lcw");if(lc)lc.onclick=learnCustom;
+    view.querySelectorAll("[data-cw]").forEach(b=>b.onclick=()=>{const i=+b.dataset.cw;const w=S.custom[i];wordDetail({id:"u"+i,en:w.en,ru:w.ru,tr:w.tr||"",ex:"",exRu:""},"custom")});
     return}
   const t=TOPICS.find(x=>x.id===id);
   view.innerHTML=`${top(t.en)}<p class="muted" style="margin:-6px 0 8px">${esc(t.ru)} · нажми на слово, чтобы открыть карточку</p>
    <div class="list">${t.words.map(w=>`<button class="li" data-w="${w.id}" style="text-align:left"><div style="min-width:0"><div class="en">${esc(w.en)} ${statusChip(wStat(w.id).status)}</div><div class="ru"><span style="color:var(--accent)">${esc(w.tr)}</span> · ${esc(w.ru)}${S.assoc[w.id]?' · <span style="color:var(--good)">ассоциация</span>':""}</div></div><span class="muted">›</span></button>`).join("")}</div>`;
   bind();
   view.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>wordDetail(TOPIC_WORDS_ALL.find(w=>w.id===b.dataset.w),id));
+}
+function learnCustom(){
+  const cw=S.custom.map((w,i)=>({id:"u"+i,en:w.en,ru:w.ru,tr:w.tr||"",ex:"",exRu:""}));
+  const pool=[...cw,...shuffle(TOPIC_WORDS_ALL).slice(0,40)];cw.forEach(w=>w.pool=pool);
+  const b=cw.filter(w=>wStat(w.id).status!=="learned").slice(0,10);
+  if(!b.length){toast("Все твои слова уже выучены");return}
+  runBlock({title:"Мои слова",phases:[
+    {mode:"train",intro:{eyebrow:"Мои слова",title:`${b.length} ${plural(b.length,"слово","слова","слов")}`,text:"Карточки, потом тренировка и короткий тест."},
+     tasks:()=>{const bb=b.filter(w=>wStat(w.id).status!=="learned");return [...bb.map(w=>({type:"card",word:w})),...shuffle(bb.map(w=>wordQ(w,"en2ru"))),...shuffle([...bb.map(w=>wordQ(w,"ru2en")),...bb.map(w=>wordQ(w,"audio"))])]}},
+    {mode:"test",name:"Тест: мои слова",intro:{eyebrow:"Тест",title:"Мои слова",text:"Без подсказок."},tasks:()=>shuffle(b).map((w,i)=>wordQ(w,i%2?"en2ru":"ru2en",{sayAfter:null}))}],
+    onFinish:ph=>{const t=ph[1].result;if(t.pct>=S.settings.threshold)b.forEach(w=>{const s=wStat(w.id);if(s.status!=="learned"){s.status="learned";s.at=Date.now()}});save();resultScreen("Мои слова",ph)}});
 }
 function wordDetail(w,folderId){
   view.innerHTML=`<div class="rtop" style="margin-bottom:14px"><button class="x" id="wback" aria-label="Назад в папку">${BACK}</button><div class="rlabel" style="flex:1">Карточка слова</div></div>

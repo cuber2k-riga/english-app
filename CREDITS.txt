@@ -1,0 +1,1 @@
+bigdict.tsv: word list from OpenRussian.org (https://github.com/Badestrand/russian-dictionary), CC BY-SA 4.0. Transcriptions from CMUdict.
