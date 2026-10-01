@@ -840,7 +840,7 @@ const ACTS=[
  ["watch movies","watching movies","","смотреть фильмы","","смотрел фильмы","h","","watch movies"],
  ["read books","reading books","","читать книги","","читал книги","h","","read books"],
  ["cook at home","cooking at home","cooked at home","готовить дома","","готовил дома","b","sk","cook home"],
- ["travel","travelling","","путешествовать","","путешествовал","h","d","travel"],
+ ["travel","travelling","","путешествовать","","путешествовал","h","dm","travel"],
  ["swim in the sea","swimming in the sea","swum in the sea","плавать в море","","плавал в море","b","spk","swim sea"],
  ["go to the gym","going to the gym","been to the gym","ходить в спортзал","сходить в спортзал","ходил в спортзал","b","","go gym"],
  ["go to the beach","going to the beach","","ходить на пляж","сходить на пляж","ходил на пляж","b","","go beach"],
@@ -848,13 +848,13 @@ const ACTS=[
  ["eat Thai food","eating Thai food","eaten Thai food","есть тайскую еду","","ел тайскую еду","h","p","eat thai food"],
  ["work from home","working from home","worked from home","работать из дома","","работал из дома","h","p","work home"],
  ["work in an office","working in an office","worked in an office","работать в офисе","","работал в офисе","h","","work office"],
- ["rent an apartment","renting an apartment","rented an apartment","снимать квартиру","снять квартиру","снимал квартиру","b","pdk","rent apartment"],
- ["buy a bike","buying a bike","bought a bike","покупать байк","купить байк","","o","pdk","buy bike"],
+ ["rent an apartment","renting an apartment","rented an apartment","снимать квартиру","снять квартиру","снимал квартиру","b","pdkm","rent apartment"],
+ ["buy a bike","buying a bike","bought a bike","покупать байк","купить байк","","o","pdkm","buy bike"],
  ["buy food at the market","buying food at the market","","покупать еду на рынке","купить еду на рынке","покупал еду на рынке","b","rp","buy food market"],
  ["call my parents","calling my parents","","звонить родителям","позвонить родителям","звонил родителям","b","r","call parents"],
  ["text my friend","texting my friend","","писать другу","написать другу","писал другу","b","r","text friend"],
  ["meet new people","meeting new people","","знакомиться с новыми людьми","","знакомился с новыми людьми","h","","meet new people"],
- ["move to Serbia","moving to Serbia","","переезжать в Сербию","переехать в Сербию","","o","d","move serbia"],
+ ["move to Serbia","moving to Serbia","","переезжать в Сербию","переехать в Сербию","","o","dm","move serbia"],
  ["find a job","finding a job","","искать работу","найти работу","","o","dk","find job"],
  ["help my brother","helping my brother","helped my brother","помогать брату","помочь брату","помогал брату","b","r","help brother"],
  ["pay for the apartment","paying for the apartment","","платить за квартиру","заплатить за квартиру","платил за квартиру","o","rpk","pay apartment"],
@@ -1031,6 +1031,164 @@ NEWCONS.forEach(c=>{c.g=CGROUPS[c.g];
   CONS.push(c)});
 const TOPIC_CONS=CONS.filter(c=>c.g==="О себе");
 CONS.find(c=>c.id==="c23").say="I prefer";CONS.find(c=>c.id==="c29").say="I've lived in";
+
+/* ================= УРОВЕНЬ 2: конструкции B1–B2 ================= */
+/* доп. формы действий: ps — прошедшее (англ.), rpr — «я делаю», rfu — «я сделаю», rpp — «сделал» (для «бы», «в итоге», «удалось») */
+const ACT_MORE={
+ "play football":["played football","играю в футбол","поиграю в футбол","поиграл в футбол"],
+ "play guitar":["played guitar","играю на гитаре","поиграю на гитаре","поиграл на гитаре"],
+ "play games":["played games","играю в игры","поиграю в игры","поиграл в игры"],
+ "learn English":["learned English","учу английский","буду учить английский","выучил английский"],
+ "learn Thai":["learned Thai","учу тайский","буду учить тайский","выучил тайский"],
+ "speak English":["spoke English","говорю по-английски","поговорю по-английски","поговорил по-английски"],
+ "speak Thai":["spoke Thai","говорю по-тайски","поговорю по-тайски","поговорил по-тайски"],
+ "watch movies":["watched movies","смотрю фильмы","посмотрю фильм","посмотрел фильм"],
+ "read books":["read books","читаю книги","почитаю книги","почитал книги"],
+ "cook at home":["cooked at home","готовлю дома","приготовлю что-нибудь дома","приготовил что-нибудь дома"],
+ "travel":["travelled","путешествую","поеду путешествовать","поехал путешествовать"],
+ "swim in the sea":["swam in the sea","плаваю в море","поплаваю в море","поплавал в море"],
+ "go to the gym":["went to the gym","хожу в спортзал","схожу в спортзал","сходил в спортзал"],
+ "go to the beach":["went to the beach","хожу на пляж","схожу на пляж","сходил на пляж"],
+ "drink coffee":["drank coffee","пью кофе","выпью кофе","выпил кофе"],
+ "eat Thai food":["ate Thai food","ем тайскую еду","поем тайской еды","поел тайской еды"],
+ "work from home":["worked from home","работаю из дома","поработаю из дома","поработал из дома"],
+ "work in an office":["worked in an office","работаю в офисе","поработаю в офисе","поработал в офисе"],
+ "rent an apartment":["rented an apartment","снимаю квартиру","сниму квартиру","снял квартиру"],
+ "buy a bike":["bought a bike","покупаю байк","куплю байк","купил байк"],
+ "buy food at the market":["bought food at the market","покупаю еду на рынке","куплю еду на рынке","купил еду на рынке"],
+ "call my parents":["called my parents","звоню родителям","позвоню родителям","позвонил родителям"],
+ "text my friend":["texted my friend","пишу другу","напишу другу","написал другу"],
+ "meet new people":["met new people","знакомлюсь с новыми людьми","познакомлюсь с новыми людьми","познакомился с новыми людьми"],
+ "move to Serbia":["moved to Serbia","переезжаю в Сербию","перееду в Сербию","переехал в Сербию"],
+ "find a job":["found a job","ищу работу","найду работу","нашёл работу"],
+ "help my brother":["helped my brother","помогаю брату","помогу брату","помог брату"],
+ "pay for the apartment":["paid for the apartment","плачу за квартиру","заплачу за квартиру","заплатил за квартиру"],
+ "order food":["ordered food","заказываю еду","закажу еду","заказал еду"],
+ "sleep a lot":["slept a lot","много сплю","высплюсь","выспался"],
+ "rest on weekends":["rested on weekends","отдыхаю на выходных","отдохну на выходных","отдохнул на выходных"],
+ "drive a car":["drove a car","вожу машину","сяду за руль","сел за руль"],
+ "ride a bike":["rode a bike","езжу на байке","покатаюсь на байке","покатался на байке"],
+ "wait for my friend":["waited for my friend","жду друга","подожду друга","подождал друга"],
+ "study in college":["studied in college","учусь в колледже","буду учиться в колледже","поучился в колледже"],
+ "live alone":["lived alone","живу один","буду жить один","пожил один"],
+ "walk in the evening":["walked in the evening","гуляю вечером","погуляю вечером","погулял вечером"],
+ "go to the market":["went to the market","хожу на рынок","схожу на рынок","сходил на рынок"],
+ "sell my phone":["sold my phone","продаю телефон","продам телефон","продал телефон"]
+};
+ACTS.forEach(a=>{const m=ACT_MORE[a.b];a.ps=m[0];a.rpr=m[1];a.rfu=m[2];a.rpp=m[3]});
+CGROUPS.push("Решения и намерения · B1","Условия и мечты · B1–B2","Прошлое и опыт · B1","Как говорят носители · B1–B2","Причина, цель, контраст · B1–B2","Вежливо: работа и сайты · B1–B2");
+const C2=(id,g,en,ru,simple,grammar,pit,tpl)=>{const c=C(id,g,en,ru,simple,grammar,pit,tpl,["",[],0,[]]);c.lvl=2;
+  c.say=en.replace(/^…/,"").split("…")[0].replace(/\?$/,"").trim();return c};
+const LEVEL2=[
+ C2("c40",8,"I'm not sure if I should…","Не уверен, стоит ли мне…","Сомневаешься, делать что-то или нет.",[["not sure","«не уверен»."],["if","здесь «ли»: не уверен, стоит ли."],["should","«стоит, следует»."]],"<b>Не «I'm not sure if I should to go».</b> После should — глагол без to.",
+   [{en:"I'm not sure if I should {A.b}.",ru:"Не уверен, стоит ли мне {A.rf}."}]),
+ C2("c41",8,"It's worth…ing","Стоит…","Говоришь, что что-то того стоит, это полезно.",[["worth","«стоящий, стоит того»."],["+ -ing","после worth — глагол с -ing: It's worth trying."]],"<b>Не «It's worth to try».</b> После worth — -ing.",
+   [{en:"It's worth {A.ing}.",ru:"Стоит {A.rf}."},{en:"It's not worth {A.ing}.",ru:"Не стоит {A.ri}."}]),
+ C2("c42",8,"There's no point in…ing","Нет смысла…","Говоришь, что делать что-то бесполезно.",[["There's","= There is."],["no point","«нет смысла»."],["in + -ing","in waiting, in calling."]],"<b>Не «no point to wait».</b> Нужно in + -ing.",
+   [{en:"There's no point in {A.ing}.",ru:"Нет смысла {A.ri}.",need:"h"}]),
+ C2("c43",8,"I've decided to…","Я решил…","Решение уже принято.",[["I've","= I have."],["decided","3-я форма от decide."],["to + глагол","что решил сделать."]],"<b>Не «I've decided go».</b> Нужно to.",
+   [{en:"I've decided to {A.b}.",ru:"Я решил {A.rf}."},{en:"I've decided not to {A.b}.",ru:"Я решил не {A.ri}."}]),
+ C2("c44",8,"I'm thinking of…ing","Я подумываю…","Ещё не решил, но думаешь об этом.",[["thinking of","«думаю о»."],["+ -ing","of moving, of buying."]],"<b>Не «I'm thinking to move».</b> Нужно of + -ing.",
+   [{en:"I'm thinking of {A.ing}.",ru:"Я подумываю {A.rf}."}]),
+ C2("c45",8,"I'm trying to…","Я стараюсь…","Прикладываешь усилия, пытаешься.",[["trying to","«стараюсь» + глагол."]],"<b>try to do</b> — стараться. <b>try doing</b> — попробовать (для эксперимента).",
+   [{en:"I'm trying to {A.b} more often.",ru:"Я стараюсь чаще {A.ri}.",need:"h"}]),
+ C2("c46",8,"I keep…ing","Я всё время…","Что-то повторяется снова и снова (часто раздражает).",[["keep","«продолжать»."],["+ -ing","keep forgetting."]],"<b>I keep forgetting</b> — я всё время забываю. Не «I keep to forget».",
+   [{en:"I keep {A.ing}.",ru:"Я всё время {A.rpr}.",need:"h"}]),
+ C2("c47",8,"I'd rather not…","Я бы не хотел…","Вежливо говоришь, что не хочешь.",[["I'd","= I would."],["rather not","«лучше не»."]],"<b>Не «I'd rather don't».</b> Просто I'd rather not + глагол.",
+   [{en:"I'd rather not {A.b} today.",ru:"Сегодня я бы не хотел {A.ri}."}]),
+ C2("c48",9,"If I have time, I'll…","Если будет время, я…","Реальное условие в будущем.",[["If I have","после if — настоящее время, не will."],["I'll","= I will."]],"<b>Не «If I will have time».</b> После if — have, а will только во второй части.",
+   [{en:"If I have time, I'll {A.b}.",ru:"Если будет время, я {A.rfu}."},{en:"If it rains, I'll {A.b}.",ru:"Если будет дождь, я {A.rfu}.",need:"h"}]),
+ C2("c49",9,"If I were you, I'd…","На твоём месте я бы…","Совет: что бы ты сделал на месте другого.",[["were","после if для всех — were: If I were."],["I'd","= I would, «я бы»."]],"<b>If I were you</b>, а не If I was you (в совете так говорят чаще). После I'd — глагол без to.",
+   [{en:"If I were you, I'd {A.b}.",ru:"На твоём месте я бы {A.rpp}."}]),
+ C2("c50",9,"I wish I could…","Жаль, что я не могу…","Хочешь, но не можешь.",[["wish","«желать, жалеть что не»."],["could","«мог бы»."]],"<b>I wish I could swim</b> — жаль, что не умею. Не «I wish I can».",
+   [{en:"I wish I could {A.b}.",ru:"Жаль, что я не могу {A.rf}."}]),
+ C2("c51",9,"I would… if I had…","Я бы…, если бы у меня было…","Нереальное сейчас условие: мечта.",[["I would","«я бы»."],["if I had","«если бы у меня было» — прошедшая форма, но про сейчас."]],"<b>Не «if I would have».</b> После if — had.",
+   [{en:"I would {A.b} if I had more money.",ru:"Я бы {A.rpp}, если бы у меня было больше денег.",need:"m"},{en:"I would {A.b} if I had more time.",ru:"Я бы {A.rpp}, если бы у меня было больше времени.",need:"h"}]),
+ C2("c52",9,"As soon as I…, I'll…","Как только я…, я…","Одно случится сразу после другого.",[["as soon as","«как только»."],["после as soon as","настоящее время, не will."]],"<b>Не «As soon as I will…».</b> will только во второй части.",
+   [{en:"As soon as I {A.b}, I'll {B.b}.",ru:"Как только я {A.rfu}, я {B.rfu}.",need:"one"}]),
+ C2("c53",9,"…unless…","…если не…","Условие с отрицанием: «если только не».",[["unless","= if not, «если не»."]],"<b>unless</b> уже содержит «не»: unless you help me = if you don't help me.",
+   [{en:"I won't {A.b} unless you help me.",ru:"Я не буду {A.ri}, если ты мне не поможешь."}]),
+ C2("c54",10,"I used to…, but now I…","Раньше я…, а теперь я…","Сравниваешь прошлое и настоящее.",[["used to","раньше было."],["but now","«а теперь» + Present Simple."]],"Вторая часть — в Present Simple: but now I work.",
+   [{en:"I used to {A.b}, but now I {B.b}.",ru:"Раньше я {A.rp}, а теперь я {B.rpr}.",need:"h"}]),
+ C2("c55",10,"I was about to… when…","Я как раз собирался…, когда…","Почти начал что-то делать, и тут что-то случилось.",[["was about to","«как раз собирался»."],["when","«когда» + Past Simple."]],"<b>was about to</b> — прошлое от I'm about to.",
+   [{en:"I was about to {A.b} when you called.",ru:"Я как раз собирался {A.rf}, когда ты позвонил."}]),
+ C2("c56",10,"I should have…","Мне стоило…","Жалеешь, что не сделал.",[["should have","«стоило бы» про прошлое."],["3-я форма","should have called."]],"<b>Не «I should have call».</b> Нужна 3-я форма.",
+   [{en:"I should have {A.pp}.",ru:"Мне стоило {A.rf}.",need:"pp"}]),
+ C2("c57",10,"I didn't use to…","Раньше я не…","Раньше такого не было, а сейчас есть.",[["didn't use to","отрицание от used to. После didn't — use без d."]],"<b>didn't use to</b>, а не didn't used to.",
+   [{en:"I didn't use to {A.b}.",ru:"Раньше я не {A.rp}.",need:"h"}]),
+ C2("c58",10,"It's been ages since I…","Я сто лет не…","Давно чего-то не делал.",[["It's been","= It has been."],["ages","«целую вечность»."],["since I + прошлое","since I played."]],"После since — Past Simple: since I played.",
+   [{en:"It's been ages since I {A.ps}.",ru:"Я сто лет не {A.rp}.",need:"h"}]),
+ C2("c59",10,"The last time I… was…","Последний раз я…","Когда был последний раз.",[["The last time","«последний раз»."],["I + прошлое","I played, I went."]],"Порядок: The last time I went there was in May.",
+   [{en:"The last time I {A.ps} was in {P}.",ru:"Последний раз я {A.rp} {P.v}.",need:"h"}]),
+ C2("c60",11,"I'm supposed to…","Я должен (по плану)…","Так договорились или так положено.",[["supposed to","«предполагается, что я…»."]],"<b>supposed to</b> мягче, чем have to: так ожидают.",
+   [{en:"I'm supposed to {A.b} today.",ru:"Я сегодня должен {A.rf}."}]),
+ C2("c61",11,"I'd better…","Мне лучше…","Совет себе: иначе будет плохо.",[["I'd","= I had (здесь не would!)."],["better + глагол","без to: I'd better go."]],"<b>Не «I'd better to go».</b> Без to.",
+   [{en:"I'd better {A.b}.",ru:"Мне лучше {A.rf}."}]),
+ C2("c62",11,"I can't afford to…","Не могу себе позволить…","Нет денег или времени на что-то.",[["afford","«позволить себе»."],["to + глагол","afford to buy."]],"<b>I can't afford it</b> — не по карману. <b>I can't afford to</b> + действие.",
+   [{en:"I can't afford to {A.b}.",ru:"Я не могу себе позволить {A.rf}.",need:"m"}]),
+ C2("c63",11,"I ended up…ing","В итоге я…","Неожиданно оказалось вот так.",[["ended up","«в итоге оказался»."],["+ -ing","ended up staying."]],"<b>Не «I ended up to stay».</b> Нужен -ing.",
+   [{en:"I ended up {A.ing}.",ru:"В итоге я {A.rpp}."}]),
+ C2("c64",11,"I managed to…","Мне удалось…","Получилось, хотя было сложно.",[["managed to","«удалось» + глагол."]],"<b>managed to</b> — справился, хоть и трудно. could — просто «мог».",
+   [{en:"I managed to {A.b}.",ru:"Мне удалось {A.rf}."}]),
+ C2("c65",11,"I didn't mean to…","Я не хотел (так вышло)…","Сделал случайно, без умысла.",[["mean to","«собираться, иметь в виду»."]],"<b>I didn't mean to</b> — извинение: я не специально.",
+   [{en:"Sorry, I didn't mean to {A.b}.",ru:"Извини, я не хотел {A.rf}."}]),
+ C2("c66",11,"What's the point of…ing?","Какой смысл…?","Сомневаешься, что это нужно.",[["What's","= What is."],["point of + -ing","смысл делать что-то."]],"<b>point of</b> + -ing в вопросе; <b>no point in</b> + -ing в утверждении.",
+   [{en:"What's the point of {A.ing}?",ru:"Какой смысл {A.ri}?",need:"h"}]),
+ C2("c67",11,"Do you happen to know how to…?","Ты случайно не знаешь, как…?","Вежливо спрашиваешь, не знает ли человек.",[["happen to","«случайно»."],["how to","«как» + глагол."]],"Очень вежливый и естественный вопрос.",
+   [{en:"Do you happen to know how to {A.b}?",ru:"Ты случайно не знаешь, как {A.rf}?",need:"k"}]),
+ C2("c68",12,"…in order to…","…чтобы…","Цель действия.",[["in order to","«для того чтобы»."]],"Можно просто to: I save money to buy a bike. in order to — чуть официальнее.",
+   [{en:"I'm saving money in order to {A.b}.",ru:"Я коплю деньги, чтобы {A.rf}.",need:"m"},{en:"I'm learning English in order to {A.b}.",ru:"Я учу английский, чтобы {A.rf}.",need:"m"}]),
+ C2("c69",12,"Even though…","Хотя…","Противопоставление: несмотря на что-то.",[["even though","«хотя, несмотря на то что»."]],"После even though — целое предложение: even though I'm tired.",
+   [{en:"Even though I'm tired, I'm going to {A.b}.",ru:"Хотя я устал, я собираюсь {A.rf}."}]),
+ C2("c70",12,"Instead of…ing","Вместо того чтобы…","Одно вместо другого.",[["instead of","«вместо»."],["+ -ing","instead of watching."]],"<b>Не «instead of watch».</b> Нужен -ing.",
+   [{en:"Instead of {A.ing}, I'm going to {B.b}.",ru:"Вместо того чтобы {A.ri}, я собираюсь {B.rf}.",need:"h"}]),
+ C2("c71",12,"The more I…, the better I…","Чем больше я…, тем лучше я…","Одно растёт вместе с другим.",[["The more","«чем больше»."],["the better","«тем лучше»."]],"Оба раза нужен the: The more…, the better…",
+   [{en:"The more I practice, the better I {A.b}.",ru:"Чем больше я практикуюсь, тем лучше я {A.rpr}.",need:"s"}]),
+ C2("c72",12,"Since…","Раз уж…","Причина, которая и так понятна.",[["since","здесь «раз уж, поскольку» (не «с тех пор»)."]],"<b>since</b> = because, но звучит мягче.",
+   [{en:"Since I live in {P}, I need to {A.b}.",ru:"Раз я живу {P.v}, мне нужно {A.rf}."}]),
+ C2("c73",12,"…in case…","…на случай, если…","Делаешь заранее, вдруг понадобится.",[["in case","«на случай, если»."]],"После in case — настоящее время, не will.",
+   [{en:"Take some money in case you want to {A.b}.",ru:"Возьми денег на случай, если захочешь {A.rf}."}]),
+ C2("c74",13,"Would you mind…ing?","Не мог бы ты…?","Очень вежливая просьба.",[["Would you mind","«ты не против…?»"],["+ -ing","mind waiting."]],"Ответ «No, not at all» значит «да, конечно» (не против).",
+   [{en:"Would you mind {A.ing}?",ru:"Не мог бы ты {A.rf}?",need:"r"}]),
+ C2("c75",13,"I was wondering if you could…","Не могли бы вы…","Самая вежливая просьба: письма, работа.",[["was wondering","«мне было интересно»."],["if you could","«не могли бы вы»."]],"Звучит мягко и вежливо, хотя формально это прошедшее время.",
+   [{en:"I was wondering if you could {A.b}.",ru:"Не могли бы вы {A.rf}?",need:"r"}]),
+ C2("c76",13,"Is there any way to…?","Есть ли способ…?","Ищешь вариант решения.",[["any way","«какой-нибудь способ»."],["to + глагол","to pay, to rent."]],"Частый вопрос в поддержку сайтов.",
+   [{en:"Is there any way to {A.b} here?",ru:"Есть ли способ {A.rf} здесь?",need:"p"}]),
+ C2("c77",13,"I'd like to know if…","Хотел бы узнать, можно ли…","Вежливо уточняешь.",[["I'd like to know","«хотел бы узнать»."],["if","«ли»."]],"После if — обычный порядок слов: if it's possible, а не if is it.",
+   [{en:"I'd like to know if it's possible to {A.b}.",ru:"Хотел бы узнать, можно ли {A.rf}.",need:"p"}]),
+ C2("c78",13,"I'm having trouble…ing","У меня не получается…","Сообщаешь о проблеме.",[["having trouble","«испытываю трудности»."],["+ -ing","trouble paying."]],"<b>Не «trouble to pay».</b> Нужен -ing.",
+   [{en:"I'm having trouble {A.ing}.",ru:"У меня не получается {A.rf}.",need:"k"}]),
+ C2("c79",13,"It turns out…","Оказывается,…","Узнал что-то неожиданное.",[["turns out","«оказывается»."]],"Можно с that: It turns out (that) …",
+   [{en:"It turns out you can't {A.b} here.",ru:"Оказывается, здесь нельзя {A.rf}.",need:"p"}]),
+ C2("c80",13,"Make sure you…","Обязательно…","Напоминаешь, чтобы точно сделали.",[["make sure","«убедись, обязательно»."]],"После make sure you — глагол без to.",
+   [{en:"Make sure you {A.b}.",ru:"Не забудь {A.rf}.",need:"r"}]),
+ C2("c81",13,"Feel free to…","Можешь спокойно…","Разрешаешь, приглашаешь.",[["feel free","«не стесняйся»."],["to + глагол","feel free to ask."]],"Часто в письмах: Feel free to contact us.",
+   [{en:"Feel free to {A.b}.",ru:"Можешь спокойно {A.rf}.",need:"r"}]),
+ C2("c82",13,"I'll let you know when I…","Я дам знать, когда…","Обещаешь сообщить.",[["let you know","«дам тебе знать»."],["when I + настоящее","when I find, не when I will find."]],"После when — настоящее время, будущее только в первой части.",
+   [{en:"I'll let you know when I {A.b}.",ru:"Я дам знать, когда {A.rfu}.",need:"one"}]),
+ C2("c83",8,"I got used to…ing","Я привык…","Процесс привыкания: стал привычным.",[["got used to","«привык» (процесс завершился)."],["+ -ing","got used to living."]],"<b>get used to</b> — привыкать. <b>be used to</b> — уже привык.",
+   [{en:"I got used to {A.ing}.",ru:"Я привык {A.ri}.",need:"h"}]),
+ C2("c84",11,"I can't wait to…","Жду не дождусь…","Очень хочешь, чтобы это скорее случилось.",[["can't wait","«не могу дождаться»."],["to + глагол","can't wait to see."]],"Близко к I'm looking forward to + -ing, но разговорнее.",
+   [{en:"I can't wait to {A.b}.",ru:"Жду не дождусь, когда {A.rfu}.",need:"one"}]),
+ C2("c85",11,"I'm looking forward to…ing","С нетерпением жду…","Вежливо и тепло: жду с радостью.",[["looking forward to","«жду с нетерпением»."],["+ -ing","to здесь предлог: looking forward to meeting."]],"<b>Не «looking forward to meet».</b> to здесь — предлог, после него -ing.",
+   [{en:"I'm looking forward to {A.ing}.",ru:"С нетерпением жду возможности {A.rf}."}])
+];
+LEVEL2.forEach(c=>{c.g=CGROUPS[c.g];CONS.push(c)});
+LEVEL2.forEach(c=>{
+  const all=genPhrases(c,false),n=all.length,pick=i=>all[Math.min(n-1,Math.max(0,i))];
+  c.ex=[pick(0),pick(Math.floor(n/2)),pick(n-1)].map(x=>[x.en,x.ru]);
+  c.fills=[0,1,2,3,4,5].map(i=>pick(Math.floor(i*n/6))).map(x=>[x.en,x.ru]);
+  c.builds=[pick(1),pick(n-2)].map(x=>({ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,extra:[],why:c.simple}));
+  c.pitPlain=c.pit.replace(/<[^>]+>/g,"");
+  /* вопрос «что подходит» собираем автоматически: та же фраза в конструкциях из других групп */
+  const x=pick(Math.floor(n/3)),dq=drillChoice(c,x);
+  if(dq)c.q={situation:`Как сказать: «${x.ru}»`,options:dq.options,answer:dq.answer,notes:dq.notes};
+  else{const o=shuffle(CONS.filter(z=>z!==c&&z.g!==c.g)).slice(0,2),opts=shuffle([{en:x.en,c},...o.map(z=>({en:z.ex[0][0],c:z}))]);
+    c.q={situation:`Как сказать: «${x.ru}»`,options:opts.map(z=>z.en),answer:opts.findIndex(z=>z.c===c),notes:opts.map(z=>z.c===c?`Верно: ${c.en} — «${c.ru}».`:`${z.c.en} — это «${z.c.ru}», другой смысл.`)}}
+});
+CONS.forEach(c=>{if(!c.lvl)c.lvl=1});
+
+
 
 
 /* ================= LITTLE WORDS: служебные слова, всегда доступны отдельно ================= */
@@ -1967,7 +2125,7 @@ function home(){
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v13</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v14</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
@@ -1994,7 +2152,8 @@ function consPathScreen(){
   const done=CONS.filter(c=>cStat(c.id).status==="learned").length;
   view.innerHTML=`${topBar(done/CONS.length*100,`${done} / ${CONS.length}`)}
    <div class="eyebrow">Тропа конструкций</div><h1 style="margin:6px 0 4px">${CONS.length} конструкций в ${CGROUPS.length} группах</h1>
-   <p class="muted" style="margin-bottom:8px">Открыты все. Нажми на любую: разбор, урок, прогон ×20 или «уже знаю». Кубок в конце группы — тест по всей группе.</p>
+   <p class="muted" style="margin-bottom:8px">Открыты все. Нажми на любую: разбор, урок, прогон ×20 или «уже знаю». Кубок в конце группы — тест по всей группе. Первые 8 групп — база (A2), дальше — уровень B1–B2.</p>
+   <button class="btn ghost" id="ckn" style="margin-bottom:6px">Отметить конструкции, которые я уже знаю</button>
    ${CGROUPS.map((g,gi)=>{const list=CONS.filter(c=>c.g===g),d=list.filter(c=>cStat(c.id).status==="learned").length,isCur=cur.g===g;
      return `<div class="stage ${d===list.length?"sdone":isCur?"scur":""}"><div><b>${esc(g)}</b><span>${d} из ${list.length}</span></div><span class="chip">${d===list.length?"пройдено":isCur?"сейчас":"открыто"}</span></div>
      <div class="path">${list.map(c=>{const st=c===cur?"cur":cStat(c.id).status==="learned"?"done":"open",x=OFF[k++%OFF.length];
@@ -2003,7 +2162,25 @@ function consPathScreen(){
   bindTop();
   view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>consScreen(CONS.find(c=>c.id===b.dataset.c)));
   view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>consGroupTest(CGROUPS[+b.dataset.g]));
+  $("#ckn").onclick=consKnownScreen;
   const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50);
+}
+function consKnownScreen(){
+  showTabs(false);
+  const draw=()=>{const on=c=>cStat(c.id).status==="learned",n=CONS.filter(on).length;
+    view.innerHTML=`<div class="rtop"><button class="x" id="kb" aria-label="Готово">${BACK}</button><div class="rprog"><i style="width:${n/CONS.length*100}%"></i></div><div class="rlabel">${n} из ${CONS.length}</div></div>
+    <div class="stack"><div><div class="eyebrow">Тропа конструкций</div><h1 style="margin-top:6px">Что я уже знаю</h1><p class="muted" style="margin-top:6px">Нажми на знакомые — они отметятся пройденными, и тропа начнётся с первой незнакомой. Сомневаешься — лучше пройди короткую проверку на экране конструкции.</p></div>
+    ${CGROUPS.map((g,gi)=>{const list=CONS.filter(c=>c.g===g),all=list.every(on);return `<div class="panel stack"><div class="row" style="justify-content:space-between"><h3>${esc(g)}</h3><button class="btn small ghost" data-all="${gi}">${all?"Снять все":"Знаю все"}</button></div>
+      <div class="kchips">${list.map(c=>`<button class="kchip ${on(c)?"on":""}" data-c="${c.id}"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span></button>`).join("")}</div></div>`}).join("")}
+    <button class="btn primary" id="kd">Готово</button></div>`;
+    const set=(c,v)=>{const s=cStat(c.id);if(v){s.status="learned";s.known=true;if(!s.at)s.at=Date.now()}else{s.status="new";s.known=false}};
+    const fin=()=>{const cur=CONS.find(c=>c.id===S.curCons);if(!cur||cStat(cur.id).status==="learned"){const nx=CONS.find(c=>cStat(c.id).status!=="learned");if(nx)S.curCons=nx.id}save();consPathScreen()};
+    $("#kb").onclick=fin;$("#kd").onclick=fin;
+    view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const c=CONS.find(x=>x.id===b.dataset.c);set(c,!on(c));save();b.classList.toggle("on",on(c));
+      const k=CONS.filter(on).length;$(".rlabel").textContent=`${k} из ${CONS.length}`;$(".rprog i").style.width=k/CONS.length*100+"%"});
+    view.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{const list=CONS.filter(c=>c.g===CGROUPS[+b.dataset.all]),all=list.every(on);list.forEach(c=>set(c,!all));save();const y=scrollY;draw();scrollTo(0,y)});
+  };
+  draw();window.scrollTo(0,0);
 }
 function consScreen(c){
   showTabs(false);const st=cStat(c.id).status,learned=st==="learned",n=genPhrases(c,true).length;
