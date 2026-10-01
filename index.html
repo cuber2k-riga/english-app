@@ -475,7 +475,233 @@ const TI=[ /* tense items — only words and constructions from the lesson */
 ];
 const TENSE_ITEMS=Object.fromEntries(TI.map(t=>[t.id,t]));
 const PS_TEST_IDS=["x1","x2","x3","x4","x5","x6","x7","x8","x9","x10"];
-const TENSES=["Present Simple","Present Continuous","Past Simple","Future: will / going to","Present Perfect","Past Continuous"];
+
+/* ================= ВРЕМЕНА 2–6: теория по шагам, задания, тесты ================= */
+const thStep=(name,n,total,title,body)=>`<div class="eyebrow">${name} · шаг ${n} из ${total}</div><h1>${title}</h1>${body}`;
+const split2=(l1,f1,d1,l2,f2,d2)=>`<div class="split"><div class="panel"><div class="eyebrow">${l1}</div><div class="fbig">${f1}</div><div class="muted" style="font-size:14px">${d1}</div></div><div class="panel hl"><div class="eyebrow">${l2}</div><div class="fbig">${f2}</div><div class="muted" style="font-size:14px">${d2}</div></div></div>`;
+const exl=list=>`<div class="panel exl">${list.map(([a,b])=>`<div><b>${a}</b><span>${b}</span></div>`).join("")}</div>`;
+const A=s=>`<span style="color:var(--accent)">${s}</span>`;
+/* item: [id, type, hint, prompt|ru, options|chunks, answer|extra, notes|why, ru?] */
+function mkItems(tense,list){return list.map(x=>{const [id,type,hint]=x;
+  if(type==="choice")return {id,type,hint,prompt:x[3],options:x[4],answer:x[5],notes:x[6],ru:!!x[7],rule:tense};
+  if(type==="build")return {id,type,hint,ru:x[3],chunks:x[4],extra:x[5],why:x[6],rule:tense};
+  return {id,type:"say",ru:x[3],en:x[4],pit:x[5],rule:tense}})}
+
+const PC_ITEMS=mkItems("pc",[
+ ["pc1","choice","Выбери форму","I ___ English now.",["am learning","learning","learn"],0,["am + глагол с -ing: процесс прямо сейчас.","Без am нельзя: нужен помощник be.","learn — вообще, а здесь now."]],
+ ["pc2","choice","Выбери форму","She ___ right now.",["is sleeping","sleeping","sleeps"],0,["she → is + sleeping.","Пропущено is.","sleeps — привычка, а здесь right now."]],
+ ["pc3","choice","Выбери форму","They ___ football at the moment.",["are playing","is playing","play"],0,["they → are.","is — только для he / she / it.","play — вообще, а здесь at the moment."]],
+ ["pc4","choice","Переведи","Мы смотрим фильм.",["We are watching a movie.","We watching a movie.","We are watch a movie."],0,["are + watching.","Пропущено are.","После are нужен -ing: watching."],1],
+ ["pc5","choice","Сделай отрицание","I'm working now.",["I'm not working now.","I don't working now.","I'm not work now."],0,["am not + -ing.","don't — из Present Simple, здесь не подходит.","После not нужен -ing: working."]],
+ ["pc6","choice","Сделай отрицание","He is cooking.",["He isn't cooking.","He doesn't cooking.","He not cooking."],0,["isn't = is not.","doesn't — из Present Simple.","Пропущено is."]],
+ ["pc7","choice","Сделай вопрос","You are waiting for me.",["Are you waiting for me?","Do you waiting for me?","You are waiting for me?"],0,["Are переходит в начало.","do с -ing не используют.","В вопросе are ставят первым."]],
+ ["pc8","build","Собери вопрос","Что ты делаешь?",["What","are you","doing"],["do you"],"Вопрос про сейчас: What + are + you + doing."],
+ ["pc9","choice","Выбери, что подходит","___ coffee every morning.",["I drink","I'm drinking"],0,["every morning — привычка, это Present Simple.","Continuous — только про то, что идёт сейчас."]],
+ ["pc10","choice","Выбери, что подходит","Look! It ___.",["is raining","rains"],0,["Look! — значит прямо сейчас: Continuous.","rains — «вообще бывает дождь», а здесь сейчас."]],
+ ["pc11","build","Собери фразу","Я сейчас учу английский.",["I'm","learning","English","now"],["learn"],"I'm = I am, потом глагол с -ing."],
+ ["pc12","say","","Мой брат сейчас спит.","My brother is sleeping now.","Брат = he, поэтому is sleeping."],
+ ["pcx1","choice","Выбери форму","We ___ dinner now.",["are having","have","is having"],0,["we → are + having.","have — вообще, а здесь now.","is — для he / she / it."]],
+ ["pcx2","choice","Выбери форму","He ___ to music at the moment.",["is listening","listens","are listening"],0,["he → is + listening.","listens — привычка.","are — для you / we / they."]],
+ ["pcx3","choice","Сделай отрицание","They are playing games.",["They aren't playing games.","They don't playing games.","They not playing games."],0,["aren't = are not.","don't с -ing не используют.","Пропущено are."]],
+ ["pcx4","choice","Сделай вопрос","She is working today.",["Is she working today?","Does she working today?","She is working today?"],0,["Is ставим в начало.","does с -ing не используют.","В вопросе is идёт первым."]],
+ ["pcx5","choice","Выбери, что подходит","My father ___ in an office. (это его постоянная работа)",["works","is working"],0,["Постоянная работа — Present Simple.","Continuous — только сейчас или временно."]],
+ ["pcx6","choice","Переведи","Ты меня слушаешь?",["Are you listening to me?","Do you listening to me?","Are you listen to me?"],0,["Are + you + listening.","do с -ing не используют.","После are нужен -ing."],1],
+ ["pcx7","build","Собери фразу","Она сейчас готовит ужин.",["She","is cooking","dinner","now"],["cooks"],"she → is + cooking."],
+ ["pcx8","build","Собери фразу","Мы не смотрим телевизор.",["We","aren't","watching","TV"],["don't"],"Отрицание: aren't + -ing."],
+ ["pcx9","choice","Выбери форму","Right now I ___ a shower.",["am taking","take","taking"],0,["am + taking.","take — привычка.","Пропущено am."]],
+ ["pcx10","choice","Выбери начало","What ___ you doing?",["are","do","is"],0,["you → are.","do с -ing не используют.","is — для he / she / it."]]
+]);
+const PAST_ITEMS=mkItems("past",[
+ ["pa1","choice","Выбери форму","I ___ in Moscow last year.",["lived","live","living"],0,["last year — прошлое: live → lived.","live — настоящее.","Без was -ing не ставят."]],
+ ["pa2","choice","Выбери форму","Yesterday we ___ to the beach.",["went","goed","go"],0,["go — неправильный: go → went.","goed — так не бывает.","go — настоящее, а здесь yesterday."]],
+ ["pa3","choice","Выбери форму","She ___ a new phone last week.",["bought","buyed","buy"],0,["buy → bought (неправильный).","buyed — так не бывает.","buy — настоящее."]],
+ ["pa4","choice","Переведи","Я видел его вчера.",["I saw him yesterday.","I seen him yesterday.","I see him yesterday."],0,["see → saw.","seen — 3-я форма, без have нельзя.","see — настоящее."],1],
+ ["pa5","choice","Сделай отрицание","I called my parents.",["I didn't call my parents.","I didn't called my parents.","I not called my parents."],0,["didn't + call (1-я форма).","После didn't глагол без -ed.","Отрицание строится через didn't."]],
+ ["pa6","choice","Сделай отрицание","He went home.",["He didn't go home.","He didn't went home.","He doesn't went home."],0,["didn't + go.","После didn't — 1-я форма: go, не went.","doesn't — настоящее время."]],
+ ["pa7","choice","Сделай вопрос","You watched the movie.",["Did you watch the movie?","Did you watched the movie?","Do you watched the movie?"],0,["Did + you + watch.","После did глагол без -ed.","do — настоящее время."]],
+ ["pa8","build","Собери вопрос","Где ты был вчера?",["Where","were you","yesterday"],["was you"],"you → were, не was."],
+ ["pa9","choice","Выбери форму","I ___ tired yesterday.",["was","were","am"],0,["I → was.","were — для you / we / they.","am — настоящее."]],
+ ["pa10","choice","Выбери форму","They ___ at home last night.",["were","was","are"],0,["they → were.","was — для I / he / she / it.","are — настоящее."]],
+ ["pa11","build","Собери фразу","Я не спал прошлой ночью.",["I","didn't","sleep","last night"],["slept"],"didn't + sleep (1-я форма)."],
+ ["pa12","say","","Я переехал в Таиланд в прошлом году.","I moved to Thailand last year.","move → moved: правильный глагол, просто +ed."],
+ ["pax1","choice","Выбери форму","We ___ a lot of photos yesterday.",["took","taked","take"],0,["take → took.","taked — так не бывает.","take — настоящее."]],
+ ["pax2","choice","Выбери форму","He ___ me last night.",["called","call","calls"],0,["call → called.","call — настоящее.","calls — настоящее для he."]],
+ ["pax3","choice","Сделай отрицание","She liked the film.",["She didn't like the film.","She didn't liked the film.","She not liked the film."],0,["didn't + like.","После didn't без -ed.","Нужно didn't."]],
+ ["pax4","choice","Сделай вопрос","They arrived yesterday.",["Did they arrive yesterday?","Did they arrived yesterday?","Do they arrived yesterday?"],0,["Did + they + arrive.","После did без -ed.","do — настоящее."]],
+ ["pax5","choice","Выбери форму","I ___ in college two years ago.",["was","were","am"],0,["I → was.","were — для you / we / they.","am — настоящее."]],
+ ["pax6","choice","Переведи","Мы поели в кафе.",["We ate in a cafe.","We eated in a cafe.","We have eat in a cafe."],0,["eat → ate.","eated — так не бывает.","Так не говорят."],1],
+ ["pax7","build","Собери фразу","Я забыл ключи.",["I","forgot","my keys"],["forget"],"forget → forgot."],
+ ["pax8","build","Собери вопрос","Ты купил билет?",["Did","you","buy","a ticket"],["bought"],"Did + you + buy (не bought)."],
+ ["pax9","choice","Выбери начало","___ you at the party?",["Were","Was","Did"],0,["you → were.","was — для I / he / she / it.","did с at the party без глагола не работает."]],
+ ["pax10","choice","Выбери форму","I ___ him two days ago.",["met","meet","meeted"],0,["meet → met.","meet — настоящее.","meeted — так не бывает."]]
+]);
+const FUT_ITEMS=mkItems("fut",[
+ ["fu1","choice","Выбери форму","I ___ you tomorrow. (обещание)",["will call","call","calling"],0,["Обещание — will + глагол.","call — настоящее.","Без will нельзя."]],
+ ["fu2","choice","Переведи","Я помогу тебе.",["I'll help you.","I will to help you.","I will helping you."],0,["I'll = I will + help.","После will не ставят to.","После will глагол без -ing."],1],
+ ["fu3","choice","Сделай отрицание","I will tell him.",["I won't tell him.","I will don't tell him.","I don't will tell him."],0,["won't = will not.","don't с will не используют.","Отрицание: will not → won't."]],
+ ["fu4","choice","Сделай вопрос","You will come.",["Will you come?","Do you will come?","Will you to come?"],0,["Will — в начало.","do с will не используют.","После will не ставят to."]],
+ ["fu5","choice","Выбери форму","Look at the clouds! It ___ rain.",["is going to","will going to","going to"],0,["Видно по признакам — is going to.","will и going to вместе не ставят.","Пропущено is."]],
+ ["fu6","choice","Выбери форму","I ___ move to Serbia next year. (план уже решён)",["am going to","will to","going"],0,["Решённый план — am going to.","После will не ставят to.","Пропущено am … to."]],
+ ["fu7","build","Собери фразу","Мы собираемся снять квартиру.",["We","are going to","rent","an apartment"],["will"],"План заранее: are going to + глагол."],
+ ["fu8","choice","Выбери, что подходит","Звонит телефон. Ты решаешь прямо сейчас: «Я отвечу!»",["I'll answer it!","I'm going to answer it!"],0,["Решение прямо сейчас — will.","going to — план, решённый заранее."],1],
+ ["fu9","build","Собери вопрос","Что ты собираешься делать завтра?",["What","are you going to","do","tomorrow"],["will you to"],"План: What are you going to do?"],
+ ["fu10","choice","Выбери форму","She ___ 20 next year.",["will be","is going be","be"],0,["Факт о будущем — will be.","Нужно is going to be, и to пропущено.","Без will нельзя."]],
+ ["fu11","say","","Завтра я позвоню родителям.","I'll call my parents tomorrow.","I'll = I will. После will — call без изменений."],
+ ["fu12","say","","Я собираюсь учить английский каждый день.","I'm going to learn English every day.","План: am going to + learn."],
+ ["fux1","choice","Выбери форму","Don't worry, I ___ help you.",["will","am","going"],0,["Обещание — will.","am без going to и -ing не работает.","going без am … to не работает."]],
+ ["fux2","choice","Выбери форму","I'm hungry. I think I ___ order food.",["will","am going","going to"],0,["Решил прямо сейчас (I think) — will.","Нужно am going to, пропущено to.","Пропущено am."]],
+ ["fux3","choice","Сделай отрицание","They will come.",["They won't come.","They don't will come.","They will don't come."],0,["won't = will not.","don't с will не используют.","Нужно won't."]],
+ ["fux4","choice","Выбери форму","We ___ travel to Japan in May. We bought tickets.",["are going to","will to","going"],0,["План уже решён (билеты куплены) — are going to.","После will не ставят to.","Пропущено are … to."]],
+ ["fux5","choice","Сделай вопрос","She is going to buy a car.",["Is she going to buy a car?","Does she going to buy a car?","Will she going to buy a car?"],0,["Is — в начало.","does с going to не используют.","will и going to вместе не ставят."]],
+ ["fux6","choice","Переведи","Я не буду ждать.",["I won't wait.","I will not to wait.","I don't will wait."],0,["won't + wait.","После will не ставят to.","don't с will не используют."],1],
+ ["fux7","build","Собери фразу","Я буду дома в 8.",["I'll","be","at home","at 8"],["am"],"will + be: I'll be."],
+ ["fux8","build","Собери вопрос","Ты придёшь?",["Will","you","come"],["Do"],"Вопрос: Will + you + come."],
+ ["fux9","choice","Выбери форму","Look! He ___ fall!",["is going to","will going","going"],0,["Видно, что сейчас случится — is going to.","will и going вместе не ставят.","Пропущено is … to."]],
+ ["fux10","choice","Выбери форму","Maybe I ___ go out tonight.",["will","am going","going"],0,["maybe + решение не точно — will.","Пропущено to.","Пропущены am и to."]]
+]);
+const PP_ITEMS=mkItems("pp",[
+ ["pp1","choice","Выбери форму","I ___ my keys. (их нет до сих пор)",["have lost","has lost","have lose"],0,["I → have + lost: результат сейчас.","has — для he / she / it.","После have нужна 3-я форма: lost."]],
+ ["pp2","choice","Выбери форму","She ___ this film.",["has seen","have seen","has saw"],0,["she → has + seen.","have — для I / you / we / they.","saw — 2-я форма, после has нужна 3-я: seen."]],
+ ["pp3","choice","Выбери форму","We ___ to Bangkok three times.",["have been","has been","have went"],0,["Опыт за жизнь — have been.","has — для he / she / it.","went — 2-я форма, нужна 3-я: been."]],
+ ["pp4","choice","Сделай отрицание","I have finished.",["I haven't finished.","I didn't finished.","I haven't finish."],0,["haven't + finished.","didn't — Past Simple, и после него без -ed.","После haven't нужна 3-я форма."]],
+ ["pp5","choice","Сделай вопрос","He has eaten.",["Has he eaten?","Did he eaten?","Has he ate?"],0,["Has — в начало.","did — Past Simple.","ate — 2-я форма, нужна 3-я: eaten."]],
+ ["pp6","choice","Выбери форму","Have you ever ___ sushi?",["eaten","ate","eat"],0,["После have — 3-я форма: eaten.","ate — 2-я форма.","eat — 1-я форма."]],
+ ["pp7","build","Собери фразу","Я уже поел.",["I've","already","eaten"],["ate"],"I've = I have + eaten. already стоит между ними."],
+ ["pp8","choice","Выбери, что подходит","I ___ him yesterday.",["saw","have seen"],0,["Есть yesterday — значит Past Simple.","Present Perfect не ставят с точным прошлым временем."]],
+ ["pp9","choice","Переведи","Я никогда не был в Америке.",["I've never been to America.","I never was in America.","I haven't never been to America."],0,["Опыт за жизнь — I've never been.","Так звучит неестественно.","never уже отрицание, haven't не нужен."],1],
+ ["pp10","choice","Выбери форму","She ___ here since May.",["has lived","lives","lived"],0,["since + до сих пор — has lived.","Present Simple не говорит «с мая и до сих пор».","lived — будто уже не живёт."]],
+ ["pp11","build","Собери вопрос","Ты закончил?",["Have","you","finished"],["Did"],"Результат сейчас: Have + you + finished."],
+ ["pp12","say","","Я ещё не нашёл работу.","I haven't found a job yet.","yet в отрицании ставят в конец."],
+ ["ppx1","choice","Выбери форму","He ___ his phone. (и сейчас без телефона)",["has broken","have broken","has broke"],0,["he → has + broken.","have — для I / you / we / they.","broke — 2-я форма, нужна 3-я."]],
+ ["ppx2","choice","Выбери форму","I ___ already done it.",["have","has","did"],0,["I → have + done.","has — для he / she / it.","did + done так не говорят."]],
+ ["ppx3","choice","Сделай отрицание","She has called.",["She hasn't called.","She didn't has called.","She haven't called."],0,["hasn't + called.","did и has вместе не ставят.","she → hasn't."]],
+ ["ppx4","choice","Сделай вопрос","They have arrived.",["Have they arrived?","Did they arrived?","Has they arrived?"],0,["Have — в начало.","did — Past Simple.","they → have."]],
+ ["ppx5","choice","Выбери форму","I ___ in Thailand for a year.",["have lived","live","lived"],0,["for + до сих пор — have lived.","Present Simple не говорит «уже год».","lived — будто уже уехал."]],
+ ["ppx6","choice","Выбери, что подходит","We ___ to Phuket last year.",["went","have been"],0,["last year — Past Simple.","Present Perfect не ставят с last year."]],
+ ["ppx7","choice","Переведи","Ты когда-нибудь ездил на байке?",["Have you ever ridden a bike?","Did you ever ride a bike yesterday?","Have you ever rode a bike?"],0,["Опыт: Have you ever + ridden.","yesterday с ever не сочетается.","rode — 2-я форма, нужна 3-я."],1],
+ ["ppx8","build","Собери фразу","Он только что ушёл.",["He's","just","left"],["leave"],"He's = He has. just — «только что». leave → left."],
+ ["ppx9","build","Собери фразу","Я ещё не видел этот фильм.",["I","haven't","seen","this film","yet"],["didn't"],"haven't + seen, yet в конце."],
+ ["ppx10","choice","Выбери форму","She ___ me since Monday.",["hasn't called","didn't call","don't call"],0,["since — до сих пор: hasn't called.","didn't — без связи с «до сих пор».","don't — настоящее, и для she нужно doesn't."]]
+]);
+const PCN_ITEMS=mkItems("pcn",[
+ ["pn1","choice","Выбери форму","At 10 p.m. I ___.",["was sleeping","slept","am sleeping"],0,["Процесс в момент в прошлом — was sleeping.","slept — просто факт, без процесса.","am — настоящее."]],
+ ["pn2","choice","Выбери форму","They ___ TV when I came.",["were watching","was watching","watched"],0,["they → were + watching.","was — для I / he / she / it.","Здесь нужен процесс на фоне."]],
+ ["pn3","choice","Выбери форму","She ___ dinner at 7.",["was cooking","were cooking","cooking"],0,["she → was + cooking.","were — для you / we / they.","Пропущено was."]],
+ ["pn4","choice","Сделай отрицание","I was working.",["I wasn't working.","I didn't working.","I weren't working."],0,["wasn't = was not.","didn't с -ing не используют.","I → wasn't."]],
+ ["pn5","choice","Сделай вопрос","You were sleeping.",["Were you sleeping?","Did you sleeping?","Was you sleeping?"],0,["Were — в начало.","did с -ing не используют.","you → were."]],
+ ["pn6","choice","Выбери форму","I was walking when it ___ to rain.",["started","was starting","starts"],0,["Короткое событие — Past Simple.","Начало дождя — момент, а не процесс.","Настоящее здесь не подходит."]],
+ ["pn7","build","Собери вопрос","Что ты делал вчера в 8?",["What","were you","doing","at 8 yesterday"],["did you"],"Процесс в момент: were + doing."],
+ ["pn8","choice","Переведи","Мы гуляли по пляжу.",["We were walking on the beach.","We was walking on the beach.","We were walk on the beach."],0,["we → were + walking.","was — для I / he / she / it.","После were нужен -ing."],1],
+ ["pn9","choice","Выбери форму","While I ___, my phone rang.",["was driving","drove","were driving"],0,["while + процесс — was driving.","Нужен процесс, а не факт.","I → was."]],
+ ["pn10","build","Собери фразу","Я спал, когда ты позвонил.",["I was sleeping","when","you","called"],["was calling"],"Длинное — Continuous, короткое — Past Simple."],
+ ["pn11","say","","Вчера в 9 я работал.","I was working at 9 yesterday.","Процесс в момент: was + working."],
+ ["pn12","choice","Выбери, что подходит","I ___ my keys yesterday.",["lost","was losing"],0,["Потерять — одно короткое действие: Past Simple.","Continuous — для процесса, который длился."]],
+ ["pnx1","choice","Выбери форму","He ___ a shower when I called.",["was taking","were taking","took"],0,["he → was + taking.","were — для you / we / they.","Нужен процесс на фоне."]],
+ ["pnx2","choice","Выбери форму","We ___ football at 5.",["were playing","was playing","are playing"],0,["we → were.","was — для I / he / she / it.","are — настоящее."]],
+ ["pnx3","choice","Сделай отрицание","They were waiting.",["They weren't waiting.","They didn't waiting.","They wasn't waiting."],0,["weren't = were not.","didn't с -ing не используют.","they → weren't."]],
+ ["pnx4","choice","Сделай вопрос","She was crying.",["Was she crying?","Did she crying?","Were she crying?"],0,["Was — в начало.","did с -ing не используют.","she → was."]],
+ ["pnx5","choice","Выбери форму","I was reading when the light ___ off.",["went","was going","goes"],0,["Короткое событие — Past Simple: went.","Это момент, а не процесс.","Настоящее не подходит."]],
+ ["pnx6","choice","Переведи","Ты спал?",["Were you sleeping?","Did you sleeping?","Was you sleep?"],0,["Were + you + sleeping.","did с -ing не используют.","you → were, и нужен -ing."],1],
+ ["pnx7","build","Собери фразу","Она готовила ужин.",["She","was cooking","dinner"],["were"],"she → was + cooking."],
+ ["pnx8","build","Собери фразу","Мы не слушали.",["We","weren't","listening"],["didn't"],"Отрицание: weren't + -ing."],
+ ["pnx9","choice","Выбери начало","What ___ you doing at midnight?",["were","was","did"],0,["you → were.","was — для I / he / she / it.","did с -ing не используют."]],
+ ["pnx10","choice","Выбери форму","While she was sleeping, I ___ the dishes.",["washed","wash","washing"],0,["Действие на фоне её сна — Past Simple: washed.","wash — настоящее.","Без was нельзя."]]
+]);
+const stepsOf=(items,groups)=>groups.map(([th,ids])=>({theory:th,tasks:ids}));
+const TENSE_DEFS=[
+ {key:"ps",name:"Present Simple",ru:"Настоящее простое",steps:PS_STEPS,sheet:PS_SHEET,test:PS_TEST_IDS,
+  rule:"Present Simple: he/she/it + -s (he lives); отрицание don't/doesn't + глагол без -s; вопрос Do/Does + глагол без -s"},
+ {key:"pc",name:"Present Continuous",ru:"Настоящее длительное",
+  steps:stepsOf(PC_ITEMS,[
+   [thStep("Present Continuous",1,4,"Что происходит прямо сейчас",`<p class="lead">Present Continuous — «настоящее длительное». Это то, что идёт <mark>прямо сейчас</mark>, в эту минуту, или временно в эти дни.</p>
+     ${exl([["I'm eating now.","Я сейчас ем."],["She's sleeping.","Она спит (прямо сейчас)."],["I'm living with a friend this month.","В этом месяце я живу у друга (временно)."]])}
+     <div class="rule">Слова-подсказки: <b>now, right now, at the moment, today, Look!, Listen!</b></div>`),[]],
+   [thStep("Present Continuous",2,4,"Утверждение: be + глагол-ing",`<p class="lead">Нужны две части: <mark>am / is / are</mark> и глагол с <mark>-ing</mark>.</p>
+     ${split2("I","I "+A("am")+" work"+A("ing"),"I'm working","he · she · it / you · we · they","he "+A("is")+" / we "+A("are")+" work"+A("ing"),"he's working · we're working")}
+     <div class="rule">Как добавить -ing: play → playing; live → liv<b>ing</b> (е выпадает); swim → swi<b>mm</b>ing (последняя буква удваивается).</div>`),["pc1","pc2","pc3","pc4"]],
+   [thStep("Present Continuous",3,4,"Отрицание и вопрос",`<p class="lead">Всё делает помощник <mark>am / is / are</mark>. do / does здесь не нужны.</p>
+     ${split2("Отрицание","I'm "+A("not")+" working","isn't = is not · aren't = are not","Вопрос",A("Are")+" you working?","am / is / are — в начало")}
+     <div class="rule">Не путай с Present Simple: <b>Do you work?</b> — ты вообще работаешь? <b>Are you working?</b> — ты сейчас работаешь?</div>`),["pc5","pc6","pc7","pc8"]],
+   [thStep("Present Continuous",4,4,"Simple или Continuous",`<p class="lead">Главный вопрос: это <mark>вообще, всегда</mark> или <mark>прямо сейчас</mark>?</p>
+     ${split2("Вообще, привычка","I work every day.","Present Simple","Прямо сейчас","I'm working now.","Present Continuous")}
+     <div class="rule">Глаголы like, love, want, know, need обычно не ставят в Continuous: I <b>want</b> coffee, а не I'm wanting.</div>`),["pc9","pc10","pc11","pc12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Present Continuous</h1><p class="lead">Происходит прямо сейчас или временно.</p>
+   <div class="panel stack"><div class="eyebrow">Утверждение</div><div class="fbig" style="font-size:19px">I'm / he's / we're + work${A("ing")}</div></div>
+   <div class="panel stack"><div class="eyebrow">Отрицание</div><div class="fbig" style="font-size:19px">I'm not · isn't · aren't + -ing</div></div>
+   <div class="panel stack"><div class="eyebrow">Вопрос</div><div class="fbig" style="font-size:19px">Are you working? · Is he working?</div></div>`,
+  test:PC_ITEMS.filter(i=>i.id.startsWith("pcx")).map(i=>i.id),
+  rule:"Present Continuous: am/is/are + глагол-ing (I'm working); отрицание isn't/aren't; вопрос Are you…ing?; используется для «прямо сейчас»"},
+ {key:"past",name:"Past Simple",ru:"Прошедшее простое",
+  steps:stepsOf(PAST_ITEMS,[
+   [thStep("Past Simple",1,5,"Было и закончилось",`<p class="lead">Past Simple — «прошедшее простое». Действие было в прошлом и <mark>закончилось</mark>.</p>
+     ${exl([["I lived in Moscow.","Я жил в Москве (теперь нет)."],["We went to the beach yesterday.","Вчера мы ходили на пляж."],["She called me an hour ago.","Она звонила мне час назад."]])}
+     <div class="rule">Слова-подсказки: <b>yesterday, last week, last year, ago, in 2020</b></div>`),[]],
+   [thStep("Past Simple",2,5,"Утверждение: -ed или 2-я форма",`<p class="lead">Форма <mark>одна для всех</mark>: I, he, they — без разницы.</p>
+     ${split2("Правильные глаголы","work → work"+A("ed"),"live → lived · stop → stopped","Неправильные","go → "+A("went"),"Берём 2-ю форму из таблицы")}
+     <div class="rule">Таблица неправильных глаголов есть в разделе «Грамматика». Начни с первых 15.</div>`),["pa1","pa2","pa3","pa4"]],
+   [thStep("Past Simple",3,5,"Отрицание: didn't",`<p class="lead">Перед глаголом ставим <mark>didn't</mark>, а глагол возвращается в 1-ю форму.</p>
+     ${split2("Утверждение","I went home.","2-я форма","Отрицание","I "+A("didn't")+" go home.","прошлое уже в didn't")}
+     <div class="rule">Ловушка: <b>I didn't went</b> — ошибка. Прошлое показывает didn't, второй раз его не повторяем.</div>`),["pa5","pa6"]],
+   [thStep("Past Simple",4,5,"Вопрос: Did",`<p class="lead">Вопрос начинается с <mark>Did</mark>, глагол — в 1-й форме.</p>
+     ${split2("Утверждение","You watched it.","","Вопрос",A("Did")+" you watch it?","глагол без -ed")}`),["pa7","pa8"]],
+   [thStep("Past Simple",5,5,"was / were",`<p class="lead">Глагол <mark>be</mark> в прошлом: was или were. С ним did не нужен.</p>
+     ${split2("I · he · she · it",A("was"),"I was tired.","you · we · they",A("were"),"They were at home.")}
+     <div class="rule">Отрицание: wasn't / weren't. Вопрос: Were you…? Was he…?</div>`),["pa9","pa10","pa11","pa12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Past Simple</h1><p class="lead">Было и закончилось.</p>
+   <div class="panel stack"><div class="eyebrow">Утверждение</div><div class="fbig" style="font-size:19px">worked · went (2-я форма)</div></div>
+   <div class="panel stack"><div class="eyebrow">Отрицание и вопрос</div><div class="fbig" style="font-size:19px">didn't go · Did you go?</div></div>
+   <div class="panel stack"><div class="eyebrow">be</div><div class="fbig" style="font-size:19px">I was · they were</div></div>`,
+  test:PAST_ITEMS.filter(i=>i.id.startsWith("pax")).map(i=>i.id),
+  rule:"Past Simple: глагол + -ed или 2-я форма (went); отрицание didn't + 1-я форма; вопрос Did you…?; was/were"},
+ {key:"fut",name:"Future: will / going to",ru:"Будущее",
+  steps:stepsOf(FUT_ITEMS,[
+   [thStep("Будущее",1,4,"will: решение, обещание, прогноз",`<p class="lead"><mark>will</mark> + глагол. Одинаково для всех: I will, he will, they will. В речи — <b>I'll</b>.</p>
+     ${exl([["I'll call you.","Я тебе позвоню (обещание)."],["I think it will rain.","Думаю, будет дождь (прогноз)."],["I'm hungry. I'll order food.","Я голоден. Закажу еду (решил прямо сейчас)."]])}`),[]],
+   [thStep("Будущее",2,4,"won't и Will you…?",`${split2("Отрицание","I "+A("won't")+" go.","won't = will not","Вопрос",A("Will")+" you come?","will — в начало")}
+     <div class="rule">После will — глагол без to и без -ing: will go, а не will to go.</div>`),["fu1","fu2","fu3","fu4"]],
+   [thStep("Будущее",3,4,"going to: план заранее",`<p class="lead"><mark>am / is / are going to</mark> + глагол — план уже решён, или видно, что сейчас случится.</p>
+     ${exl([["I'm going to move to Serbia.","Я собираюсь переехать в Сербию (решено)."],["Look! It's going to rain.","Смотри, сейчас пойдёт дождь (видно по тучам)."]])}`),["fu5","fu6","fu7"]],
+   [thStep("Будущее",4,4,"will или going to",`${split2("Решил только что","I'll answer it!","will","Решил заранее","I'm going to buy a bike.","going to")}`),["fu8","fu9","fu10","fu11","fu12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Будущее</h1>
+   <div class="panel stack"><div class="eyebrow">will — решение сейчас, обещание</div><div class="fbig" style="font-size:19px">I'll go · I won't go · Will you go?</div></div>
+   <div class="panel stack"><div class="eyebrow">going to — план заранее</div><div class="fbig" style="font-size:19px">I'm going to go · Are you going to go?</div></div>`,
+  test:FUT_ITEMS.filter(i=>i.id.startsWith("fux")).map(i=>i.id),
+  rule:"Будущее: will + глагол (решение сейчас, обещание; won't, Will you…?); am/is/are going to + глагол (план заранее)"},
+ {key:"pp",name:"Present Perfect",ru:"Настоящее совершённое",
+  steps:stepsOf(PP_ITEMS,[
+   [thStep("Present Perfect",1,4,"Результат сейчас или опыт",`<p class="lead">Было в прошлом, но важно <mark>сейчас</mark>: результат или опыт за всю жизнь. Когда именно — не важно.</p>
+     ${exl([["I've lost my keys.","Я потерял ключи (и их нет до сих пор)."],["I've been to Bangkok.","Я бывал в Бангкоке (опыт)."],["She has lived here since May.","Она живёт здесь с мая."]])}
+     <div class="rule">Слова-подсказки: <b>already, yet, ever, never, just, since, for</b></div>`),[]],
+   [thStep("Present Perfect",2,4,"have / has + 3-я форма",`${split2("I · you · we · they",A("have")+" seen","I've seen = I have seen","he · she · it",A("has")+" seen","he's seen = he has seen")}
+     <div class="rule">3-я форма: правильные глаголы + ed (worked), неправильные — из 3-й колонки таблицы (been, seen, eaten).</div>`),["pp1","pp2","pp3"]],
+   [thStep("Present Perfect",3,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("haven't")+" seen it.","he hasn't seen it","Вопрос",A("Have")+" you seen it?","Has he seen it?")}
+     <div class="rule">ever — в вопросах: Have you ever…? yet — в конце: I haven't done it yet.</div>`),["pp4","pp5","pp6","pp7"]],
+   [thStep("Present Perfect",4,4,"Perfect или Past Simple",`<p class="lead">Если сказано <mark>когда</mark> (yesterday, last year, in 2020) — это Past Simple.</p>
+     ${split2("Без времени","I've seen this film.","Present Perfect","С временем","I saw it yesterday.","Past Simple")}`),["pp8","pp9","pp10","pp11","pp12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Present Perfect</h1><p class="lead">Результат сейчас или опыт за жизнь.</p>
+   <div class="panel stack"><div class="eyebrow">Утверждение</div><div class="fbig" style="font-size:19px">I've seen · he's seen</div></div>
+   <div class="panel stack"><div class="eyebrow">Отрицание и вопрос</div><div class="fbig" style="font-size:19px">haven't seen · Have you seen?</div></div>
+   <div class="rule">Есть yesterday / last year → Past Simple.</div>`,
+  test:PP_ITEMS.filter(i=>i.id.startsWith("ppx")).map(i=>i.id),
+  rule:"Present Perfect: have/has + 3-я форма (I've seen, he's eaten); haven't/hasn't; Have you ever…?; не используется с yesterday/last year"},
+ {key:"pcn",name:"Past Continuous",ru:"Прошедшее длительное",
+  steps:stepsOf(PCN_ITEMS,[
+   [thStep("Past Continuous",1,4,"Процесс в прошлом",`<p class="lead">Что <mark>происходило</mark> в какой-то момент в прошлом. Часто это фон для другого события.</p>
+     ${exl([["At 10 I was sleeping.","В 10 я спал."],["I was walking when it started to rain.","Я гулял, когда начался дождь."]])}`),[]],
+   [thStep("Past Continuous",2,4,"was / were + -ing",`${split2("I · he · she · it",A("was")+" working","I was working","you · we · they",A("were")+" working","They were working")}`),["pn1","pn2","pn3"]],
+   [thStep("Past Continuous",3,4,"Отрицание и вопрос",`${split2("Отрицание","I "+A("wasn't")+" working","weren't = were not","Вопрос",A("Were")+" you working?","Was he working?")}`),["pn4","pn5","pn7","pn8"]],
+   [thStep("Past Continuous",4,4,"Длинное и короткое",`<p class="lead">Длинный процесс — <mark>Past Continuous</mark>, короткое событие посреди него — <mark>Past Simple</mark>.</p>
+     ${exl([["I was sleeping when you called.","Я спал (долго), когда ты позвонил (раз)."],["While I was driving, my phone rang.","Пока я ехал, зазвонил телефон."]])}`),["pn6","pn9","pn10","pn11","pn12"]]]),
+  sheet:`<div class="eyebrow">Шпаргалка</div><h1>Past Continuous</h1><p class="lead">Процесс в момент в прошлом.</p>
+   <div class="panel stack"><div class="eyebrow">Форма</div><div class="fbig" style="font-size:19px">I was working · they were working</div></div>
+   <div class="rule">Длинное — was …ing, короткое событие — Past Simple: I was sleeping when you called.</div>`,
+  test:PCN_ITEMS.filter(i=>i.id.startsWith("pnx")).map(i=>i.id),
+  rule:"Past Continuous: was/were + -ing (процесс в момент в прошлом); I was sleeping when you called"}
+];
+[...PC_ITEMS,...PAST_ITEMS,...FUT_ITEMS,...PP_ITEMS,...PCN_ITEMS].forEach(t=>{TI.push(t);TENSE_ITEMS[t.id]=t});
+TI.forEach(t=>{if(!t.rule)t.rule="ps"});
+TI.forEach(t=>{t.tense=t.rule==="ps"?"ps":t.rule});
+
 
 const LINK=[
  {type:"say",ru:"Я из России, но живу в Таиланде.",en:"I'm from Russia, but I live in Thailand.",pit:"from — откуда родом, live in — где живёшь сейчас."},
@@ -536,6 +762,10 @@ function cloudLoad(){if(!CLOUD)return;
 try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} /* без облака и без отметки времени: сначала смотрим, что лежит в Telegram */
 const wStat=id=>S.words[id]||(S.words[id]={status:"new",ok:0,bad:0});
 if(typeof S.curTopic!=="number")S.curTopic=0;
+TENSE_DEFS.forEach(d=>{if(!S.tense[d.key])S.tense[d.key]={stage:0,answers:[]}});
+/* этапы времени: 0 — шаги и тест 1, 1 — тренировка 2 и тест 2, 2 — накопительный тест, 3 — закрыто */
+const curTense=()=>TENSE_DEFS.find(d=>S.tense[d.key].stage<3)||TENSE_DEFS[TENSE_DEFS.length-1];
+const tenseOn=d=>S.tense[d.key].stage>0||S.tense[d.key].answers.length>0;
 const curT=()=>TOPICS[S.curTopic]||TOPICS[0];
 const cStat=id=>S.cons[id]||(S.cons[id]={status:"new",ok:0,bad:0});
 function addMistake(kind,id){if(!S.mistakes.some(m=>m.kind===kind&&m.id===id&&m.date===today))S.mistakes.push({kind,id,date:today})}
@@ -994,7 +1224,7 @@ function record(t,ok,mode){
   if(runnerLite)return;
   if(t.wordId){const s=wStat(t.wordId);ok?s.ok++:s.bad++;if(s.status==="new"){s.status="learning";s.at=Date.now()}if(mode==="test"&&!ok)addMistake("word",t.wordId)}
   if(t.consId){const s=cStat(t.consId);ok?s.ok++:s.bad++;if(s.status==="new"){s.status="learning";s.at=Date.now()}if(mode==="test"&&!ok)addMistake("cons",t.consId)}
-  if(t.tenseId){if(!S.tense.ps.at)S.tense.ps.at=Date.now();const a=S.tense.ps.answers;a.push(ok?1:0);if(a.length>30)a.shift();if(mode==="test"&&!ok)addMistake("tense",t.tenseId)}
+  if(t.tenseId){const tk=(TENSE_ITEMS[t.tenseId]||{}).tense||"ps",ts=S.tense[tk];if(!ts.at)ts.at=Date.now();const a=ts.answers;a.push(ok?1:0);if(a.length>30)a.shift();if(mode==="test"&&!ok)addMistake("tense",t.tenseId)}
   save();
 }
 
@@ -1143,7 +1373,7 @@ const BLOCKS=[
  {key:"check",name:"Проверка",desc:"Ошибки прошлых дней",min:10},
  {key:"words",name:"Слова",desc:"",min:25},
  {key:"cons",name:"Конструкции",desc:"5 штук, по одной",min:20},
- {key:"tense",name:"Времена",desc:"Present Simple",min:25},
+ {key:"tense",name:"Времена",desc:"",min:25},
  {key:"link",name:"Связка",desc:"Скажи вслух и собери фразу",min:10}
 ];
 function finishBlock(key){S.day.done[key]=true;save()}
@@ -1152,7 +1382,7 @@ function markTopicDone(t){if(!S.topicsDone.includes(t.id))S.topicsDone.push(t.id
   return `<p class="muted" style="max-width:34ch">Тема «${esc(t.en)}» пройдена. Следующая: <b style="color:var(--fg)">${esc(TOPICS[n].en)}</b> · ${esc(TOPICS[n].ru)}. Сменить можно на карте тем.</p>`}
 /* конструкции урока: для темы 1 — свои 5, дальше — следующие 5 новых из библиотеки */
 function topicCons(){if(S.curTopic===0)return TOPIC_CONS.filter(c=>cStat(c.id).status!=="learned");return CONS.filter(c=>cStat(c.id).status==="new").slice(0,5)}
-const tag=it=>({...it,tenseId:it.id});
+const tag=it=>{const t={...it,tenseId:it.id};return t.type==="choice"&&t.notes?shufOpts(t):t};
 
 function startBlock(key){
   if(key==="check"){
@@ -1208,22 +1438,27 @@ function startBlock(key){
       onFinish:ph=>{finishBlock("cons");resultScreen("Конструкции",ph)}});
     return}
   if(key==="tense"){
-    const st=S.tense.ps.stage,th=S.settings.threshold;
-    if(st>=2){
-      runBlock({title:"Времена",phases:[{mode:"test",name:"Накопительный тест",intro:{eyebrow:"Present Simple закрыто",title:"Накопительный тест",text:"Все пройденные времена вперемешку. В прототипе пока одно время."},tasks:()=>shuffle(TI.filter(t=>t.type!=="say")).slice(0,10).map(tag)}],
-        onFinish:ph=>{finishBlock("tense");resultScreen("Времена",ph,`<p class="muted">Следующее время, Present Continuous, появится в полной версии.</p>`)}});
+    const d=curTense(),ts=S.tense[d.key],st=ts.stage,th=S.settings.threshold,closedAll=TENSE_DEFS.every(x=>S.tense[x.key].stage>=3);
+    const done=TENSE_DEFS.filter(x=>S.tense[x.key].stage>=2||x===d);
+    if(st>=2||closedAll){
+      const pool=TI.filter(t=>t.type!=="say"&&done.some(x=>x.key===t.tense));
+      runBlock({title:"Времена",phases:[{mode:"test",name:"Накопительный тест",intro:{eyebrow:closedAll?"Все 6 времён закрыты":d.name+" · последний шаг",title:"Накопительный тест",text:`Все пройденные времена вперемешку: ${done.map(x=>x.name).join(", ")}. Нужно ${th}%.`},tasks:()=>shuffle(pool).slice(0,12).map(tag)}],
+        onFinish:ph=>{finishBlock("tense");const pass=ph[0].result.pct>=th;let msg;
+          if(closedAll)msg="Все времена закрыты. Накопительный тест — отличная регулярная проверка.";
+          else if(pass){ts.stage=3;const nx=curTense();msg=nx!==d&&S.tense[nx.key].stage<3?`${d.name} закрыто. Следующее время: ${nx.name} (${nx.ru}).`:"Все 6 времён закрыты!"}
+          else msg="Не страшно: повтори шпаргалки в «Грамматике» и пересдай.";
+          save();resultScreen("Времена",ph,`<p class="muted" style="max-width:34ch">${msg}</p>`)}});
       return}
-    const round=st+1;
+    const round=st+1,mine=TI.filter(t=>t.tense===d.key&&!d.test.includes(t.id));
     const trainTasks=round===1
-      ?PS_STEPS.flatMap(s=>[{type:"theory",html:s.theory},...s.tasks.map(id=>tag(TENSE_ITEMS[id]))])
-      :(()=>{const miss=S.mistakes.filter(m=>m.kind==="tense").map(m=>TENSE_ITEMS[m.id]).filter(Boolean);
-         const base=TI.filter(t=>!t.id.startsWith("x"));
-         return [{type:"theory",html:PS_SHEET},...shuffle([...new Set([...miss,...shuffle(base)])]).slice(0,10).map(tag)]})();
+      ?d.steps.flatMap(x=>[{type:"theory",html:x.theory},...x.tasks.map(id=>tag(TENSE_ITEMS[id]))])
+      :(()=>{const miss=S.mistakes.filter(m=>m.kind==="tense").map(m=>TENSE_ITEMS[m.id]).filter(t=>t&&t.tense===d.key);
+         return [{type:"theory",html:d.sheet},...[...new Set([...miss,...shuffle(mine)])].slice(0,10).map(tag)]})();
     runBlock({title:"Времена",phases:[
-      {mode:"train",intro:{eyebrow:`Present Simple · тренировка ${round}`,title:round===1?"Новое время":"Работа над ошибками",text:round===1?"5 коротких шагов: объяснение, потом сразу задания на него.":"Шпаргалка и задания, где ты ошибался."},tasks:trainTasks},
-      {mode:"test",name:`Тест ${round}`,intro:{eyebrow:"Тест",title:`Тест ${round}: Present Simple`,text:`Без подсказок. Нужно ${th}% или больше.`},tasks:()=>shuffle(PS_TEST_IDS).map(id=>tag(TENSE_ITEMS[id]))}],
-      onFinish:ph=>{const pass=ph[1].result.pct>=th;if(pass)S.tense.ps.stage=st+1;finishBlock("tense");save();
-        resultScreen("Времена",ph,`<p class="muted" style="max-width:34ch">${pass?(st+1>=2?"Present Simple закрыто. Дальше накопительный тест.":"Отлично. Следующий шаг — тренировка 2 и тест 2."):"Не страшно: в следующий раз повторим ошибки и пересдадим."}</p>`)}});
+      {mode:"train",intro:{eyebrow:`${d.name} · ${d.ru} · тренировка ${round}`,title:round===1?"Новое время":"Работа над ошибками",text:round===1?`${d.steps.length} коротких шагов: объяснение, потом сразу задания на него.`:"Шпаргалка и задания, где ты ошибался."},tasks:trainTasks},
+      {mode:"test",name:`Тест ${round}`,intro:{eyebrow:"Тест",title:`Тест ${round}: ${d.name}`,text:`Без подсказок. Нужно ${th}% или больше.`},tasks:()=>shuffle(d.test).map(id=>tag(TENSE_ITEMS[id]))}],
+      onFinish:ph=>{const pass=ph[1].result.pct>=th;if(pass)ts.stage=st+1;finishBlock("tense");save();
+        resultScreen("Времена",ph,`<p class="muted" style="max-width:34ch">${pass?(st+1>=2?`${d.name}: тесты сданы. Последний шаг — накопительный тест по всем пройденным временам.`:"Отлично. Следующий шаг — тренировка 2 и тест 2."):"Не страшно: в следующий раз повторим ошибки и пересдадим."}</p>`)}});
     return}
   if(key==="link"){
     const t=curT(),seen=t.words.filter(w=>wStat(w.id).status!=="new"&&!wStat(w.id).known);
@@ -1323,8 +1558,8 @@ function knowledge(){
   const old=items.filter(i=>!fresh.includes(i));
   const weak=old.filter(i=>(i.s.bad||0)>0).sort((a,b)=>(b.s.bad||0)-(a.s.bad||0)).slice(0,6);
   const review=[...weak,...shuffle(old.filter(i=>!weak.includes(i)&&!i.s.known)).slice(0,10-weak.length)];
-  const psOn=S.tense.ps.stage>0||S.tense.ps.answers.length>0,psNew=psOn&&S.tense.ps.at&&(S.tense.ps.at>since||now-S.tense.ps.at<2*DAY);
-  return {items,fresh,freshWhy,review,psOn,psNew,errs:errGroups().slice(0,3)};
+  const tOn=TENSE_DEFS.filter(tenseOn),tNew=tOn.filter(d=>{const a=S.tense[d.key].at;return a&&(a>since||now-a<2*DAY)});const psOn=tOn.length>0,psNew=tNew.length>0;
+  return {items,fresh,freshWhy,review,psOn,psNew,tOn,tNew,errs:errGroups().slice(0,3)};
 }
 const fmtW=i=>`${i.x.en} — ${i.x.ru}`, fmtC=i=>`${i.x.en} (${i.x.ru})`;
 const PS_RULE="Present Simple: he/she/it + -s (he lives); отрицание don't/doesn't + глагол без -s; вопрос Do/Does + глагол без -s";
@@ -1342,18 +1577,18 @@ function buildPrompt(){
   L.push("1) НОВОЕ — главный фокус, примерно 70% вопросов:");
   if(fw.length)L.push("Слова: "+fw.map(fmtW).join("; "));
   if(fc.length)L.push("Конструкции: "+fc.map(fmtC).join("; "));
-  if(K.psNew)L.push("Грамматика: "+PS_RULE);
+  K.tNew.forEach(d=>L.push("Грамматика: "+d.rule));
   if(!fw.length&&!fc.length&&!K.psNew)L.push("Нового нет — сделай упор на повторение ниже.");
   L.push("");
   L.push("2) ПОВТОРИТЬ — пройдено раньше, вставляй органично, примерно 30% вопросов:");
-  const rev=[...rw.map(fmtW),...rc.map(fmtC)];if(K.psOn&&!K.psNew)rev.push(PS_RULE);
+  const rev=[...rw.map(fmtW),...rc.map(fmtC)];K.tOn.filter(d=>!K.tNew.includes(d)).forEach(d=>rev.push(d.rule));
   L.push(rev.length?rev.join("; "):"Пока нечего — всё пройденное новое.");
   if(K.errs.length){L.push("");L.push("3) МОИ ЧАСТЫЕ ОШИБКИ — лови их особенно внимательно:");K.errs.forEach(g=>L.push("- "+g.rule+": "+ruleInfo(g.key).tip))}
   L.push("");
   L.push((K.errs.length?"4":"3")+") ВСЁ, ЧТО Я ЗНАЮ — строй вопросы в основном из этих слов:");
   L.push("Слова: "+(allW.length?allW.join(", "):"пока почти ничего, говори очень просто"));
   if(allC.length)L.push("Конструкции: "+allC.join(", "));
-  L.push("Времена: "+(K.psOn?"Present Simple":"пока ни одного, используй самые простые фразы"));
+  L.push("Времена: "+(K.psOn?K.tOn.map(d=>d.name).join(", "):"пока ни одного, используй самые простые фразы"));
   L.push("");
   L.push("Как проводить разговор:");
   L.push("- Живой разговор: вопросы по одному, простой английский. Темы из моей жизни: Таиланд, работа, семья, увлечения, планы.");
@@ -1382,7 +1617,7 @@ function gptScreen(){
     view.innerHTML=`${topBar(100,"ChatGPT")}<div class="stack"><div><div class="eyebrow">Один постоянный чат</div><h1 style="margin-top:6px">Промпт для ChatGPT</h1>
      <p class="muted" style="margin-top:6px">Каждый промпт содержит всё, что ты знаешь, поэтому ChatGPT ничего не нужно помнить. Кидай его в один и тот же чат перед каждой практикой.</p></div>
      <div class="seg" style="grid-template-columns:1fr 1fr"><button data-m="daily" class="${mode==="daily"?"on":""}">Перед практикой</button><button data-m="setup" class="${mode==="setup"?"on":""}">Первый раз</button></div>
-     ${mode==="daily"?`<div class="gstats"><div><b>${P.fw.length+P.fc.length+(P.K.psNew?1:0)}</b><span>новое · ${esc(P.K.freshWhy)}</span></div><div><b>${P.rev.length}</b><span>повторить</span></div><div><b>${P.K.errs.length}</b><span>частые ошибки</span></div></div>`
+     ${mode==="daily"?`<div class="gstats"><div><b>${P.fw.length+P.fc.length+P.K.tNew.length}</b><span>новое · ${esc(P.K.freshWhy)}</span></div><div><b>${P.rev.length}</b><span>повторить</span></div><div><b>${P.K.errs.length}</b><span>частые ошибки</span></div></div>`
        :`<div class="rule" style="font-size:14px">Отправь это один раз, когда создашь чат. Потом перед каждой практикой — промпт со вкладки «Перед практикой».</div>`}
      <textarea id="pt" readonly>${esc(text)}</textarea>
      <button class="btn primary" id="cp">Скопировать</button>
@@ -1410,7 +1645,7 @@ function lite(){
    <button class="tile" data-l="ccards"><span class="t">Карточки связок</span><span class="d">I'm from, I've been here for…</span></button>
    <button class="tile" data-l="listen"><span class="t">Послушать</span><span class="d">Английский, пауза, русский</span></button>
    <button class="tile" data-l="say"><span class="t">Скажи вслух</span><span class="d">Без отметок</span></button>
-   <button class="tile" data-l="sheet"><span class="t">Шпаргалка</span><span class="d">Present Simple</span></button>
+   <button class="tile" data-l="sheet"><span class="t">Шпаргалка</span><span class="d">${esc(curTense().name)}</span></button>
   </div></div>`;
   bindTop();
   view.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{
@@ -1419,7 +1654,7 @@ function lite(){
     if(m==="ccards")liteCards("cons");
     if(m==="listen")liteListen();
     if(m==="say")runBlock({title:"Лайт",lite:true,phases:[{mode:"train",tasks:shuffle([...liteWords().map(w=>({type:"say",ru:w.exRu,en:w.ex})),...CONS.map(c=>({type:"say",ru:c.ex[0][1],en:c.ex[0][0]}))]).slice(0,10)}],onFinish:()=>lite()});
-    if(m==="sheet"){view.innerHTML=`${topBar(100,"Шпаргалка")}<div class="theory">${PS_SHEET}</div><div class="foot"><button class="btn primary" id="b">Назад</button></div>`;$("#close").onclick=lite;$("#b").onclick=lite}
+    if(m==="sheet"){view.innerHTML=`${topBar(100,"Шпаргалка")}<div class="theory">${curTense().sheet}</div><div class="foot"><button class="btn primary" id="b">Назад</button></div>`;$("#close").onclick=lite;$("#b").onclick=lite}
   });
 }
 function liteCards(kind){
@@ -1601,12 +1836,17 @@ const RULES={
  ord:{t:"Порядок слов",tip:"Кто → действие → что → где → когда. Often, usually, always, never — перед глаголом."},
  w:{t:"Перевод слов",tip:"Слова путаются, когда похожи по смыслу или звучанию. Помогает своя ассоциация на карточке слова."},
  wa:{t:"Слова на слух",tip:"Похожие на слух слова лучше сравнить: послушай оба подряд и повтори вслух."},
+ pc:{t:"Present Continuous",tip:"Прямо сейчас: am / is / are + глагол с -ing. Без am / is / are нельзя, и do / does с -ing не используют."},
+ past:{t:"Past Simple",tip:"Прошлое: -ed или 2-я форма. После didn't и в вопросе с Did — снова 1-я форма: didn't go, Did you go?"},
+ fut:{t:"Будущее: will / going to",tip:"will — решение прямо сейчас или обещание, после will глагол без to. going to — план, решённый заранее: am / is / are going to."},
+ pp:{t:"Present Perfect",tip:"have / has + 3-я форма (seen, been, eaten). Если сказано, когда именно (yesterday, last year), — это Past Simple."},
+ pcn:{t:"Past Continuous",tip:"Процесс в прошлом: was / were + -ing. Короткое событие посреди процесса — Past Simple: I was sleeping when you called."},
  lw:{t:"Маленькие слова: путаницы",tip:"Смотри, что стоит рядом: вещь после слова (their car), кто делает (they) или кого (them). Для in / on / at: at — точка, on — поверхность и дни, in — внутри, города, месяцы."},
  link:{t:"Связки и целые фразы",tip:"Разбери фразу по частям: какая конструкция, какое время, кто действует."}
 };
 const plural=(n,a,b,c)=>{const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c};
 function taskKey(t){return t.tenseId?"t:"+t.tenseId:t.wordId?"w:"+t.wordId+":"+(t.audio?"audio":t.hint||t.type):t.consId?"c:"+t.consId+":"+t.type+":"+(t.ru||t.prompt):"x:"+(t.ru||t.prompt)}
-function ruleOf(t){if(t.id&&/^lp\d/.test(t.id))return "lw";if(t.tenseId)return RULE_OF[t.tenseId]||"s";if(t.wordId)return t.audio?"wa":"w";if(t.consId)return "c:"+t.consId;return "link"}
+function ruleOf(t){if(t.id&&/^lp\d/.test(t.id))return "lw";if(t.tenseId){const it=TENSE_ITEMS[t.tenseId];if(it&&it.tense&&it.tense!=="ps")return it.tense;return RULE_OF[t.tenseId]||"s"}if(t.wordId)return t.audio?"wa":"w";if(t.consId)return "c:"+t.consId;return "link"}
 function ruleInfo(r){if(r.startsWith("c:")){const c=CONS.find(x=>x.id===r.slice(2));return {t:"Конструкция "+c.en,tip:c.simple+" "+c.pitPlain}}return RULES[r]}
 const SNAP=["type","hint","prompt","ru","en","options","answer","notes","chunks","extra","why","pit","wordId","consId","tenseId","audio","say","sayAfter"];
 function snapTask(t){const o={};SNAP.forEach(k=>{if(t[k]!==undefined&&t[k]!==null)o[k]=t[k]});return o}
@@ -1716,16 +1956,16 @@ function home(){
   const ct=curT(),seen=ct.words.filter(w=>wStat(w.id).status!=="new").length;
   const cur=BLOCKS.find(b=>!S.day.done[b.key]);
   const doneN=BLOCKS.filter(b=>S.day.done[b.key]).length;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Сегодня</div><h1 style="margin-top:4px">${cur?"План на день":"День закрыт"}</h1></div><span class="proto">v11</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Сегодня</div><h1 style="margin-top:4px">${cur?"План на день":"День закрыт"}</h1></div><span class="proto">v12</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${pathCard()}
   <div class="now">
     <button class="panel tpanel" id="tp"><div class="eyebrow">Тема · сменить ›</div><div class="val">${esc(ct.en)}</div><div class="muted" style="font-size:13px;font-variant-numeric:tabular-nums">${esc(ct.ru)} · ${seen}/${ct.words.length}</div><div class="bar"><i style="width:${seen/ct.words.length*100}%"></i></div></button>
-    <div class="panel"><div class="eyebrow">Время</div><div class="val">Present Simple</div><div class="muted" style="font-size:13px">${["Шаги и тест 1","Тренировка 2 и тест 2","Накопительный тест"][Math.min(S.tense.ps.stage,2)]}</div><div class="bar"><i style="width:${Math.min(S.tense.ps.stage,2)/2*100}%"></i></div></div>
+    <div class="panel"><div class="eyebrow">Время · ${TENSE_DEFS.indexOf(curTense())+1} из 6</div><div class="val">${esc(curTense().name)}</div><div class="muted" style="font-size:13px">${["Шаги и тест 1","Тренировка 2 и тест 2","Накопительный тест","Закрыто"][S.tense[curTense().key].stage]}</div><div class="bar"><i style="width:${TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length/6*100}%"></i></div></div>
   </div>
   ${cur?`<button class="btn primary" id="cont">${doneN?"Продолжить":"Начать"}: ${cur.name}</button>`:`<button class="btn primary" id="gpt">Промпт для ChatGPT</button>`}
   <div class="panel" style="margin-top:14px;padding-block:6px"><div class="plan">
-   ${BLOCKS.map((b,i)=>{const d=S.day.done[b.key],c=cur&&cur.key===b.key;return `<button data-b="${b.key}"><span class="dot ${d?"done":c?"cur":""}">${d?"✓":i+1}</span><span><span class="t">${b.name}</span><br><span class="d">${esc(b.key==="words"?curT().en+" · "+curT().ru:b.key==="cons"?topicCons().length?topicCons().length+" новых":"все изучены":b.desc)}</span></span><span class="m">${b.min} мин</span></button>`}).join("")}
+   ${BLOCKS.map((b,i)=>{const d=S.day.done[b.key],c=cur&&cur.key===b.key;return `<button data-b="${b.key}"><span class="dot ${d?"done":c?"cur":""}">${d?"✓":i+1}</span><span><span class="t">${b.name}</span><br><span class="d">${esc(b.key==="words"?curT().en+" · "+curT().ru:b.key==="cons"?topicCons().length?topicCons().length+" новых":"все изучены":b.key==="tense"?curTense().name:b.desc)}</span></span><span class="m">${b.min} мин</span></button>`}).join("")}
   </div></div>
   <div class="extras">
    <button class="xbtn wide lwt" id="lwb"><b>Little Words · маленькие слова</b><span>их, его, под, за, уже, потому что — ${LW.filter(w=>wStat(w.id).status!=="new").length} из ${LW.length} выучено</span></button>
@@ -1820,7 +2060,7 @@ function assocBlock(w,el,editing=false){
 function stats(){
   const cnt=(ids,get)=>{const r={learned:0,learning:0,new:0};ids.forEach(id=>r[get(id).status]++);return r};
   const w=cnt(TOPIC_WORDS_ALL.map(x=>x.id),wStat),c=cnt(CONS.map(x=>x.id),cStat);
-  const a=S.tense.ps.answers,pct=a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length*100):null;
+  const tp=d=>{const a=S.tense[d.key].answers;return a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length*100):null};const pcts=TENSE_DEFS.map(tp).filter(x=>x!=null),pct=pcts.length?Math.min(...pcts):null;
   const col=p=>p==null?"var(--line)":p>85?"var(--good)":p>=60?"var(--warn)":"var(--bad)";
   const grid=r=>`<div class="statgrid"><div><b style="color:var(--good)">${r.learned}</b><span>выучено</span></div><div><b style="color:var(--warn)">${r.learning}</b><span>в процессе</span></div><div><b>${r.new}</b><span>не начато</span></div></div>`;
   view.innerHTML=`<div class="head"><div><div class="eyebrow">Статистика</div><h1 style="margin-top:4px">Прогресс</h1></div></div>
@@ -1828,15 +2068,14 @@ function stats(){
   <div class="panel"><h3>Слова</h3>${grid(w)}<div class="tense" style="border:0;padding-bottom:0"><span>Тема ${esc(curT().en)}</span><span class="muted" style="font-variant-numeric:tabular-nums">${curT().words.filter(x=>wStat(x.id).status!=="new").length}/${curT().words.length}</span><div class="bar"><i style="width:${curT().words.filter(x=>wStat(x.id).status!=="new").length/curT().words.length*100}%"></i></div></div><div class="tense" style="border:0;padding-top:0"><span>Тем пройдено</span><span class="muted">${S.topicsDone.length}/${TOPICS.length}</span></div></div>
   <div class="panel"><h3>Конструкции</h3>${grid(c)}</div>
   <div class="panel"><h3>Времена</h3><p class="muted" style="margin:4px 0 6px;font-size:13px">По последним 30 ответам. Зелёный больше 85%, жёлтый 60–85%, красный меньше 60%.</p>
-   ${TENSES.map((t,i)=>i===0?`<div class="tense"><span>${t}</span><span style="color:${col(pct)};font-weight:700;font-variant-numeric:tabular-nums">${pct==null?"нет ответов":pct+"%"}</span><div class="bar"><i style="width:${pct||0}%;background:${col(pct)}"></i></div></div>`
-     :`<div class="tense locked"><span>${t}</span><span class="muted">закрыто</span></div>`).join("")}
+   ${TENSE_DEFS.map(d=>{const p=tp(d),on=tenseOn(d);return on?`<div class="tense"><span>${d.name}${S.tense[d.key].stage>=3?' <span class="chip good">закрыто</span>':""}</span><span style="color:${col(p)};font-weight:700;font-variant-numeric:tabular-nums">${p==null?"нет ответов":p+"%"}</span><div class="bar"><i style="width:${p||0}%;background:${col(p)}"></i></div></div>`:`<div class="tense locked"><span>${d.name}</span><span class="muted">ещё не начато</span></div>`}).join("")}
   </div>
   <div class="panel"><h3>Где ошибаешься чаще всего</h3>${errGroups().slice(0,3).map(g=>`<div class="tense"><span>${esc(g.rule)}</span><span class="chip bad">${g.n} ${plural(g.n,"ошибка","ошибки","ошибок")}</span></div>`).join("")||'<p class="muted" style="margin-top:6px">Ошибок пока нет.</p>'}
   ${openErrors().length?`<button class="btn ghost" id="toerr" style="margin-top:12px">Открыть «Мои ошибки»</button>`:""}
   ${pct!=null&&pct<=85?`<button class="btn ghost" id="weak" style="margin-top:12px">Тренировать слабые места</button>`:""}</div>
   </div>`;
   const te=$("#toerr");if(te)te.onclick=errorsScreen;
-  const wk=$("#weak");if(wk)wk.onclick=()=>runBlock({title:"Слабые места",phases:[{mode:"train",tasks:shuffle(TI.filter(t=>t.type!=="say")).slice(0,10).map(tag)}],onFinish:ph=>resultScreen("Слабые места",ph)});
+  const wk=$("#weak");if(wk)wk.onclick=()=>runBlock({title:"Слабые места",phases:[{mode:"train",tasks:shuffle(TI.filter(t=>t.type!=="say"&&tenseOn(TENSE_DEFS.find(d=>d.key===t.tense)))).slice(0,10).map(tag)}],onFinish:ph=>resultScreen("Слабые места",ph)});
 }
 
 function settings(){
