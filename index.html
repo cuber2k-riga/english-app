@@ -254,6 +254,11 @@ details summary{list-style:none} details summary::-webkit-details-marker{display
 .gstats b{display:block;font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
 .gstats span{font-size:11px;color:var(--muted);line-height:1.2;display:block}
 .task{font-size:19px;font-weight:700;line-height:1.3;color:var(--fg);border-left:3px solid var(--accent);padding-left:10px;margin-bottom:6px}
+.track{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.trk-top{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%}
+.trk-t{font-family:var(--f-display);font-size:19px;font-weight:700;margin:2px 0}
+.trk-map{font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;padding-top:2px}
+.track .bar{margin-top:0}
 /* Grammar */
 .glist{display:flex;flex-direction:column;gap:8px}
 .gitem{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;text-align:left;background:var(--surface);border-radius:var(--r);padding:14px}
@@ -1359,7 +1364,7 @@ function renderTask(t,mode,pct,label,canBack,cb){
 function resultScreen(title,phases,extra=""){
   showTabs(false);
   const tests=phases.filter(p=>p.mode==="test");const th=S.settings.threshold;
-  const allDone=BLOCKS.every(b=>S.day.done[b.key]);
+  const allDone=false;
   view.innerHTML=`<div class="stack center" style="padding-top:36px">
     <div class="eyebrow">${esc(title)}</div><h1>Блок пройден</h1>
     ${tests.map(p=>{const pass=p.result.pct>=th;return `<div class="panel" style="width:100%"><div class="score" style="color:${pass?"var(--good)":"var(--bad)"}">${p.result.pct}%</div>
@@ -1906,7 +1911,7 @@ function pathScreen(){
   showTabs(false);
   const cur=curTopicIdx(),OFF=[0,56,84,56,0,-56,-84,-56];let k=0;
   view.innerHTML=`${topBar(S.topicsDone.length/TOPICS.length*100,`${S.topicsDone.length} / ${TOPICS.length}`)}
-   <div class="eyebrow">Карта пути</div><h1 style="margin:6px 0 4px">45 тем до свободной речи</h1>
+   <div class="eyebrow">Тропа слов</div><h1 style="margin:6px 0 4px">45 тем до свободной речи</h1>
    <p class="muted" style="margin-bottom:8px">Открыты все темы. Нажми на любую: там можно сделать её текущей и отметить слова, которые уже знаешь.</p>
    ${STAGES.map((st,si)=>{const done=TOPICS.slice(st.from,st.to+1).filter(t=>S.topicsDone.includes(t.id)).length,total=st.to-st.from+1;
      const sDone=done===total;return `<div class="stage ${sDone?"sdone":cur>=st.from&&cur<=st.to?"scur":""}"><div><b>${esc(st.t)}</b><span>${done} из ${total} тем</span></div><span class="chip">${sDone?"пройден":cur>=st.from&&cur<=st.to?"сейчас":"открыт"}</span></div>
@@ -1952,33 +1957,108 @@ function go(tab){
 }
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="dict")dictAt=null;go(b.dataset.tab)});
 
+/* ================= ГЛАВНАЯ: три тропы вместо плана дня ================= */
+const curC=()=>CONS.find(c=>c.id===S.curCons)||CONS.find(c=>cStat(c.id).status!=="learned")||CONS[0];
+const nextCons=c=>{const i=CONS.indexOf(c);for(let k=1;k<=CONS.length;k++){const n=CONS[(i+k)%CONS.length];if(cStat(n.id).status!=="learned")return n}return c};
 function home(){
   const ct=curT(),seen=ct.words.filter(w=>wStat(w.id).status!=="new").length;
-  const cur=BLOCKS.find(b=>!S.day.done[b.key]);
-  const doneN=BLOCKS.filter(b=>S.day.done[b.key]).length;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Сегодня</div><h1 style="margin-top:4px">${cur?"План на день":"День закрыт"}</h1></div><span class="proto">v12</span></div>
+  const cc=curC(),cDone=CONS.filter(c=>cStat(c.id).status==="learned").length;
+  const td=curTense(),tClosed=TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length;
+  const oldMist=S.mistakes.filter(m=>m.date<today).length;
+  const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
+    <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v13</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
-  ${pathCard()}
-  <div class="now">
-    <button class="panel tpanel" id="tp"><div class="eyebrow">Тема · сменить ›</div><div class="val">${esc(ct.en)}</div><div class="muted" style="font-size:13px;font-variant-numeric:tabular-nums">${esc(ct.ru)} · ${seen}/${ct.words.length}</div><div class="bar"><i style="width:${seen/ct.words.length*100}%"></i></div></button>
-    <div class="panel"><div class="eyebrow">Время · ${TENSE_DEFS.indexOf(curTense())+1} из 6</div><div class="val">${esc(curTense().name)}</div><div class="muted" style="font-size:13px">${["Шаги и тест 1","Тренировка 2 и тест 2","Накопительный тест","Закрыто"][S.tense[curTense().key].stage]}</div><div class="bar"><i style="width:${TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length/6*100}%"></i></div></div>
+  ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
+  <div class="stack">
+   ${track("words",`Тропа слов · тема ${S.curTopic+1} из ${TOPICS.length}`,esc(ct.en),`${esc(ct.ru)} · ${seen}/${ct.words.length} слов`,seen/ct.words.length*100,"words",`Учить слова: ${esc(ct.en)}`)}
+   ${track("cons",`Тропа конструкций · ${cDone} из ${CONS.length}`,esc(cc.en),`${esc(cc.ru)} · ${esc(cc.g)}`,cDone/CONS.length*100,"cons",`Учить: ${esc(cc.en)}`)}
+   ${track("tense",`Времена · ${TENSE_DEFS.indexOf(td)+1} из 6`,esc(td.name),`${esc(td.ru)} · ${["шаги и тест 1","тренировка 2 и тест 2","накопительный тест","закрыто"][S.tense[td.key].stage]}`,tClosed/6*100,"tense",`Учить: ${esc(td.name)}`)}
   </div>
-  ${cur?`<button class="btn primary" id="cont">${doneN?"Продолжить":"Начать"}: ${cur.name}</button>`:`<button class="btn primary" id="gpt">Промпт для ChatGPT</button>`}
-  <div class="panel" style="margin-top:14px;padding-block:6px"><div class="plan">
-   ${BLOCKS.map((b,i)=>{const d=S.day.done[b.key],c=cur&&cur.key===b.key;return `<button data-b="${b.key}"><span class="dot ${d?"done":c?"cur":""}">${d?"✓":i+1}</span><span><span class="t">${b.name}</span><br><span class="d">${esc(b.key==="words"?curT().en+" · "+curT().ru:b.key==="cons"?topicCons().length?topicCons().length+" новых":"все изучены":b.key==="tense"?curTense().name:b.desc)}</span></span><span class="m">${b.min} мин</span></button>`}).join("")}
-  </div></div>
   <div class="extras">
    <button class="xbtn wide lwt" id="lwb"><b>Little Words · маленькие слова</b><span>их, его, под, за, уже, потому что — ${LW.filter(w=>wStat(w.id).status!=="new").length} из ${LW.length} выучено</span></button>
-   <button class="xbtn" id="drill"><b>Тренажёр</b><span>Прогнать одну конструкцию</span></button>
    <button class="xbtn" id="lite"><b>Лайт-режим</b><span>Нет сил — просто повтори</span></button>
    <button class="xbtn" id="errs"><b>Мои ошибки</b><span>${openErrors().length?openErrors().length+" с разбором":"Пока нет"}</span></button>
-   <button class="xbtn" id="pathb"><b>Карта пути</b><span>Все 45 тем</span></button>
-   ${cur?`<button class="xbtn wide" id="gpt2"><b>Промпт для ChatGPT</b><span>Один постоянный чат: новое + повторение</span></button>`:""}
+   <button class="xbtn" id="link"><b>Связка</b><span>Говорить целыми фразами</span></button>
+   <button class="xbtn" id="gpt2"><b>ChatGPT</b><span>Промпт для разговора</span></button>
   </div>`;
-  if(cur)$("#cont").onclick=()=>startBlock(cur.key);else $("#gpt").onclick=gptScreen;
-  const g2=$("#gpt2");if(g2)g2.onclick=gptScreen;
-  view.querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>startBlock(b.dataset.b));
-  $("#lite").onclick=lite;$("#drill").onclick=drill;$("#lwb").onclick=lwScreen;$("#errs").onclick=errorsScreen;$("#pathb").onclick=pathScreen;const ob=$("#onb");if(ob)ob.onclick=()=>knownScreen();$("#pc").onclick=pathScreen;$("#tp").onclick=()=>topicScreen(S.curTopic);
+  view.querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>({words:pathScreen,cons:consPathScreen,tense:tensePathScreen})[b.dataset.path]());
+  view.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==="cons")consLearn(curC());else startBlock(g)});
+  $("#gpt2").onclick=gptScreen;$("#lite").onclick=lite;$("#lwb").onclick=lwScreen;$("#errs").onclick=errorsScreen;$("#link").onclick=()=>startBlock("link");
+  const ob=$("#onb");if(ob)ob.onclick=()=>knownScreen();const ck=$("#chk");if(ck)ck.onclick=()=>startBlock("check");
+}
+
+/* ================= ТРОПА КОНСТРУКЦИЙ ================= */
+function consPathScreen(){
+  showTabs(false);const cur=curC(),OFF=[0,56,84,56,0,-56,-84,-56];let k=0;
+  const done=CONS.filter(c=>cStat(c.id).status==="learned").length;
+  view.innerHTML=`${topBar(done/CONS.length*100,`${done} / ${CONS.length}`)}
+   <div class="eyebrow">Тропа конструкций</div><h1 style="margin:6px 0 4px">${CONS.length} конструкций в ${CGROUPS.length} группах</h1>
+   <p class="muted" style="margin-bottom:8px">Открыты все. Нажми на любую: разбор, урок, прогон ×20 или «уже знаю». Кубок в конце группы — тест по всей группе.</p>
+   ${CGROUPS.map((g,gi)=>{const list=CONS.filter(c=>c.g===g),d=list.filter(c=>cStat(c.id).status==="learned").length,isCur=cur.g===g;
+     return `<div class="stage ${d===list.length?"sdone":isCur?"scur":""}"><div><b>${esc(g)}</b><span>${d} из ${list.length}</span></div><span class="chip">${d===list.length?"пройдено":isCur?"сейчас":"открыто"}</span></div>
+     <div class="path">${list.map(c=>{const st=c===cur?"cur":cStat(c.id).status==="learned"?"done":"open",x=OFF[k++%OFF.length];
+       return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-c="${c.id}" aria-label="${esc(c.en)}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${CONS.indexOf(c)+1}</span>`}</button><div class="plabel"><b>${esc(c.en)}</b><span>${esc(c.ru)}</span></div></div>`}).join("")}
+      <div class="pstep" style="transform:translateX(${OFF[k++%OFF.length]}px)"><button class="pnode trophy ${d===list.length?"done":"open"}" data-g="${gi}" aria-label="Тест группы">${ICON_CUP}</button><div class="plabel"><b>Тест группы</b><span>${esc(g)}</span></div></div></div>`}).join("")}`;
+  bindTop();
+  view.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>consScreen(CONS.find(c=>c.id===b.dataset.c)));
+  view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>consGroupTest(CGROUPS[+b.dataset.g]));
+  const c=view.querySelector(".pnode.cur");if(c)setTimeout(()=>c.scrollIntoView({block:"center"}),50);
+}
+function consScreen(c){
+  showTabs(false);const st=cStat(c.id).status,learned=st==="learned",n=genPhrases(c,true).length;
+  view.innerHTML=`<div class="rtop"><button class="x" id="cb" aria-label="Назад">${BACK}</button><div style="flex:1"></div><div class="rlabel">${esc(c.g)} · ${CONS.indexOf(c)+1} из ${CONS.length}</div></div>
+   <div class="stack"><div class="card">
+     <div class="row" style="justify-content:space-between;align-items:flex-start"><div style="font-family:var(--f-display);font-size:24px;font-weight:700">${esc(c.en)}</div>${statusChip(st)}</div>
+     <div class="ru">${esc(c.ru)}</div>${spkBtn(c.say,"Озвучить")}
+     <div class="sec"><div class="eyebrow">Простыми словами</div><p>${esc(c.simple)}</p></div>
+     <div class="sec"><div class="eyebrow">Разбор по частям</div><div class="parts">${consParts(c).map(g=>`<div class="part"><code>${esc(g[0])}</code><span>${esc(g[1])}</span></div>`).join("")}</div></div>
+     <div class="pit">${c.pit}</div>
+     <div class="sec"><div class="eyebrow">Примеры</div>${c.ex.map(e=>`<div><div style="font-size:16px">${tt(e[0])}</div><div class="muted" style="font-size:14px">${esc(e[1])}</div></div>`).join("")}</div>
+   </div>
+   <button class="btn primary" id="learn">${learned?"Пройти урок ещё раз":"Учить: урок и тест"}</button>
+   <button class="btn" id="drill20">Прогнать ×20 · ${n} ${plural(n,"фраза","фразы","фраз")} из твоих слов</button>
+   ${learned?`<button class="btn ghost" id="un">Вернуть в изучение</button>`:`<button class="btn ghost" id="know">Я уже это знаю</button>`}</div>`;
+  $("#cb").onclick=consPathScreen;
+  $("#learn").onclick=()=>consLearn(c);$("#drill20").onclick=()=>runDrill(c);
+  const u=$("#un");if(u)u.onclick=()=>{cStat(c.id).status="learning";save();toast("Вернул в изучение");consScreen(c)};
+  const kn=$("#know");if(kn)kn.onclick=()=>runBlock({title:"Проверка",phases:[{mode:"train",tasks:consCheck(c)}],onFinish:()=>{
+    const ok=cStat(c.id).status==="learned";if(ok&&curC()===c){S.curCons=nextCons(c).id;save()}
+    toast(ok?"Отмечено как изученное":"Была ошибка — конструкция остаётся в изучении");consScreen(c)}});
+  window.scrollTo(0,0);
+}
+/* Урок одной конструкции: разбор → тренировка → тест. Сдал — конструкция пройдена, следующая становится текущей */
+function consLearn(c){
+  const th=S.settings.threshold;
+  runBlock({title:c.en,phases:[
+    {mode:"train",intro:{eyebrow:`${c.g} · ${CONS.indexOf(c)+1} из ${CONS.length}`,title:c.en,text:"Разбор, тренировка и короткий тест. Сдашь — конструкция отметится как пройденная."},tasks:consLesson(c)},
+    {mode:"test",name:"Тест: "+c.en,intro:{eyebrow:"Тест",title:c.en,text:`Без подсказок. Нужно ${th}%.`},
+     tasks:()=>{const ph=shuffle(genPhrases(c,false)).slice(0,3).map(x=>drillChoice(c,x)).filter(Boolean);return shuffle([consQ(c),consBuild(c,c.builds[0]),consBuild(c,c.builds[1]),...ph])}}],
+    onFinish:ph=>{const pass=ph[1].result.pct>=th;let extra;
+      if(pass){const s=cStat(c.id);s.status="learned";if(!s.at)s.at=Date.now();const nx=nextCons(c);S.curCons=nx.id;save();
+        extra=`<p class="muted" style="max-width:34ch">${esc(c.en)} пройдена. Следующая на тропе: <b style="color:var(--fg)">${esc(nx.en)}</b> — ${esc(nx.ru)}.</p>`}
+      else extra=`<p class="muted" style="max-width:34ch">Нужно ${th}%. Прогони её ×20 в тренажёре и пересдай.</p>`;
+      resultScreen("Конструкции",ph,extra)}});
+}
+function consGroupTest(g){
+  const list=CONS.filter(c=>c.g===g);
+  runBlock({title:"Тест группы",phases:[{mode:"test",name:"Тест группы: "+g,intro:{eyebrow:"Кубок группы",title:g,text:`${list.length} конструкций вперемешку, без подсказок.`},
+    tasks:()=>shuffle([...list.map(consQ),...list.map(c=>consBuild(c,c.builds[1]))])}],onFinish:ph=>resultScreen("Тест группы",ph)});
+}
+/* Времена: та же тропа, по порядку */
+function tensePathScreen(){
+  showTabs(false);const cur=curTense();
+  view.innerHTML=`${topBar(TENSE_DEFS.filter(x=>S.tense[x.key].stage>=3).length/6*100,"Времена")}
+   <div class="eyebrow">Тропа времён</div><h1 style="margin:6px 0 4px">6 времён по порядку</h1>
+   <p class="muted" style="margin-bottom:8px">Каждое: шаги теории → тест 1 → тренировка 2 → тест 2 → накопительный тест. Шпаргалка любого — в «Грамматике».</p>
+   <div class="path">${TENSE_DEFS.map((d,i)=>{const st=S.tense[d.key].stage>=3?"done":d===cur?"cur":"open",x=[0,56,84,56,0,-56][i];
+     return `<div class="pstep" style="transform:translateX(${x}px)">${st==="cur"?'<div class="pbubble">Сейчас</div>':""}<button class="pnode ${st}" data-k="${d.key}">${st==="done"?ICON_CHECK:st==="cur"?ICON_STAR:`<span class="pnum">${i+1}</span>`}</button><div class="plabel"><b>${esc(d.name)}</b><span>${esc(d.ru)}${d===cur?" · "+["шаги и тест 1","тренировка 2","накопительный тест","закрыто"][S.tense[d.key].stage]:""}</span></div></div>`}).join("")}</div>
+   <div class="foot"><button class="btn primary" id="go">Учить: ${esc(cur.name)}</button></div>`;
+  bindTop();$("#go").onclick=()=>startBlock("tense");
+  view.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const d=TENSE_DEFS.find(x=>x.key===b.dataset.k);
+    if(d===cur){startBlock("tense");return}
+    view.innerHTML=`${topBar(100,d.name)}<div class="theory">${d.sheet}</div><div class="foot"><button class="btn primary" id="bk">К тропе времён</button></div>`;
+    $("#close").onclick=tensePathScreen;$("#bk").onclick=tensePathScreen;window.scrollTo(0,0)});
 }
 
 /* ---------- Dictionary: folders by topic ---------- */
