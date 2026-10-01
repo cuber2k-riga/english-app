@@ -6,9 +6,9 @@
 <style>body{margin:0;background:#0E1316;color:#8D9B9F;font:15px system-ui,sans-serif;display:grid;place-items:center;height:100vh}</style>
 </head><body>Загрузка…
 <script>
-/* Загрузчик: всегда берёт свежую версию приложения, мимо кэша Telegram */
-(function(){var u="app.html?v="+Date.now();
-fetch(u,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text()})
+/* Загрузчик: каждый раз сверяет версию с сервером (no-cache = проверка по ETag), так что старая версия не застрянет, а неизменённый файл не качается заново */
+(function(){var u="app.html";
+fetch(u,{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text()})
 .then(function(h){document.open();document.write(h);document.close()})
-.catch(function(){location.replace(u+location.hash)})})();
+.catch(function(){location.replace(u+"?v="+Date.now()+location.hash)})})();
 </script></body></html>
