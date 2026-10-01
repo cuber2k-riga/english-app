@@ -5,7 +5,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head><body>
-<title>Английский Дани</title>
+<title>Английский · тропа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&display=swap">
 <style>
@@ -316,7 +316,7 @@ table.t .f{font-weight:700}
 
 <script>
 /* PUBLIC=true — публичная версия для друзей: без личных данных, с приветствием и профилем. Ставится сборкой public */
-const PUBLIC=false;
+const PUBLIC=true;
 /* ================= CONTENT ================= */
 const TOPIC={title:"Знакомство и о себе",total:20};
 /* Все 45 тем плана: английское название для папки, русское — подписью */
@@ -325,7 +325,7 @@ const TOPIC_NAMES=[["About Me","Знакомство и о себе"],["Family &
  ["Work","Работа"],["Money","Деньги"],["Online Shopping 2","Онлайн-покупки и сайты, часть 2"],["Problems","Проблемы и ситуации"],["Study","Учёба"],["Movies & Music","Фильмы, музыка, развлечения"],["Slang 2","Сленг, часть 2"],["Holidays & Events","Праздники и события"],["Nature & Animals","Природа и животные"],["Dating 2","Свидания и флирт, часть 2"],["Opinions","Мнения и споры"],["Plans & Dreams","Планы и мечты"],["Real Estate","Недвижимость"],["Business & Sales","Бизнес, продажи, переговоры"],["Technology","Технологии"],["News & Society","Новости и общество"],
  ["Deep Emotions","Эмоции глубже"],["Future","Время и будущее"],["Internet Culture","Интернет-культура"],["Slang 3","Сленг, часть 3"]];
 const WORDS=[
- ["name","имя","My name is Danya.","Меня зовут Даня."],
+ ["name","имя","My name is Alex.","Меня зовут Алекс."],
  ["live","жить","I live in Thailand.","Я живу в Таиланде."],
  ["country","страна","Russia is a big country.","Россия — большая страна."],
  ["city","город","I like this city.","Мне нравится этот город."],
@@ -727,7 +727,7 @@ const LINK=[
  {type:"say",ru:"Раньше я учился в колледже.",en:"I used to study in college.",pit:"После used to — study, не studied."},
  {type:"build",hint:"Собери фразу",ru:"Раньше я жил в России, но сейчас я живу здесь.",chunks:["I used to","live","in Russia,","but now","I live","here"],extra:["lived"],why:"used to + live — раньше. I live — сейчас."},
  {type:"say",ru:"Моя семья живёт в России.",en:"My family lives in Russia.",pit:"Семья = she → lives."},
- {type:"say",ru:"Привет, меня зовут Даня. Мне 18 лет.",en:"Hi, my name is Danya. I'm 18 years old."},
+ {type:"say",ru:"Привет, меня зовут Алекс. Мне 25 лет.",en:"Hi, my name is Alex. I'm 25 years old."},
  {type:"say",ru:"Мой брат не говорит по-русски?",en:"Doesn't my brother speak Russian?",skip:true}
 ].filter(x=>!x.skip);
 
@@ -742,10 +742,10 @@ const GLOSS={i:"я",you:"ты, вы",he:"он",she:"она",it:"это, оно",
  english:"английский",russian:"русский",russia:"Россия",thailand:"Таиланд",moscow:"Москва",
  every:"каждый",day:"день",usually:"обычно",often:"часто",always:"всегда",never:"никогда",sometimes:"иногда",
  play:"играть",games:"игры",football:"футбол",music:"музыка",guitar:"гитара",study:"учиться",college:"колледж",used:"used to — раньше (было)",here:"здесь",
- months:"месяцев",month:"месяц",two:"два",three:"три",hi:"привет",danya:"Даня"};
+ months:"месяцев",month:"месяц",two:"два",three:"три",hi:"привет",alex:"Алекс"};
 
 /* ================= STATE ================= */
-const KEY="eng-dani-v2"; /* новый ключ = чистый старт для всех */
+const KEY="eng-public-v1"; /* новый ключ = чистый старт для всех */
 const today=(()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")})();
 function fresh(){return {savedAt:0,words:{},cons:{},tense:{ps:{stage:0,answers:[]}},mistakes:[],custom:[],assoc:{},errors:[],topicsDone:[],settings:{threshold:80},day:{date:today,done:{}}}}
 let S;
@@ -2058,7 +2058,7 @@ function buildPrompt(){
   L.push("");
   if(PUBLIC){const p=S.profile||{},lv={zero:"начинаю почти с нуля",a2:"понимаю английский примерно на A2, говорю пока слабо",b1:"уровень примерно B1, хочу говорить свободнее"}[p.level]||"уровень примерно A2";
     L.push(`Кто я: ${p.name||"ученик"}, ${lv}. Цель — начать свободно говорить.`)}
-  else L.push("Кто я: Даня, 18 лет, живу в Таиланде. Понимаю английский примерно на A2, говорю пока слабо. Цель — начать свободно говорить.");
+  
   L.push("");
   L.push("1) НОВОЕ — главный фокус, примерно 70% вопросов:");
   if(fw.length)L.push("Слова: "+fw.map(fmtW).join("; "));
