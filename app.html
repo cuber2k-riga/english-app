@@ -1473,11 +1473,20 @@ function practiceActs(){
 function tensePractice(keys,n){
   const acts=practiceActs(),out=[];let guard=0;
   while(out.length<n&&guard++<200){const key=keys[out.length%keys.length],[ok,mk]=TP[key],a=acts[Math.floor(Math.random()*acts.length)];
-    if(!a||!ok(a))continue;const q=mk(a);if(new Set(q.o).size<3)continue;
-    const id="g:"+key+":"+a.b;if(out.some(t=>t.id===id))continue;
-    const it={id,tense:key,type:"choice",hint:"Как сказать? · на твоих словах",prompt:q.ru,ru:true,options:q.o,answer:0,notes:q.n,sayAfter:q.o[0]};
-    TENSE_ITEMS[id]=it;out.push(it)}
+    if(!a)continue;const it=tpItem(key,a);if(!it||out.some(t=>t.id===it.id||t.prompt===it.prompt))continue;out.push(it)}
   return out.map(tag)}
+function tpItem(key,a){const [ok,mk]=TP[key];if(!ok(a))return null;const q=mk(a);if(new Set(q.o).size<3)return null;
+  const id="g:"+key+":"+a.b,it={id,tense:key,type:"choice",hint:"Как сказать? · на твоих словах",prompt:q.ru,ru:true,options:q.o,answer:0,notes:q.n,sayAfter:q.o[0]};
+  TENSE_ITEMS[id]=it;return it}
+/* ошибка в таком задании переживает перезапуск: собираем его заново по id */
+function tpFromId(id){const m=/^g:(\w+):(.+)$/.exec(id||"");if(!m||!TP[m[1]])return null;const a=ACTS.find(x=>x.b===m[2]);return a?tpItem(m[1],a):null}
+/* Закрытые времена сами подмешиваются в тренировки: примерно каждое 4-е задание */
+const closedTenses=()=>TENSE_DEFS.filter(d=>S.tense[d.key]&&S.tense[d.key].stage>=3).map(d=>d.key);
+function mixTenses(tasks){const keys=closedTenses();if(!keys.length||tasks.length<3)return tasks;
+  let extra=[];try{extra=tensePractice(shuffle(keys),Math.max(1,Math.round(tasks.length/4)))}catch(e){}
+  if(!extra.length)return tasks;const out=[...tasks],step=Math.floor(out.length/(extra.length+1))||1;
+  extra.forEach((t,i)=>out.splice(Math.min(out.length,step*(i+1)+i),0,{...t,hint:"Время · "+(TENSE_DEFS.find(d=>d.key===TENSE_ITEMS[t.tenseId].tense)||{}).name}));
+  return out}
 
 
 
@@ -1868,7 +1877,7 @@ function startBlock(key){
     const tasks=old.map(m=>{
       if(m.kind==="word"){const w=ALLW().find(w=>w.id===m.id);return w&&wordQ(w,"ru2en")}
       if(m.kind==="cons"){const c=CONS.find(c=>c.id===m.id);return c&&consQ(c)}
-      const it=TENSE_ITEMS[m.id];return it&&tag(it);
+      const it=TENSE_ITEMS[m.id]||tpFromId(m.id);return it&&tag(it);
     }).filter(Boolean);
     runBlock({title:"Проверка",phases:[{mode:"test",name:"Проверка ошибок",tasks:shuffle(tasks)}],onFinish:ph=>{
       S.mistakes=S.mistakes.filter(m=>m.date>=today);finishBlock("check");resultScreen("Проверка",ph)}});
@@ -1940,7 +1949,7 @@ function startBlock(key){
     const consNow=CONS.filter(c=>cStat(c.id).status!=="new");
     const linkTasks=S.curTopic===0?LINK:[...shuffle(seen.length?seen:t.words).slice(0,6).map(w=>({type:"say",ru:w.exRu,en:w.ex,wordId:w.id})),
       ...shuffle(consNow).slice(0,3).flatMap(c=>{const ph=shuffle(genPhrases(c,true));return ph.length?[{type:"build",hint:"Собери фразу",ru:ph[0].ru,chunks:chunkify(ph[0].en,c.say),en:ph[0].en,consId:c.id,why:c.simple}]:[]})];
-    runBlock({title:"Говорим фразами",phases:[{mode:"train",intro:{eyebrow:"Говорим фразами",title:"Говорим целыми фразами",text:"Слова темы и конструкции вместе. Говори вслух, потом сверяйся."},tasks:shuffle(linkTasks)}],
+    runBlock({title:"Говорим фразами",phases:[{mode:"train",intro:{eyebrow:"Говорим фразами",title:"Говорим целыми фразами",text:"Слова темы и конструкции вместе. Говори вслух, потом сверяйся."},tasks:mixTenses(shuffle(linkTasks))}],
       onFinish:ph=>{finishBlock("link");resultScreen("Говорим фразами",ph)}});
   }
 }
@@ -1988,7 +1997,7 @@ function runDrill(c,useAll){
     if(ty==="choice"){const q=drillChoice(c,x);if(q)return q}
     if(ty==="build")return {type:"build",hint:"Собери фразу",ru:x.ru,chunks:chunkify(x.en,c.say),en:x.en,consId:c.id,why:c.simple};
     return {type:"say",ru:x.ru,en:x.en,consId:c.id,pit:c.pitPlain}});
-  runBlock({title:`${c.en} ×${N}`,phases:[{mode:"train",tasks:[{type:"ccard",cons:c},...tasks]}],onFinish:ph=>{
+  runBlock({title:`${c.en} ×${N}`,phases:[{mode:"train",tasks:[{type:"ccard",cons:c},...mixTenses(tasks)]}],onFinish:ph=>{
     showTabs(false);
     view.innerHTML=`<div class="stack center" style="padding-top:40px"><div class="eyebrow">Тренажёр · ${N} ${plural(N,"фраза","фразы","фраз")} без повторов</div><h1>${esc(c.en)}</h1>
       <div class="score" style="color:${ph[0].result.pct>=80?"var(--good)":"var(--warn)"}">${ph[0].result.pct}%</div><p class="muted">с первого раза</p></div>
@@ -2457,7 +2466,7 @@ function home(){
   const oldMist=S.mistakes.filter(m=>m.date<today).length;
   const track=(id,eyebrow,title,sub,pct,go,goLabel)=>`<div class="track"><button class="trk-top" data-path="${id}"><div style="min-width:0;flex:1"><div class="eyebrow">${eyebrow}</div><div class="trk-t">${title}</div><div class="muted" style="font-size:13px">${sub}</div></div><span class="trk-map">Тропа ›</span></button>
     <div class="bar"><i style="width:${pct}%"></i></div><button class="btn primary" data-go="${go}">${goLabel}</button></div>`;
-  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v20</span></div>
+  view.innerHTML=`<div class="head"><div><div class="eyebrow">Английский</div><h1 style="margin-top:4px">Чем займёмся?</h1></div><span class="proto">v21</span></div>
   ${S.onboarded?"":`<button class="onb" id="onb"><b>Начни с этого: отметь слова, которые уже знаешь</b><span>2–3 минуты. Тогда уроки не будут давать знакомое, а тренажёр соберёт фразы из твоих слов.</span></button>`}
   ${oldMist?`<button class="onb" id="chk" style="background:var(--bad-bg);border-color:var(--bad)"><b style="color:var(--bad)">Проверка: ${oldMist} ${plural(oldMist,"ошибка","ошибки","ошибок")} с прошлых дней</b><span>Пара минут — и они не забудутся.</span></button>`:""}
   <div class="stack">
@@ -2544,7 +2553,7 @@ function consScreen(c){
 function consLearn(c){
   const th=S.settings.threshold,L=KL(KIND(c));refreshCons(c);
   runBlock({title:c.en,phases:[
-    {mode:"train",intro:{eyebrow:`${c.g} · ${L.indexOf(c)+1} из ${L.length}`,title:c.en,text:"Разбор, тренировка и короткий тест. Фразы — из твоих слов и последних тем. Сдашь — отметится как пройденная."},tasks:consLesson(c)},
+    {mode:"train",intro:{eyebrow:`${c.g} · ${L.indexOf(c)+1} из ${L.length}`,title:c.en,text:"Разбор, тренировка и короткий тест. Фразы — из твоих слов и последних тем. Сдашь — отметится как пройденная."},tasks:KIND(c)==="conn"?mixTenses(consLesson(c)):consLesson(c)},
     {mode:"test",name:"Тест: "+c.en,intro:{eyebrow:"Тест",title:c.en,text:`Без подсказок. Нужно ${th}%.`},
      tasks:()=>{const P=c._plan||lessonPlan(c),ph=P.xc.map(x=>drillChoice(c,x)).filter(Boolean);return shuffle([consQ(c),...P.xb.map(b=>consBuild(c,b)),...ph])}}],
     onFinish:ph=>{const pass=ph[1].result.pct>=th;let extra;
